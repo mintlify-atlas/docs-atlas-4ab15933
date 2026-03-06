@@ -1,0 +1,354 @@
+---
+title: items.txt
+description: Complete reference for defining items in PBS/items.txt
+---
+
+The `items.txt` file defines all items in the game, including their properties, prices, effects, and categorization. Each item is defined on a single line in CSV format.
+
+## File Format
+
+Each line defines one item with comma-separated values:
+
+```
+ID,INTERNALNAME,Name,NamePlural,Pocket,Price,Description,FieldUse,BattleUse,Flags,Consumable
+```
+
+## Example Entries
+
+```
+1,REPEL,Repelente,Repelentes,1,350,"Repele Pokémon salvajes débiles en un recorrido de 100 pasos.",2,0,0,
+217,POTION,Poción,Pociones,2,300,"Medicina en spray que cura heridas y restaura 20 PS de un Pokémon.",1,1,0,
+264,MASTERBALL,Master Ball,Master Balls,3,0,"La Poké Ball definitiva. Atrapa a cualquier Pokémon salvaje y no falla nunca.",0,2,3,
+```
+
+## Field Definitions
+
+<ParamField path="ID" type="Integer">
+  Unique item ID number. Must be sequential starting from 1.
+  
+  ```
+  1,REPEL,...
+  2,SUPERREPEL,...
+  217,POTION,...
+  ```
+</ParamField>
+
+<ParamField path="InternalName" type="String">
+  Internal identifier in UPPERCASE. Used in code and scripts.
+  
+  ```
+  POTION
+  MASTERBALL
+  THUNDERSTONE
+  ```
+</ParamField>
+
+<ParamField path="Name" type="String">
+  Display name shown to players (singular form).
+  
+  ```
+  Poción
+  Master Ball
+  Piedra Trueno
+  ```
+</ParamField>
+
+<ParamField path="NamePlural" type="String">
+  Plural form of the item name.
+  
+  ```
+  Pociones
+  Master Balls
+  Piedras Trueno
+  ```
+</ParamField>
+
+<ParamField path="Pocket" type="Integer">
+  Bag pocket/category where the item is stored.
+  
+  - `0` - Key Items (cannot be sold)
+  - `1` - Items (general items)
+  - `2` - Medicine (healing items)
+  - `3` - Poké Balls
+  - `4` - TMs & HMs
+  - `5` - Berries
+  - `6` - Battle Items
+  - `7` - Mail
+  
+  ```
+  1  # General items pocket
+  2  # Medicine pocket
+  3  # Poké Balls pocket
+  ```
+</ParamField>
+
+<ParamField path="Price" type="Integer">
+  Purchase price at Poké Marts. Sell price is typically 50% of this.
+  
+  Use `0` for items that cannot be bought.
+  
+  ```
+  300     # Potion
+  1200    # Ultra Ball
+  0       # Cannot buy (Master Ball)
+  ```
+</ParamField>
+
+<ParamField path="Description" type="String">
+  Item description shown to players. Must be in quotes.
+  
+  ```
+  "Medicina en spray que cura heridas y restaura 20 PS de un Pokémon."
+  "La Poké Ball definitiva. Atrapa a cualquier Pokémon salvaje y no falla nunca."
+  ```
+</ParamField>
+
+<ParamField path="FieldUse" type="Integer">
+  Usage behavior outside of battle.
+  
+  - `0` - Cannot use in field
+  - `1` - Can use on a Pokémon
+  - `2` - Can use directly (like Repel)
+  - `3` - Can use on Pokémon or directly
+  
+  ```
+  0  # Battle-only item
+  1  # Use on Pokémon (Potion)
+  2  # Use directly (Repel)
+  ```
+</ParamField>
+
+<ParamField path="BattleUse" type="Integer">
+  Usage behavior during battle.
+  
+  - `0` - Cannot use in battle
+  - `1` - Can use on a Pokémon
+  - `2` - Can use directly (Poké Balls)
+  - `3` - Can use on Pokémon or directly
+  
+  ```
+  0  # Field-only item
+  1  # Use on Pokémon (Potion)
+  2  # Direct use (Poké Ball)
+  ```
+</ParamField>
+
+<ParamField path="Flags" type="Integer">
+  Special flags for the item.
+  
+  - `0` - No special flags
+  - `1` - Evolution stone
+  - `2` - Key item (cannot toss)
+  - `3` - Poké Ball
+  - `4` - Multiple balls can be held
+  
+  ```
+  0  # Normal item
+  1  # Evolution item
+  2  # Important key item
+  ```
+</ParamField>
+
+<ParamField path="Consumable" type="String">
+  Additional properties (optional, can be empty).
+  
+  Leave empty for most items. Used for special mechanics.
+  
+  ```
+  
+  true  # Consumed on use
+  ```
+</ParamField>
+
+## Item Categories
+
+### Medicine Items
+
+Healing items stored in the Medicine pocket (Pocket=2).
+
+```
+217,POTION,Poción,Pociones,2,300,"Medicina en spray que cura heridas y restaura 20 PS de un Pokémon.",1,1,0,
+218,SUPERPOTION,Superpoción,Superpociones,2,700,"Medicina en spray que cura heridas y restaura 60 PS de un Pokémon.",1,1,0,
+219,HYPERPOTION,Hiperpoción,Hiperpociones,2,1200,"Medicina en spray que cura heridas y restaura 120 PS de un Pokémon.",1,1,0,
+220,MAXPOTION,Poción Máxima,Pociones Máximas,2,2500,"Medicina en spray que cura heridas y restaura todos los PS de un Pokémon.",1,1,0,
+```
+
+### Status Healers
+
+```
+223,AWAKENING,Despertar,Despertar,2,250,"Medicina en spray que libera a un Pokémon de las garras del sueño.",1,1,0,
+224,ANTIDOTE,Antídoto,Antídotos,2,100,"Medicina en spray que contrarresta los efectos del veneno en un Pokémon.",1,1,0,
+225,BURNHEAL,Antiquemar,Antiquemar,2,250,"Medicina en spray que cura las quemaduras a un Pokémon.",1,1,0,
+226,PARLYZHEAL,Antiparalizador,Antiparalizadores,2,200,"Medicina en spray que cura a un Pokémon paralizado.",1,1,0,
+```
+
+### Revival Items
+
+```
+232,REVIVE,Revivir,Revivir,2,1500,"Medicina que reanima a un Pokémon debilitado y restaura la mitad de sus PS.",1,1,0,
+233,MAXREVIVE,Revivir Máximo,Revivir Máximos,2,4000,"Medicina que reanima a un Pokémon debilitado y restaura todos sus PS.",1,1,0,
+222,SACREDASH,Ceniza Sagrada,Cenizas Sagradas,2,200,"Reanima completamente a los Pokémon debilitados y restaura todos sus PS.",2,0,0,
+```
+
+### PP Restoration
+
+```
+245,ETHER,Éter,Éteres,2,1200,"Restaura un máximo de 10 PP del ataque que elijas de un Pokémon.",1,1,0,
+246,MAXETHER,Éter Máximo,Éteres Máximos,2,2000,"Restaura completamente los PP del movimiento que elijas de un Pokémon.",1,1,0,
+247,ELIXIR,Elixir,Elixires,2,3000,"Restaura 10 PP de todos los movimientos aprendidos por un Pokémon.",1,1,0,
+248,MAXELIXIR,Elixir Máximo,Elixires Máximos,2,4500,"Restaura completamente los PP de todos los movimientos aprendidos por el Pokémon elegido.",1,1,0,
+```
+
+### Evolution Stones
+
+Evolution items with Flag=1.
+
+```
+12,FIRESTONE,Piedra Fuego,Piedras Fuego,1,2100,"Curiosa piedra que hace evolucionar a determinadas especies de Pokémon. Es amarilla con una marca naranja.",1,0,0,
+13,THUNDERSTONE,Piedra Trueno,Piedras Trueno,1,2100,"Curiosa piedra que hace evolucionar a determinadas especies de Pokémon. Tiene dibujado un rayo.",1,0,0,
+14,WATERSTONE,Piedra Agua,Piedras Agua,1,2100,"Curiosa piedra que hace evolucionar a determinadas especies de Pokémon. Es de color azul, como el agua.",1,0,0,
+15,LEAFSTONE,Piedra Hoja,Piedras Hoja,1,2100,"Curiosa piedra que hace evolucionar a determinadas especies de Pokémon. Tiene dibujada una hoja.",1,0,0,
+16,MOONSTONE,Piedra Lunar,Piedras Lunares,1,2100,"Curiosa piedra que hace evolucionar a determinadas especies de Pokémon. Es negra como el azabache.",1,0,0,
+```
+
+### Poké Balls
+
+Capture items with Pocket=3 and Flags=3 or 4.
+
+```
+264,MASTERBALL,Master Ball,Master Balls,3,0,"La Poké Ball definitiva. Atrapa a cualquier Pokémon salvaje y no falla nunca.",0,2,3,
+265,ULTRABALL,Ultra Ball,Ultra Balls,3,1200,"Poké Ball de rendimiento superior. Tiene más índice de éxito que la Superball.",0,2,4,
+266,GREATBALL,Super Ball,Super Balls,3,600,"Poké Ball de alto rendimiento. Tiene un índice de éxito superior al de la Poké Ball.",0,2,4,
+267,POKEBALL,Poké Ball,Poké Balls,3,200,"Dispositivo con diseño capsular que atrapa Pokémon salvajes. Se lanza como una bola contra el blanco.",0,2,4,
+```
+
+### Special Poké Balls
+
+```
+270,NETBALL,Malla Ball,Malla Balls,3,1000,"Es algo distinta a las demás. Funciona especialmente bien con los Pokémon de tipo Agua y Bicho.",0,2,4,
+272,NESTBALL,Nido Ball,Nido Balls,3,1000,"Es algo distinta a las demás. Funciona especialmente bien con los Pokémon salvajes de menor nivel.",0,2,4,
+274,TIMERBALL,Turno Ball,Turno Balls,3,1000,"Una Poké Ball algo distinta que va mejorando su rendimiento con cada turno de combate.",0,2,4,
+277,DUSKBALL,Ocaso Ball,Ocaso Balls,3,1000,"Es algo distinta. Hace que sea más fácil capturar a Pokémon salvajes en la oscuridad.",0,2,4,
+```
+
+### Held Items
+
+Items that Pokémon can hold for various effects.
+
+```
+66,AIRBALLOON,Globo Helio,Globos Helio,1,200,"El Pokémon que lo lleve flotará en el aire. Si recibe un golpe, estallará.",0,0,0,
+81,CHOICEBAND,Cinta Elección,Cintas Elección,1,100,"Aumenta el Ataque pero solo permite usar un tipo de movimiento. Debe llevarla un Pokémon.",0,0,0,
+100,LIFEORB,Vidasfera,Vidasferas,1,200,"Potencia los movimientos, pero consume PS con cada ataque. Debe llevarla un Pokémon.",0,0,0,
+```
+
+### Stat Boosters
+
+```
+251,HPUP,Más PS,Más PS,2,9800,"Nutritiva bebida que aumenta los PS de un Pokémon.",1,0,0,
+252,PROTEIN,Proteína,Proteínas,2,9800,"Nutritiva bebida que aumenta el Ataque de un Pokémon.",1,0,0,
+253,IRON,Hierro,Hierros,2,9800,"Nutritiva bebida que aumenta la Defensa de un Pokémon.",1,0,0,
+254,CALCIUM,Calcio,Calcios,2,9800,"Nutritiva bebida que sube el At. Esp. de un Pokémon.",1,0,0,
+255,ZINC,Zinc,Zincs,2,9800,"Nutritiva bebida que aumenta la Defensa Especial de un Pokémon.",1,0,0,
+256,CARBOS,Carburante,Carburantes,2,9800,"Nutritiva bebida que sube la Velocidad de un Pokémon.",1,0,0,
+```
+
+### Battle Items
+
+```
+76,LUCKYEGG,Huevo Suerte,Huevos Suerte,1,200,"Es un huevo lleno de felicidad que te hará ganar Puntos de Exp. extra en combate. Debe llevarlo un Pokémon.",0,0,0,
+77,EXPSHARE,Repartir Exp,Repartir Exp,1,3000,"El Pokémon que lo lleva obtiene parte de los Puntos de Exp. conseguidos en el combate sin participar en él.",0,0,0,
+78,AMULETCOIN,Moneda Amuleto,Monedas Amuleto,1,100,"Si el Pokémon que la lleva lucha en un combate, duplica las ganancias.",0,0,0,
+```
+
+### Type-Boosting Items
+
+Increase power of moves of a specific type.
+
+```
+136,CHARCOAL,Carbón,Carbones,1,9800,"Actúa como combustible y potencia la energía de los ataques de tipo Fuego. Debe llevarlo un Pokémon.",0,0,0,
+137,MYSTICWATER,Agua Mística,Aguas Místicas,1,100,"Gema con forma de lágrima que fortalece los ataques de tipo Agua. Debe llevarla un Pokémon.",0,0,0,
+138,MAGNET,Imán,Imanes,1,100,"Debe llevarlo un Pokémon. Su potente magnetismo fortalece los ataques de tipo Eléctrico.",0,0,0,
+139,MIRACLESEED,Semilla Milagro,Semillas Milagros,1,100,"Debe llevarla un Pokémon. La vitalidad de la semilla fortalece los ataques de tipo Planta.",0,0,0,
+```
+
+### TMs
+
+Technical Machines with Pocket=4.
+
+```
+288,TM01,MT01,MT01s,4,0,"El usuario se afila las garras para aumentar su Ataque y Precisión.",3,0,0,HONECLAWS
+289,TM02,MT02,MT02s,4,0,"Araña al objetivo con garras afiladas.",3,0,0,DRAGONCLAW
+```
+
+Note the additional parameter at the end (e.g., `HONECLAWS`) which specifies the move.
+
+## Pricing Guidelines
+
+<Accordion title="Common Item Prices">
+  - **Basic healing**: 100-300 (Potions, status healers)
+  - **Mid-tier healing**: 600-1200 (Super Potion, Hyper Potion)
+  - **High-tier healing**: 2500+ (Max Potion, Full Restore)
+  - **Poké Balls**: 200-1200 (Basic to Ultra)
+  - **Evolution stones**: 2100
+  - **Stat boosters**: 9800 (Vitamins)
+  - **Held items**: 100-200 (most)
+  - **Specialty items**: 0 (cannot buy)
+</Accordion>
+
+## Complete Examples
+
+### Healing Item
+
+```
+217,POTION,Poción,Pociones,2,300,"Medicina en spray que cura heridas y restaura 20 PS de un Pokémon.",1,1,0,
+```
+
+- Restores 20 HP
+- Can use in field and battle on Pokémon
+- Costs 300, sells for 150
+- Medicine pocket
+
+### Evolution Stone
+
+```
+12,FIRESTONE,Piedra Fuego,Piedras Fuego,1,2100,"Curiosa piedra que hace evolucionar a determinadas especies de Pokémon. Es amarilla con una marca naranja.",1,0,0,
+```
+
+- Evolves certain Pokémon
+- Field use only, on Pokémon
+- Flag 1 indicates evolution item
+- Items pocket
+
+### Poké Ball
+
+```
+267,POKEBALL,Poké Ball,Poké Balls,3,200,"Dispositivo con diseño capsular que atrapa Pokémon salvajes. Se lanza como una bola contra el blanco.",0,2,4,
+```
+
+- Battle use only, direct use
+- Poké Balls pocket
+- Flag 4 allows stacking
+- Basic capture device
+
+### Held Item
+
+```
+100,LIFEORB,Vidasfera,Vidasferas,1,200,"Potencia los movimientos, pero consume PS con cada ataque. Debe llevarla un Pokémon.",0,0,0,
+```
+
+- Cannot use directly (FieldUse=0, BattleUse=0)
+- Must be held by Pokémon
+- Effect coded in battle scripts
+- General items pocket
+
+<Note>
+  **Item Effects**: The actual effects of items (HP restoration amount, stat boost values, etc.) are coded in the game scripts. The PBS file only defines the item's properties and description.
+</Note>
+
+<Note>
+  **TM Items**: TMs require an additional parameter specifying which move they teach. This is appended to the end of the line after the consumable field.
+</Note>
+
+<Note>
+  **Key Items**: Items with Pocket=0 or Flag=2 are key items that cannot be sold or tossed. Use these for quest items and important story objects.
+</Note>

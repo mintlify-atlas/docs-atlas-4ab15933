@@ -1,0 +1,290 @@
+---
+title: Animation Maker
+description: Create and convert battle move animations for Pokémon Essentials BES
+---
+
+The Animation Maker (`animmaker.exe`) is a command-line tool that converts sprite images into RPG Maker XP format animations for use in Pokémon battles.
+
+## Overview
+
+The Animation Maker tool:
+
+- Converts individual sprite images into animation frames
+- Automatically doubles sprite size for animations
+- Creates properly formatted animation spritesheets
+- Uses XML configuration files to define animations
+
+## Tool Location
+
+The `animmaker.exe` tool is located in:
+
+```
+Tools/animmaker.exe
+Tools/animmaker.txt (documentation)
+```
+
+## How It Works
+
+Animation Maker reads an XML file that specifies:
+
+1. Source images containing animation sprites
+2. Rectangular regions to extract from those images
+3. Output animation file names
+4. Pattern arrangement for the animation
+
+<Note>
+Animation patterns are automatically doubled in size (2x scale) when converted to the animation format.
+</Note>
+
+## Usage
+
+<Steps>
+  <Step title="Create XML Configuration">
+    Create an XML file defining your animation patterns (see format below).
+  </Step>
+  
+  <Step title="Prepare Source Images">
+    Ensure your source sprite images are in the same directory or provide correct paths.
+  </Step>
+  
+  <Step title="Run Animation Maker">
+    Execute the tool from the command line:
+    
+    ```bash
+    animmaker.exe xmlfile.xml
+    ```
+  </Step>
+  
+  <Step title="Use Generated Animation">
+    The tool creates animation PNG files that can be used in your game's animation system.
+  </Step>
+</Steps>
+
+## XML File Format
+
+The XML configuration file follows this structure:
+
+```xml
+<animations>
+  <!--Animation file to create (in this case, animation.png)-->
+  <animation name="animation.png">
+    <!--Pattern to add to the animation.  Consists of the image's
+        filename plus the rectangle of the pattern to extract
+        from the image (x, y, width, height) (up to 96x96 in size)
+        Sprites listed here will be doubled in size in the animation-->
+    <pattern filename="pkmnfrlg_effects.png" x="50" y="201" 
+      width="56" height="68" />
+  </animation>
+  
+  <!--Another animation file, animation2.png)-->
+  <animation name="animation2.png">
+    <pattern filename="pkmnfrlg_effects.png" x="50" y="201" 
+      width="56" height="68" />
+    <!-- You can leave out x, y, etc. to use the whole image-->
+    <pattern filename="effects2.png" />
+  </animation>
+</animations>
+```
+
+### XML Elements
+
+#### `<animations>` Root Element
+
+The top-level container for all animation definitions.
+
+#### `<animation>` Element
+
+Defines a single animation output file.
+
+**Attributes:**
+- `name` - Output filename for the generated animation (e.g., "animation.png")
+
+#### `<pattern>` Element
+
+Defines a sprite pattern to extract and include in the animation.
+
+**Attributes:**
+- `filename` - Source image file containing the sprite
+- `x` - X coordinate of the sprite region (optional, default: 0)
+- `y` - Y coordinate of the sprite region (optional, default: 0)
+- `width` - Width of the sprite region (optional, uses full image width if omitted)
+- `height` - Height of the sprite region (optional, uses full image height if omitted)
+
+<Warning>
+Sprite patterns are limited to a maximum size of 96×96 pixels before doubling. The output will be 192×192 pixels maximum.
+</Warning>
+
+## Example: Creating a Move Animation
+
+Let's create an animation for a Fire-type move:
+
+<Steps>
+  <Step title="Create XML Configuration">
+    Create `fire_move.xml`:
+    
+    ```xml
+    <animations>
+      <animation name="FireBlast.png">
+        <pattern filename="fire_effects.png" x="0" y="0" width="64" height="64" />
+        <pattern filename="fire_effects.png" x="64" y="0" width="64" height="64" />
+        <pattern filename="fire_effects.png" x="128" y="0" width="64" height="64" />
+      </animation>
+    </animations>
+    ```
+  </Step>
+  
+  <Step title="Run the Tool">
+    ```bash
+    cd Tools
+    animmaker.exe fire_move.xml
+    ```
+  </Step>
+  
+  <Step title="Check Output">
+    The tool generates `FireBlast.png` with your animation frames arranged and doubled in size.
+  </Step>
+</Steps>
+
+## Animation Data Files
+
+Pokémon Essentials uses `.rxdata` files to store animation data:
+
+### PkmnAnimations.rxdata
+
+The main animation data file containing:
+
+- Move animations for all Pokémon moves
+- Animation timing and effects
+- Frame sequences and transitions
+- Sound effects tied to animations
+
+**Location:** `Data/PkmnAnimations.rxdata`
+
+<Info>
+This file is a binary serialized Ruby object. You can view and edit animations using the RPG Maker XP Editor's Database → Animations section, or by creating custom animation scripts.
+</Info>
+
+### Animations.rxdata
+
+Standard RPG Maker XP animations file:
+
+**Location:** `Data/Animations.rxdata`
+
+## Working with Animation Graphics
+
+### Source Image Requirements
+
+- **Format:** PNG images work best
+- **Max sprite size:** 96×96 pixels (before 2x scaling)
+- **Transparency:** Use PNG transparency for proper sprite masking
+- **Organization:** Keep related animation frames in the same source image
+
+### Typical Animation Structure
+
+Move animations typically consist of:
+
+1. **Startup frames** - Animation beginning
+2. **Impact frames** - The main effect
+3. **Follow-through frames** - Animation end
+4. **Particle effects** - Additional visual elements
+
+### Animation Frame Layout
+
+Animation spritesheets in RPG Maker XP use a 5-column grid:
+
+```
+[Frame 1][Frame 2][Frame 3][Frame 4][Frame 5]
+[Frame 6][Frame 7][Frame 8][Frame 9][Frame 10]
+[... continues ...]
+```
+
+Each frame is 192×192 pixels (after 2x scaling by Animation Maker).
+
+## Tips for Creating Animations
+
+### Design Tips
+
+- **Keep it simple** - Complex animations can be performance-heavy
+- **Use consistent sizing** - Maintain similar sprite sizes for cohesive animations
+- **Frame timing** - Plan animation duration based on battle pacing
+- **Visual clarity** - Ensure animations are readable at battle camera distance
+
+### Technical Tips
+
+- **Batch processing** - Create one XML file with multiple `<animation>` elements
+- **Source organization** - Keep source sprites organized in effect sheets
+- **Naming convention** - Use descriptive names for output files
+- **Version control** - Keep XML files under version control for reproducibility
+
+### Performance Considerations
+
+- Fewer, larger sprites are more efficient than many small sprites
+- Reuse animation patterns across similar moves
+- Optimize PNG files after generation to reduce file size
+
+## Common Issues
+
+### Tool Doesn't Run
+
+- Ensure you're running from command line, not double-clicking
+- Check that the XML file path is correct
+- Verify source images exist at specified paths
+
+### Output Image is Wrong Size
+
+Remember that Animation Maker automatically doubles sprite size:
+
+- Input: 64×64 pixels → Output: 128×128 pixels
+- Input: 96×96 pixels → Output: 192×192 pixels
+
+### Missing Transparency
+
+- Ensure source images are PNG with alpha channel
+- Check that the extracted region includes transparency data
+
+### Pattern Extraction Issues
+
+- Verify x, y coordinates are correct (0-based indexing)
+- Ensure width and height don't exceed source image bounds
+- Check that coordinates + dimensions don't exceed 96×96 limit
+
+## Advanced Usage
+
+### Extracting Full Images
+
+Omit position and size attributes to use the entire source image:
+
+```xml
+<pattern filename="effects.png" />
+```
+
+### Multiple Patterns in One Animation
+
+Combine multiple patterns from different sources:
+
+```xml
+<animation name="combo_move.png">
+  <pattern filename="fire_effects.png" x="0" y="0" width="48" height="48" />
+  <pattern filename="water_effects.png" x="0" y="0" width="48" height="48" />
+  <pattern filename="impact.png" x="0" y="0" width="64" height="64" />
+</animation>
+```
+
+### Batch Generation
+
+Create multiple animations in one pass:
+
+```xml
+<animations>
+  <animation name="Fire1.png">...</animation>
+  <animation name="Fire2.png">...</animation>
+  <animation name="Fire3.png">...</animation>
+  <animation name="Water1.png">...</animation>
+</animations>
+```
+
+## Related Resources
+
+- [RPG Maker XP Editor](/tools/editor) - Edit animations in the database
+- [Battle Animations Guide](/battle/animations) - Implementing animations in battles
+- [Graphics Resources](/graphics/overview) - Managing game graphics

@@ -1,0 +1,377 @@
+---
+title: EditorScripts Folder
+description: Understanding the structure and organization of scripts in Data/EditorScripts/
+---
+
+## Overview
+
+The `Data/EditorScripts/` folder contains all the Ruby source code for Pokémon Essentials during development. These scripts are compiled into `Data/Scripts.rxdata` when you playtest or release your game.
+
+## Folder Structure
+
+```
+Data/EditorScripts/
+├── 001_Debug_Settings #####.rb
+├── 002_Win32API.rb
+├── 003_Sprite_Resizer.rb
+├── ...
+├── 016_PBMove.rb
+├── 031_PokeBattle_Pokemon.rb
+├── 036_PBattle_OrgBattle.rb
+├── 039_PSystem_Utilities.rb
+└── 999_EditorMain #####.rb
+```
+
+### File Naming Convention
+
+Each file follows the pattern: `NNN_ScriptName.rb` where:
+- `NNN` is a three-digit number (001-999) determining **load order**
+- `ScriptName` describes the file's purpose
+- Files with `#####` are typically entry points or special scripts
+
+<Note>
+The numbering is crucial - scripts load in numerical order. Lower numbers load first and can be used by higher-numbered scripts.
+</Note>
+
+## Loading Order
+
+Scripts load sequentially from lowest to highest number:
+
+1. **001-010**: Core utilities, Win32 API, basic classes
+2. **011-020**: Windows, sprites, and UI components
+3. **021-039**: Game data structures (moves, Pokémon, types, natures)
+4. **040-099**: Game systems (debug, utilities, editors)
+5. **999**: Entry point and initialization
+
+<Warning>
+If Script A depends on classes defined in Script B, make sure Script B has a lower number than Script A.
+</Warning>
+
+## Key Script Files
+
+### Move Data (016_PBMove.rb)
+
+Defines how moves work and stores move properties:
+
+```ruby Data/EditorScripts/016_PBMove.rb
+class PBMoveData
+  attr_reader :function,:basedamage,:type,:accuracy
+  attr_reader :totalpp,:addlEffect,:target,:priority
+  attr_reader :flags
+  attr_reader :category
+
+  def initialize(moveid)
+    movedata=nil
+    if $PokemonTemp
+      movedata=$PokemonTemp.pbOpenMoveData
+    else
+      movedata=pbRgssOpen("Data/moves.dat")
+    end
+    movedata.pos=moveid*14
+    @function    = movedata.fgetw
+    @basedamage  = movedata.fgetb
+    @type        = movedata.fgetb
+    @category    = movedata.fgetb
+    @accuracy    = movedata.fgetb
+    @totalpp     = movedata.fgetb
+    @addlEffect  = movedata.fgetb
+    @target      = movedata.fgetw
+    @priority    = movedata.fgetsb
+    @flags       = movedata.fgetw
+    movedata.close
+  end
+end
+```
+
+### Pokémon Data (031_PokeBattle_Pokemon.rb)
+
+The core class representing a Pokémon:
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+class PokeBattle_Pokemon
+  attr_reader(:totalhp)       # Current Total HP
+  attr_reader(:attack)        # Current Attack stat
+  attr_reader(:defense)       # Current Defense stat
+  attr_reader(:speed)         # Current Speed stat
+  attr_reader(:spatk)         # Current Special Attack stat
+  attr_reader(:spdef)         # Current Special Defense stat
+  attr_accessor(:iv)          # Individual Values
+  attr_accessor(:ev)          # Effort Values
+  attr_accessor(:species)     # Species (National Pokédex number)
+  attr_accessor(:hp)          # Current HP
+  attr_accessor(:item)        # Held item
+  attr_accessor(:name)        # Nickname
+  attr_accessor(:exp)         # Current experience points
+  attr_accessor(:moves)       # Moves (PBMove)
+
+  EVLIMIT     = 510   # Max total EVs
+  EVSTATLIMIT = 252   # Max EVs that a single stat can have
+end
+```
+
+### Nature System (018_PBNatures.rb)
+
+Defines all Pokémon natures:
+
+```ruby Data/EditorScripts/018_PBNatures.rb
+module PBNatures
+  HARDY   = 0
+  LONELY  = 1
+  BRAVE   = 2
+  ADAMANT = 3
+  NAUGHTY = 4
+  BOLD    = 5
+  # ... more natures
+
+  def PBNatures.maxValue; 24; end
+  def PBNatures.getCount; 25; end
+
+  def PBNatures.getName(id)
+    names=[
+       _INTL("Hardy"),
+       _INTL("Lonely"),
+       _INTL("Brave"),
+       _INTL("Adamant"),
+       _INTL("Naughty")
+       # ...
+    ]
+    return names[id]
+  end
+end
+```
+
+### Utility Functions (039_PSystem_Utilities.rb)
+
+General-purpose helper functions:
+
+```ruby Data/EditorScripts/039_PSystem_Utilities.rb
+# Gets the value of a variable.
+def pbGet(id)
+  return 0 if !id || !$game_variables
+  return $game_variables[id]
+end
+
+# Sets the value of a variable.
+def pbSet(id,value)
+  if id && id>=0
+    $game_variables[id]=value if $game_variables
+    $game_map.need_refresh = true if $game_map
+  end
+end
+
+# Runs a common event and waits until the common event is finished.
+def pbCommonEvent(id)
+  return false if id<0
+  ce=$data_common_events[id]
+  return false if !ce
+  celist=ce.list
+  interp=Interpreter.new
+  interp.setup(celist,0)
+  begin
+    Graphics.update
+    Input.update
+    interp.update
+    pbUpdateSceneMap
+  end while interp.running?
+  return true
+end
+```
+
+### Evolution System (032_Pokemon_Evolution.rb)
+
+Defines evolution methods and conditions:
+
+```ruby Data/EditorScripts/032_Pokemon_Evolution.rb
+module PBEvolution
+  Unknown           = 0
+  Happiness         = 1
+  HappinessDay      = 2
+  HappinessNight    = 3
+  Level             = 4
+  Trade             = 5
+  TradeItem         = 6
+  Item              = 7
+  AttackGreater     = 8  # Tyrogue
+  AtkDefEqual       = 9  # Tyrogue
+  DefenseGreater    = 10 # Tyrogue
+  Beauty            = 15 # Feebas
+  ItemMale          = 16
+  ItemFemale        = 17
+  HasMove           = 20
+  LevelMale         = 22
+  LevelFemale       = 23
+  Location          = 24
+  # ... more evolution types
+end
+```
+
+### Encounter System (027_PField_Encounters.rb)
+
+Manages wild Pokémon encounters:
+
+```ruby Data/EditorScripts/027_PField_Encounters.rb
+module EncounterTypes
+  Land         = 0
+  Cave         = 1
+  Water        = 2
+  RockSmash    = 3
+  OldRod       = 4
+  GoodRod      = 5
+  SuperRod     = 6
+  HeadbuttLow  = 7
+  HeadbuttHigh = 8
+  LandMorning  = 9
+  LandDay      = 10
+  LandNight    = 11
+  BugContest   = 12
+
+  EnctypeChances=[
+    [20,20,10,10,10,10,5,5,4,4,1,1],  # Land
+    [20,20,10,10,10,10,5,5,4,4,1,1],  # Cave
+    [60,30,5,4,1],                     # Water
+    # ... more encounter rates
+  ]
+end
+```
+
+## Script Organization Best Practices
+
+### 1. Group Related Functionality
+
+Keep related classes and functions in the same file:
+
+```ruby
+# Good: All move-related code together
+class PBMove
+  # ...
+end
+
+class PBMoveData
+  # ...
+end
+```
+
+### 2. Use Appropriate Numbering
+
+- **Low numbers (001-050)**: Core systems and dependencies
+- **Mid numbers (051-500)**: Game features and mechanics
+- **High numbers (501-998)**: Custom additions and modifications
+- **999**: Entry points only
+
+### 3. Comment Your Code
+
+```ruby
+# Returns this Pokémon's level.
+def level
+  return PBExperience.pbGetLevelFromExperience(@exp,self.growthrate)
+end
+
+# Sets this Pokemon's level by changing its Exp. Points.
+def level=(value)
+  if value<1 || value>PBExperience::MAXLEVEL
+    raise ArgumentError.new(_INTL("The level number ({1}) is invalid.",value))
+  end
+  self.exp=PBExperience.pbGetStartExperience(value,self.growthrate) 
+end
+```
+
+## Adding Custom Scripts
+
+### Method 1: Create a New File
+
+1. Create a new `.rb` file in `Data/EditorScripts/`
+2. Number it appropriately (e.g., `600_MyCustomScript.rb`)
+3. Add your code:
+
+```ruby Data/EditorScripts/600_MyCustomScript.rb
+# Custom battle modifications
+class PokeBattle_Pokemon
+  # Add a method to restore HP by percentage
+  def restoreHP(percent)
+    heal_amount = (@totalhp * percent / 100).floor
+    @hp = [@hp + heal_amount, @totalhp].min
+  end
+end
+```
+
+### Method 2: Modify Existing Files
+
+You can also add code to existing files, but this makes updates harder:
+
+```ruby
+# At the end of 031_PokeBattle_Pokemon.rb
+class PokeBattle_Pokemon
+  # Custom method
+  def customMethod
+    # Your code here
+  end
+end
+```
+
+<Tip>
+Creating new files makes it easier to track your modifications and update Essentials without losing changes.
+</Tip>
+
+## Debugging Scripts
+
+### Using Debug Output
+
+```ruby
+def testFunction
+  p "Debug: Function called"  # Prints to console
+  pokemon = $Trainer.party[0]
+  p "Pokemon species: #{pokemon.species}"
+end
+```
+
+### Error Messages
+
+When a script error occurs, Essentials shows:
+- **File name** and **line number** where the error occurred
+- **Error type** (NameError, NoMethodError, etc.)
+- **Stack trace** showing the call sequence
+
+<Warning>
+Always test your scripts in debug mode before releasing. Enable debug mode in `001_Debug_Settings #####.rb`.
+</Warning>
+
+## Common Patterns
+
+### Accessing Global Objects
+
+```ruby
+$Trainer.party[0]           # First Pokémon in party
+$PokemonBag.pbQuantity(item) # Count items in bag
+$game_switches[50] = true   # Set a game switch
+$game_variables[10] = 5     # Set a game variable
+```
+
+### Creating New Pokémon
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Creates a new Pokémon object.
+# species   - Pokémon species.
+# level     - Pokémon level.
+# player    - PokeBattle_Trainer object for the original trainer.
+# withMoves - If false, this Pokémon has no moves.
+def initialize(species,level,player=nil,withMoves=true)
+  if species.is_a?(String) || species.is_a?(Symbol)
+    species=getID(PBSpecies,species)
+  end
+  # ... initialization code
+end
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Ruby Basics" icon="gem" href="/scripting/ruby-basics">
+    Learn Ruby fundamentals for Essentials scripting
+  </Card>
+  <Card title="Battle System" icon="sword" href="/scripting/battle-system">
+    Deep dive into battle mechanics and calculations
+  </Card>
+  <Card title="Custom Events" icon="calendar-days" href="/scripting/custom-events">
+    Use scripts in RPG Maker events
+  </Card>
+</CardGroup>

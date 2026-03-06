@@ -1,0 +1,500 @@
+---
+title: Battle System Scripting
+description: Understanding how Pokémon battles are scripted, calculated, and executed in Essentials
+---
+
+## Battle System Overview
+
+Pokémon Essentials' battle system handles everything from damage calculation to status effects, weather, and ability triggers. Understanding these systems is essential for creating custom moves, abilities, and battle mechanics.
+
+## Core Battle Classes
+
+### PokeBattle_Pokemon
+
+The fundamental class representing a Pokémon in battle:
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+class PokeBattle_Pokemon
+  attr_reader(:totalhp)       # Current Total HP
+  attr_reader(:attack)        # Current Attack stat
+  attr_reader(:defense)       # Current Defense stat
+  attr_reader(:speed)         # Current Speed stat
+  attr_reader(:spatk)         # Current Special Attack stat
+  attr_reader(:spdef)         # Current Special Defense stat
+  
+  attr_accessor(:hp)          # Current HP
+  attr_accessor(:status)      # Status problem (PBStatuses)
+  attr_accessor(:statusCount) # Sleep count/Toxic flag
+  attr_accessor(:item)        # Held item
+  attr_accessor(:moves)       # Moves (PBMove)
+  attr_accessor(:iv)          # Individual Values (6 values)
+  attr_accessor(:ev)          # Effort Values (6 values)
+  
+  EVLIMIT     = 510   # Max total EVs
+  EVSTATLIMIT = 252   # Max EVs that a single stat can have
+end
+```
+
+### PBMove
+
+Represents a single move:
+
+```ruby Data/EditorScripts/016_PBMove.rb
+class PBMove
+  attr_reader(:id)       # This move's ID
+  attr_accessor(:pp)     # The amount of PP remaining
+  attr_accessor(:ppup)   # The number of PP Ups used
+
+  # Gets this move's type.
+  def type
+    movedata=PBMoveData.new(@id)
+    return movedata.type
+  end
+
+  # Gets the maximum PP for this move.
+  def totalpp
+    movedata=PBMoveData.new(@id)
+    tpp=movedata.totalpp
+    return tpp+(tpp*@ppup/5).floor
+  end
+end
+```
+
+### PBMoveData
+
+Stores static data about moves:
+
+```ruby Data/EditorScripts/016_PBMove.rb
+class PBMoveData
+  attr_reader :function,:basedamage,:type,:accuracy
+  attr_reader :totalpp,:addlEffect,:target,:priority
+  attr_reader :flags
+  attr_reader :category
+
+  def initialize(moveid)
+    movedata=$PokemonTemp.pbOpenMoveData
+    movedata.pos=moveid*14
+    @function    = movedata.fgetw
+    @basedamage  = movedata.fgetb
+    @type        = movedata.fgetb
+    @category    = movedata.fgetb
+    @accuracy    = movedata.fgetb
+    @totalpp     = movedata.fgetb
+    @addlEffect  = movedata.fgetb
+    @target      = movedata.fgetw
+    @priority    = movedata.fgetsb
+    @flags       = movedata.fgetw
+    movedata.close
+  end
+end
+```
+
+## Stat Calculations
+
+### Base Stats
+
+Every Pokémon has base stats that determine their potential:
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Returns this Pokémon's base stats. An array of six values.
+def baseStats
+  dexdata=pbOpenDexData
+  pbDexDataOffset(dexdata,@species,10)
+  ret=[
+     dexdata.fgetb, # HP
+     dexdata.fgetb, # Attack
+     dexdata.fgetb, # Defense
+     dexdata.fgetb, # Speed
+     dexdata.fgetb, # Special Attack
+     dexdata.fgetb  # Special Defense
+  ]
+  dexdata.close
+  return ret
+end
+```
+
+### HP Calculation
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Returns the maximum HP of this Pokémon.
+def calcHP(base,level,iv,ev)
+  return 1 if base==1
+  return ((base*2+iv+(ev>>2))*level/100).floor+level+10
+end
+```
+
+**Formula Breakdown:**
+- `base*2` - Base stat doubled
+- `+iv` - Add Individual Value (0-31)
+- `+(ev>>2)` - Add EV/4 (EVs divided by 4)
+- `*level/100` - Scale by level
+- `+level+10` - Add level and base HP
+
+### Other Stats (Attack, Defense, etc.)
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Returns the specified stat of this Pokémon (not used for total HP).
+def calcStat(base,level,iv,ev,pv)
+  return ((((base*2+iv+(ev>>2))*level/100).floor+5)*pv/100).floor
+end
+```
+
+The `pv` parameter is the **nature modifier**:
+- `110` for boosted stats (e.g., Adamant boosts Attack)
+- `90` for reduced stats (e.g., Adamant reduces Sp. Atk)
+- `100` for neutral stats
+
+### Full Stat Calculation
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Recalculates this Pokémon's stats.
+def calcStats
+  nature=self.nature
+  stats=[]
+  pvalues=[100,100,100,100,100]
+  nd5=(nature/5).floor
+  nm5=(nature%5).floor
+  if nd5!=nm5
+    pvalues[nd5]=110  # Boosted stat
+    pvalues[nm5]=90   # Reduced stat
+  end
+  level=self.level
+  bs=self.baseStats
+  for i in 0..5
+    base=bs[i]
+    if i==PBStats::HP
+      stats[i]=calcHP(base,level,@iv[i],@ev[i])
+    else
+      stats[i]=calcStat(base,level,@iv[i],@ev[i],pvalues[i-1])
+    end
+  end
+  @totalhp=stats[0]
+  @attack=stats[1]
+  @defense=stats[2]
+  @speed=stats[3]
+  @spatk=stats[4]
+  @spdef=stats[5]
+end
+```
+
+## Nature System
+
+### Nature Modifiers
+
+Natures are determined by the Pokémon's personality value:
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Returns the ID of this Pokémon's nature.
+def nature
+  return @natureflag if @natureflag!=nil
+  return @personalID%25
+end
+```
+
+Each nature affects two stats:
+- **Divided by 5** (`nd5`) determines which stat is boosted
+- **Modulo 5** (`nm5`) determines which stat is reduced
+- If they're equal, the nature is neutral (like Hardy)
+
+<Note>
+Natures 0, 6, 12, 18, and 24 (Hardy, Docile, Serious, Bashful, Quirky) are neutral and don't modify stats.
+</Note>
+
+## Battle Mechanics
+
+### Move Learning
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Silently learns the given move. Will erase the first known move if it has to.
+def pbLearnMove(move)
+  if move.is_a?(String) || move.is_a?(Symbol)
+    move=getID(PBMoves,move)
+  end
+  return if move<=0
+  # Check if already knows the move
+  for i in 0...4
+    if @moves[i].id==move
+      # Move to end of list if already known
+      j=i+1; while j<4
+        break if @moves[j].id==0
+        tmp=@moves[j]
+        @moves[j]=@moves[j-1]
+        @moves[j-1]=tmp
+        j+=1
+      end
+      return
+    end
+  end
+  # Find empty slot
+  for i in 0...4
+    if @moves[i].id==0
+      @moves[i]=PBMove.new(move)
+      return
+    end
+  end
+  # No empty slots, replace first move
+  @moves[0]=@moves[1]
+  @moves[1]=@moves[2]
+  @moves[2]=@moves[3]
+  @moves[3]=PBMove.new(move)
+end
+```
+
+### Status Conditions
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+attr_accessor(:status)      # Status problem (PBStatuses) 
+attr_accessor(:statusCount) # Sleep count/Toxic flag
+
+# Heals the status problem of this Pokémon.
+def healStatus
+  return if isEgg?
+  @status=0
+  @statusCount=0
+end
+```
+
+Status values typically follow this pattern:
+- `0` - No status
+- `1` - Sleep
+- `2` - Poison
+- `3` - Burn
+- `4` - Paralysis
+- `5` - Freeze
+
+### Healing Methods
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Heals all HP of this Pokémon.
+def healHP
+  return if isEgg?
+  @hp=@totalhp
+end
+
+# Heals all PP of this Pokémon.
+def healPP(index=-1)
+  return if isEgg?
+  if index>=0
+    @moves[index].pp=@moves[index].totalpp
+  else
+    for i in 0...4
+      @moves[i].pp=@moves[i].totalpp
+    end
+  end
+end
+
+# Heals all HP, PP, and status problems of this Pokémon.
+def heal
+  return if isEgg?
+  healHP
+  healStatus
+  healPP
+end
+```
+
+## Abilities and Types
+
+### Type Checking
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Returns whether this Pokémon has the specified type.
+def hasType?(type)
+  if type.is_a?(String) || type.is_a?(Symbol)
+    return isConst?(self.type1,PBTypes,type) || isConst?(self.type2,PBTypes,type)
+  else
+    return self.type1==type || self.type2==type
+  end
+end
+
+# Returns this Pokémon's first type.
+def type1
+  dexdata=pbOpenDexData
+  pbDexDataOffset(dexdata,@species,8)
+  ret=dexdata.fgetb
+  dexdata.close
+  return ret
+end
+```
+
+### Ability System
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Returns the ID of this Pokemon's ability.
+def ability
+  abil=abilityIndex
+  abils=getAbilityList
+  ret1=0; ret2=0
+  for i in 0...abils.length
+    next if !abils[i][0] || abils[i][0]<=0
+    return abils[i][0] if abils[i][1]==abil
+    ret1=abils[i][0] if abils[i][1]==0
+    ret2=abils[i][0] if abils[i][1]==1
+  end
+  abil=(@personalID&1) if abil>=2
+  return ret2 if abil==1 && ret2>0
+  return ret1
+end
+
+# Returns whether this Pokémon has a particular ability.
+def hasAbility?(value=0)
+  if value==0
+    return self.ability>0
+  else
+    if value.is_a?(String) || value.is_a?(Symbol)
+      value=getID(PBAbilities,value)
+    end
+    return self.ability==value
+  end
+  return false
+end
+```
+
+## Organized Battles
+
+The battle challenge system for facilities like Battle Tower:
+
+```ruby Data/EditorScripts/036_PBattle_OrgBattle.rb
+def pbOrganizedBattleEx(opponent,challengedata,endspeech,endspeechwin)
+  if !challengedata
+    challengedata=PokemonChallengeRules.new
+  end
+  scene=pbNewBattleScene
+  # Heal all Pokémon
+  for i in 0...$Trainer.party.length
+    $Trainer.party[i].heal
+  end
+  # Store original items
+  olditems=$Trainer.party.transform{|p| p.item }
+  # Create battle
+  battle=challengedata.createBattle(scene,$Trainer,opponent)
+  battle.internalbattle=false
+  battle.endspeech=endspeech
+  battle.endspeechwin=endspeechwin
+  # Adjust levels
+  oldlevels=challengedata.adjustLevels($Trainer.party,opponent.party)
+  # Start battle
+  pbPrepareBattle(battle)
+  decision=0
+  trainerbgm=pbGetTrainerBattleBGM(opponent)
+  pbBattleAnimation(trainerbgm) { 
+      pbSceneStandby {
+         decision=battle.pbStartBattle
+      }
+  }
+  # Restore original state
+  challengedata.unadjustLevels($Trainer.party,opponent.party,oldlevels)
+  for i in 0...$Trainer.party.length
+    $Trainer.party[i].heal
+    $Trainer.party[i].setItem(olditems[i])
+  end
+  return (decision==1)
+end
+```
+
+## Gender Determination
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Returns this Pokemon's gender. 0=male, 1=female, 2=genderless
+def gender
+  return @genderflag if @genderflag!=nil
+  dexdata=pbOpenDexData
+  pbDexDataOffset(dexdata,@species,18)
+  genderbyte=dexdata.fgetb
+  dexdata.close
+  case genderbyte
+  when 255
+    return 2 # genderless
+  when 254
+    return 1 # always female
+  else
+    lowbyte=@personalID&0xFF
+    return PokeBattle_Pokemon.isFemale(lowbyte,genderbyte) ? 1 : 0
+  end
+end
+
+# Helper function that determines whether the input values would make a female.
+def self.isFemale(b,genderRate)
+  return true if genderRate==254    # AlwaysFemale
+  return false if genderRate==255   # Genderless
+  return b<=genderRate
+end
+```
+
+<Tip>
+Gender is determined by comparing the low byte of the personality ID against the species' gender ratio. Lower gender rates mean more males.
+</Tip>
+
+## Shininess
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Returns whether this Pokemon is shiny (differently colored).
+def isShiny?
+  return @shinyflag if @shinyflag!=nil
+  a=@personalID^@trainerID
+  b=a&0xFFFF
+  c=(a>>16)&0xFFFF
+  d=b^c
+  return (d<SHINYPOKEMONCHANCE)
+end
+
+# Makes this Pokemon shiny.
+def makeShiny
+  @shinyflag=true
+end
+```
+
+Shiny determination uses XOR operations on the personality ID and trainer ID.
+
+## Creating Custom Battle Mechanics
+
+### Example: Custom Damage Modifier
+
+```ruby
+class PokeBattle_Pokemon
+  # Custom method to apply weather damage boost
+  def weatherBoost?(weather, move_type)
+    case weather
+    when PBWeather::SUNNYDAY
+      return move_type == PBTypes::FIRE
+    when PBWeather::RAINDANCE
+      return move_type == PBTypes::WATER
+    else
+      return false
+    end
+  end
+end
+```
+
+### Example: Custom Status Effect
+
+```ruby
+class PokeBattle_Pokemon
+  # Apply a custom "Energized" status
+  def applyEnergized
+    @custom_status = "energized"
+    @custom_status_turns = 3
+  end
+  
+  def isEnergized?
+    return @custom_status == "energized" && @custom_status_turns > 0
+  end
+end
+```
+
+<Warning>
+When modifying battle mechanics, always test thoroughly in both single and double battles to ensure compatibility.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Ruby Basics" icon="gem" href="/scripting/ruby-basics">
+    Learn Ruby fundamentals for scripting
+  </Card>
+  <Card title="Editor Scripts" icon="folder-tree" href="/scripting/editor-scripts">
+    Understand script organization and structure
+  </Card>
+  <Card title="Custom Events" icon="calendar-days" href="/scripting/custom-events">
+    Use battle functions in game events
+  </Card>
+</CardGroup>

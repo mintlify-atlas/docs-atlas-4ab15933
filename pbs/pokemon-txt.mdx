@@ -1,0 +1,441 @@
+---
+title: pokemon.txt
+description: Complete reference for defining Pokémon species in PBS/pokemon.txt
+---
+
+The `pokemon.txt` file defines all Pokémon species in the game, including their stats, types, abilities, moves, and other characteristics.
+
+## File Format
+
+Each Pokémon is defined using a section header with its National Pokédex number, followed by field definitions:
+
+```ini
+[1]
+Name=Bulbasaur
+InternalName=BULBASAUR
+Type1=GRASS
+Type2=POISON
+BaseStats=45,49,49,45,65,65
+```
+
+## Required Fields
+
+<ParamField path="[Number]" type="Integer">
+  The Pokémon's National Pokédex number in square brackets. This starts each Pokémon definition.
+  
+  ```ini
+  [1]  # Bulbasaur
+  [25] # Pikachu
+  ```
+</ParamField>
+
+<ParamField path="Name" type="String">
+  The display name of the Pokémon as shown to players.
+  
+  ```ini
+  Name=Bulbasaur
+  Name=Pikachu
+  ```
+</ParamField>
+
+<ParamField path="InternalName" type="String">
+  The internal identifier used in code. Must be UPPERCASE and unique.
+  
+  ```ini
+  InternalName=BULBASAUR
+  InternalName=PIKACHU
+  ```
+</ParamField>
+
+<ParamField path="Type1" type="Type">
+  The Pokémon's primary type. See type list below.
+  
+  ```ini
+  Type1=GRASS
+  Type1=ELECTRIC
+  ```
+</ParamField>
+
+<ParamField path="BaseStats" type="Stats Array">
+  Six comma-separated values: HP, Attack, Defense, Speed, Sp.Atk, Sp.Def
+  
+  ```ini
+  BaseStats=45,49,49,45,65,65  # Bulbasaur
+  BaseStats=35,55,40,90,50,50  # Pikachu
+  ```
+</ParamField>
+
+<ParamField path="GenderRate" type="Gender Rate">
+  Determines male/female ratio. Valid values:
+  - `AlwaysMale` - 100% male
+  - `AlwaysFemale` - 100% female
+  - `Genderless` - No gender
+  - `FemaleOneEighth` - 12.5% female
+  - `Female25Percent` - 25% female
+  - `Female50Percent` - 50% female
+  - `Female75Percent` - 75% female
+  
+  ```ini
+  GenderRate=FemaleOneEighth  # Starters
+  GenderRate=Female50Percent  # Most Pokémon
+  ```
+</ParamField>
+
+<ParamField path="GrowthRate" type="Growth Rate">
+  Experience growth rate. Valid values:
+  - `Fast` - 800,000 exp to level 100
+  - `Medium` - 1,000,000 exp
+  - `Slow` - 1,250,000 exp
+  - `Parabolic` - 1,059,860 exp
+  - `Erratic` - 600,000 exp
+  - `Fluctuating` - 1,640,000 exp
+  
+  ```ini
+  GrowthRate=Parabolic  # Starters
+  GrowthRate=Medium     # Common
+  ```
+</ParamField>
+
+<ParamField path="BaseEXP" type="Integer">
+  Base experience yield when defeated.
+  
+  ```ini
+  BaseEXP=64   # Bulbasaur
+  BaseEXP=105  # Pikachu
+  ```
+</ParamField>
+
+<ParamField path="EffortPoints" type="EV Array">
+  Six comma-separated effort values awarded: HP, Atk, Def, Speed, SpAtk, SpDef
+  
+  ```ini
+  EffortPoints=0,0,0,0,1,0  # +1 Sp.Atk
+  EffortPoints=0,0,0,2,0,0  # +2 Speed
+  ```
+</ParamField>
+
+<ParamField path="Rareness" type="Integer" default="255">
+  Catch rate. Lower = harder to catch (0-255).
+  
+  ```ini
+  Rareness=45   # Starters (hard)
+  Rareness=255  # Common (easy)
+  ```
+</ParamField>
+
+<ParamField path="Happiness" type="Integer" default="70">
+  Base friendship value (0-255).
+  
+  ```ini
+  Happiness=70   # Standard
+  Happiness=140  # Clefairy (friendly)
+  ```
+</ParamField>
+
+<ParamField path="Abilities" type="Ability List">
+  Comma-separated list of abilities (up to 2 regular abilities).
+  
+  ```ini
+  Abilities=OVERGROW                    # Single ability
+  Abilities=KEENEYE,TANGLEDFEET        # Two abilities
+  ```
+</ParamField>
+
+<ParamField path="Compatibility" type="Egg Group List">
+  Comma-separated egg groups for breeding.
+  
+  ```ini
+  Compatibility=Monster,Grass
+  Compatibility=Field,Fairy
+  ```
+</ParamField>
+
+<ParamField path="StepsToHatch" type="Integer">
+  Egg cycles × 255. Typical values: 2805, 4080, 5355, 6630, 8905, 10200, 20480, 30720.
+  
+  ```ini
+  StepsToHatch=5355  # Standard
+  StepsToHatch=2805  # Fast hatching
+  ```
+</ParamField>
+
+<ParamField path="Height" type="Float">
+  Height in meters.
+  
+  ```ini
+  Height=0.7  # Bulbasaur (0.7m)
+  Height=0.4  # Pikachu (0.4m)
+  ```
+</ParamField>
+
+<ParamField path="Weight" type="Float">
+  Weight in kilograms.
+  
+  ```ini
+  Weight=6.9   # Bulbasaur
+  Weight=6.0   # Pikachu
+  ```
+</ParamField>
+
+<ParamField path="Color" type="Color">
+  Pokédex color. Valid: `Red`, `Blue`, `Yellow`, `Green`, `Black`, `Brown`, `Purple`, `Gray`, `White`, `Pink`
+  
+  ```ini
+  Color=Green
+  Color=Yellow
+  ```
+</ParamField>
+
+## Optional Fields
+
+<ParamField path="Type2" type="Type">
+  Secondary type. Omit for single-type Pokémon.
+  
+  ```ini
+  Type2=POISON   # Bulbasaur is Grass/Poison
+  Type2=FLYING   # Charizard is Fire/Flying
+  ```
+</ParamField>
+
+<ParamField path="HiddenAbility" type="Ability">
+  Hidden ability (Dream World ability).
+  
+  ```ini
+  HiddenAbility=CHLOROPHYLL
+  HiddenAbility=LIGHTNINGROD
+  ```
+</ParamField>
+
+<ParamField path="Moves" type="Move List">
+  Comma-separated: `Level,MOVE,Level,MOVE,...`
+  
+  Use `0` for moves known upon evolution, `1` for starting moves.
+  
+  ```ini
+  Moves=1,TACKLE,3,GROWL,7,LEECHSEED,9,VINEWHIP,13,POISONPOWDER
+  Moves=0,PETALBLIZZARD,1,TACKLE,1,GROWL,7,LEECHSEED
+  ```
+</ParamField>
+
+<ParamField path="EggMoves" type="Move List">
+  Comma-separated list of egg moves.
+  
+  ```ini
+  EggMoves=AMNESIA,CHARM,CURSE,ENDURE,GIGADRAIN,GRASSWHISTLE
+  ```
+</ParamField>
+
+<ParamField path="Evolutions" type="Evolution Data">
+  Evolution method and parameters. Format: `SPECIES,Method,Parameter`
+  
+  Common methods:
+  - `Level,X` - Level up to X
+  - `Item,ITEMNAME` - Use evolution stone
+  - `Happiness` - Friendship evolution
+  - `HappinessDay` - Friendship during day
+  - `HappinessNight` - Friendship during night
+  - `Trade` - Trade evolution
+  - `TradeItem,ITEMNAME` - Trade holding item
+  - `HasMove,MOVENAME` - Level up knowing move
+  - `LevelForm0,X` - Level X (form 0)
+  - `ItemForm1,ITEMNAME` - Use item (form 1)
+  
+  ```ini
+  Evolutions=IVYSAUR,Level,16
+  Evolutions=RAICHU,Item,THUNDERSTONE
+  Evolutions=ESPEON,HappinessDay,
+  Evolutions=CROBAT,Happiness,
+  Evolutions=ANNIHILAPE,HasMove,RAGEFIST
+  ```
+  
+  Leave empty if no evolution:
+  ```ini
+  Evolutions=
+  ```
+</ParamField>
+
+<ParamField path="Habitat" type="Habitat">
+  Natural habitat. Valid: `Cave`, `Forest`, `Grassland`, `Mountain`, `RoughTerrain`, `Sea`, `Urban`, `WatersEdge`
+  
+  ```ini
+  Habitat=Grassland
+  Habitat=Forest
+  ```
+</ParamField>
+
+<ParamField path="RegionalNumbers" type="Number List">
+  Comma-separated regional Pokédex numbers.
+  
+  ```ini
+  RegionalNumbers=1,0      # Kanto #1
+  RegionalNumbers=26,0     # Kanto #26
+  ```
+</ParamField>
+
+<ParamField path="Kind" type="String">
+  Species category (e.g., "Seed Pokémon").
+  
+  ```ini
+  Kind=Semilla      # Seed
+  Kind=Ratón        # Mouse
+  ```
+</ParamField>
+
+<ParamField path="Pokedex" type="String">
+  Pokédex entry text.
+  
+  ```ini
+  Pokedex=A Bulbasaur es fácil verle echándose una siesta al sol.
+  ```
+</ParamField>
+
+<ParamField path="FormNames" type="Form List">
+  Comma-separated form names. First entry is base form (can be empty).
+  
+  ```ini
+  FormNames=,Mega Venusaur           # Base + Mega
+  FormNames=Forma Normal,Forma Alola # Regional forms
+  FormNames=,Mega Charizard X,Mega Charizard Y  # Multiple megas
+  ```
+</ParamField>
+
+<ParamField path="BattlerPlayerY" type="Integer" default="0">
+  Vertical offset for player-side sprite positioning.
+  
+  ```ini
+  BattlerPlayerY=24  # Higher on screen
+  BattlerPlayerY=0   # Default position
+  ```
+</ParamField>
+
+<ParamField path="BattlerEnemyY" type="Integer" default="0">
+  Vertical offset for enemy-side sprite positioning.
+  
+  ```ini
+  BattlerEnemyY=32
+  BattlerEnemyY=8
+  ```
+</ParamField>
+
+<ParamField path="BattlerAltitude" type="Integer" default="0">
+  Height above ground for flying/levitating Pokémon.
+  
+  ```ini
+  BattlerAltitude=0   # Ground
+  BattlerAltitude=15  # Flying high
+  ```
+</ParamField>
+
+<ParamField path="WildItemCommon" type="Item">
+  Item commonly held by wild Pokémon (50% chance).
+  
+  ```ini
+  WildItemCommon=ORANBERRY
+  WildItemCommon=RAWSTBERRY
+  ```
+</ParamField>
+
+<ParamField path="WildItemUncommon" type="Item">
+  Item uncommonly held (5% chance).
+  
+  ```ini
+  WildItemUncommon=SITRUSBERRY
+  WildItemUncommon=LIGHTBALL  # Pikachu
+  ```
+</ParamField>
+
+<ParamField path="WildItemRare" type="Item">
+  Item rarely held (1% chance).
+  
+  ```ini
+  WildItemRare=LIGHTBALL
+  WildItemRare=COMETSHARD
+  ```
+</ParamField>
+
+## Type List
+
+Valid type values:
+- `NORMAL`, `FIRE`, `WATER`, `ELECTRIC`, `GRASS`, `ICE`
+- `FIGHTING`, `POISON`, `GROUND`, `FLYING`, `PSYCHIC`
+- `BUG`, `ROCK`, `GHOST`, `DRAGON`, `DARK`, `STEEL`, `FAIRY`
+
+## Egg Group List
+
+Valid egg groups:
+- `Monster`, `Water1`, `Water2`, `Water3`
+- `Bug`, `Flying`, `Field`, `Fairy`
+- `Grass`, `HumanLike`, `Mineral`, `Amorphous`
+- `Dragon`, `Ditto`, `Undiscovered`
+
+## Complete Example
+
+```ini
+[1]
+Name=Bulbasaur
+InternalName=BULBASAUR
+Type1=GRASS
+Type2=POISON
+BaseStats=45,49,49,45,65,65
+GenderRate=FemaleOneEighth
+GrowthRate=Parabolic
+BaseEXP=64
+EffortPoints=0,0,0,0,1,0
+Rareness=45
+Happiness=70
+Abilities=OVERGROW
+HiddenAbility=CHLOROPHYLL
+Moves=1,TACKLE,3,GROWL,7,LEECHSEED,9,VINEWHIP,13,POISONPOWDER,13,SLEEPPOWDER,15,TAKEDOWN
+EggMoves=AMNESIA,CHARM,CURSE,ENDURE,GIGADRAIN,GRASSWHISTLE
+Compatibility=Monster,Grass
+StepsToHatch=5355
+Height=0.7
+Weight=6.9
+Color=Green
+Habitat=Grassland
+RegionalNumbers=1,0
+Kind=Semilla
+Pokedex=A Bulbasaur es fácil verle echándose una siesta al sol.
+BattlerPlayerY=24
+BattlerEnemyY=32
+BattlerAltitude=0
+Evolutions=IVYSAUR,Level,16
+```
+
+<Note>
+  **Terastal Forms**: To add a Terastal type, append the type after the ball parameter in trainer Pokémon definitions (see trainers.txt documentation).
+</Note>
+
+<Accordion title="Regional Forms Example">
+  Regional forms use `FormNames` and form-specific evolution methods:
+  
+  ```ini
+  [52]
+  Name=Meowth
+  InternalName=MEOWTH
+  Type1=NORMAL
+  BaseStats=40,45,35,90,40,40
+  # ... other fields ...
+  FormNames=Forma Normal,Forma Alola,Forma Galar
+  Evolutions=PERSIAN,LevelForm0,28,PERSIAN,HappinessForm1,,PERRSERKER,LevelForm2,28
+  ```
+  
+  - Form 0 = Normal Meowth → Persian at level 28
+  - Form 1 = Alola Meowth → Persian via Happiness
+  - Form 2 = Galar Meowth → Perrserker at level 28
+</Accordion>
+
+<Accordion title="Mega Evolution Example">
+  ```ini
+  [6]
+  Name=Charizard
+  InternalName=CHARIZARD
+  Type1=FIRE
+  Type2=FLYING
+  BaseStats=78,84,78,100,109,85
+  # ... other fields ...
+  FormNames=,Mega Charizard X,Mega Charizard Y
+  ```
+  
+  Mega Evolutions are triggered during battle via Mega Stone items.
+</Accordion>

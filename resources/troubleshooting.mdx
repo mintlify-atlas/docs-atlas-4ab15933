@@ -1,0 +1,766 @@
+---
+title: 'Troubleshooting'
+description: 'Solutions to common errors and problems in Pokémon Essentials BES'
+---
+
+## Overview
+
+This page covers common errors, problems, and their solutions when working with Pokémon Essentials BES. Always check error logs first before seeking help.
+
+<Info>
+Error logs are typically found in `errorlog.txt` in your game folder. Check this file first when encountering problems.
+</Info>
+
+## Game Won't Start
+
+<Accordion title="Missing RGSS102E.dll">
+**Error:** "The program can't start because RGSS102E.dll is missing from your computer."
+
+**Cause:** RPG Maker XP runtime not installed or corrupted.
+
+**Solutions:**
+1. **Install RPG Maker XP properly:**
+   - If you have RPG Maker XP, reinstall it
+   - Run the installer as administrator
+
+2. **Download RGSS runtime:**
+   - Search for "RGSS102E.dll download"
+   - Place in Windows/System32 folder
+   - Or place in game folder
+
+3. **Run as administrator:**
+   - Right-click Game.exe
+   - Select "Run as administrator"
+
+**Prevention:**
+Keep RPG Maker XP installed when developing games.
+</Accordion>
+
+<Accordion title="Game immediately closes / Black screen">
+**Symptoms:**
+- Game window opens then closes
+- Black screen with no response
+- No error message
+
+**Possible causes:**
+
+1. **Graphics driver issue:**
+   - Update graphics drivers
+   - Try running in compatibility mode (Windows 7/XP)
+
+2. **Missing game files:**
+   - Verify all Data folder files exist
+   - Reextract from download
+
+3. **Corrupted save:**
+   - Delete Game.rxdata from game folder
+   - Restart game
+
+4. **Antivirus blocking:**
+   - Add game folder to antivirus exceptions
+   - Temporarily disable antivirus to test
+
+5. **DirectX issue:**
+   - Install DirectX 9.0c
+   - Restart computer
+
+**Debug steps:**
+1. Delete Game.rxdata
+2. Run Game.exe as administrator
+3. Check errorlog.txt if created
+4. Try running from RPG Maker XP
+</Accordion>
+
+<Accordion title="'Failed to load' error on startup">
+**Error:** "Failed to load (filename)" or "Cannot load data file"
+
+**Causes:**
+1. Missing Data files
+2. Corrupted installation
+3. PBS not compiled
+
+**Solutions:**
+
+**For missing Data files:**
+1. Reextract game from download
+2. Don't delete any Data folder files
+3. Verify Data folder contents
+
+**For PBS compilation:**
+1. Delete all files in Data folder
+2. Run game from RPG Maker XP
+3. Let PBS auto-compile
+4. Check for compilation errors
+
+**For corrupted files:**
+1. Download fresh copy
+2. Extract to new location
+3. Test before modifying
+</Accordion>
+
+## PBS Compilation Errors
+
+<Accordion title="Syntax errors in PBS files">
+**Error:** "Syntax error in PBS/[file].txt, line [number]"
+
+**Common causes:**
+
+1. **Missing comma or field:**
+   ```
+   # Wrong
+   999,MOVENAME,Move Name,080,NORMAL
+   
+   # Correct - all fields needed
+   999,MOVENAME,Move Name,000,80,NORMAL,Physical,100,20,0,00,0,abef,"Description"
+   ```
+
+2. **Special characters in names:**
+   ```
+   # Wrong
+   Name=Pokémon's Name
+   
+   # Correct
+   Name=Pokemon's Name
+   ```
+
+3. **Wrong line breaks or encoding:**
+   - Save PBS files as UTF-8
+   - Use Windows line endings (CRLF)
+   - Don't use smart quotes
+
+4. **Missing closing quote:**
+   ```
+   # Wrong
+   Description="This move is powerful
+   
+   # Correct
+   Description="This move is powerful"
+   ```
+
+**How to fix:**
+1. Open errorlog.txt
+2. Note the file and line number
+3. Open that PBS file
+4. Go to the specified line
+5. Check format against working examples
+6. Fix and recompile
+</Accordion>
+
+<Accordion title="'Unknown value' errors">
+**Error:** "Unknown value: [VALUE] in PBS/[file].txt"
+
+**Causes:**
+1. Referencing non-existent species/move/ability
+2. Typo in internal name
+3. Wrong constant name
+
+**Examples:**
+
+```
+# Wrong - typo in ability name
+Abilities=OVERGRO
+
+# Correct
+Abilities=OVERGROW
+
+# Wrong - move doesn't exist
+Moves=1,TACKEL
+
+# Correct
+Moves=1,TACKLE
+```
+
+**Solutions:**
+1. Double-check spelling
+2. Verify the referenced item exists
+3. Check PBS files for correct internal names
+4. Use exact capitalization
+</Accordion>
+
+<Accordion title="PBS compilation hangs or freezes">
+**Symptoms:**
+- Game stuck on "Compiling PBS data"
+- No progress for several minutes
+- Computer not responding
+
+**Causes:**
+1. Very large PBS files
+2. Circular references
+3. Infinite loop in data
+4. Computer too slow
+
+**Solutions:**
+
+**If legitimately hung:**
+1. Force close with Task Manager
+2. Check errorlog.txt
+3. Review recent PBS changes
+4. Look for circular evolution/references
+
+**If just slow:**
+- First compilation takes longer (several minutes)
+- Be patient, especially on slower computers
+- Subsequent compilations are faster
+
+**Optimization:**
+- Remove unnecessary PBS entries
+- Compile in Debug mode from RPG Maker
+- Close other programs
+</Accordion>
+
+<Accordion title="'Duplicate ID' errors">
+**Error:** "Duplicate ID number [number] in PBS/[file].txt"
+
+**Cause:** Two entries using the same ID number.
+
+**Example:**
+```
+[100]
+Name=Pikachu
+...
+
+[100]  # Duplicate!
+Name=Raichu
+...
+```
+
+**Solution:**
+1. Search PBS file for the duplicate ID
+2. Change one to unused number
+3. Update all references if needed
+4. Recompile
+
+**Prevention:**
+- Use sequential numbering
+- Keep track of highest used ID
+- Don't skip numbers unnecessarily
+</Accordion>
+
+## Script Errors
+
+<Accordion title="'Script is hanging' error">
+**Error:** "The script is taking too long. The game will restart."
+
+**Common causes:**
+
+1. **Infinite loop in script:**
+   ```ruby
+   # Wrong - infinite loop
+   while true
+     # no break condition
+   end
+   
+   # Correct
+   while condition
+     break if exit_condition
+   end
+   ```
+
+2. **Infinite loop in event:**
+   - Event calling itself repeatedly
+   - Loop with no exit condition
+   - Parallel process without wait
+
+3. **Heavy calculation:**
+   - Large AI decision tree
+   - Complex pathfinding
+   - Too many entities updating
+
+**Solutions:**
+
+**For custom scripts:**
+1. Review recent script changes
+2. Add break conditions to loops
+3. Add safety counters
+
+**For events:**
+1. Check Parallel Process events
+2. Add "Wait" commands
+3. Add exit conditions
+4. Use switches to disable when not needed
+
+**Debug:**
+```ruby
+# Add to suspect loops
+counter = 0
+while condition
+  counter += 1
+  raise "Infinite loop detected" if counter > 1000
+  # loop code
+end
+```
+</Accordion>
+
+<Accordion title="'undefined method' error">
+**Error:** "undefined method '[method_name]' for [object]"
+
+**Cause:** Calling a method that doesn't exist.
+
+**Common scenarios:**
+
+1. **Typo in method name:**
+   ```ruby
+   # Wrong
+   pbAddPokmon(:PIKACHU,5)
+   
+   # Correct
+   pbAddPokemon(:PIKACHU,5)
+   ```
+
+2. **Wrong object type:**
+   ```ruby
+   # Wrong - number doesn't have this method
+   5.pbAddPokemon(:PIKACHU)
+   
+   # Correct
+   pbAddPokemon(:PIKACHU,5)
+   ```
+
+3. **Method from wrong Essentials version:**
+   - v20 methods don't exist in v16.2
+   - Check version compatibility
+
+4. **Missing script section:**
+   - Script defining method was deleted
+   - Custom script not installed properly
+
+**Solutions:**
+1. Check method name spelling
+2. Verify correct object
+3. Check Essentials version compatibility
+4. Verify all scripts installed
+</Accordion>
+
+<Accordion title="'syntax error' in scripts">
+**Error:** "syntax error, unexpected [symbol]"
+
+**Common mistakes:**
+
+1. **Missing 'end':**
+   ```ruby
+   # Wrong
+   if condition
+     do_something
+   # Missing end!
+   
+   # Correct
+   if condition
+     do_something
+   end
+   ```
+
+2. **Extra 'end':**
+   ```ruby
+   # Wrong
+   def method
+     do_something
+   end
+   end  # Extra end!
+   ```
+
+3. **Wrong bracket type:**
+   ```ruby
+   # Wrong
+   pbAddPokemon[:PIKACHU,5]
+   
+   # Correct
+   pbAddPokemon(:PIKACHU,5)
+   ```
+
+4. **String quote mismatch:**
+   ```ruby
+   # Wrong
+   text = "Hello world'
+   
+   # Correct
+   text = "Hello world"
+   ```
+
+**How to fix:**
+1. Note the script section and line from error
+2. Open that script in RPG Maker
+3. Go to the line number
+4. Check syntax carefully
+5. Look at surrounding code
+6. Match brackets and ends
+</Accordion>
+
+<Accordion title="'can't convert' type errors">
+**Error:** "can't convert [Type] into [Type]"
+
+**Cause:** Wrong data type provided.
+
+**Examples:**
+
+```ruby
+# Wrong - string instead of symbol
+pbAddPokemon("PIKACHU",5)
+
+# Correct
+pbAddPokemon(:PIKACHU,5)
+
+# Wrong - string instead of integer
+pbAddPokemon(:PIKACHU,"5")
+
+# Correct
+pbAddPokemon(:PIKACHU,5)
+```
+
+**Common type issues:**
+- Symbol vs String (`:PIKACHU` vs `"PIKACHU"`)
+- Integer vs String (`5` vs `"5"`)
+- Array vs single value
+
+**Solution:**
+Check function documentation for expected types.
+</Accordion>
+
+## Battle Errors
+
+<Accordion title="Battle crashes or freezes">
+**Symptoms:**
+- Game freezes during battle
+- Crash when using specific moves
+- Error during ability activation
+
+**Common causes:**
+
+1. **Broken move function:**
+   - Custom move with errors
+   - Function code doesn't exist
+   - Missing move effect implementation
+
+2. **Broken ability:**
+   - Ability code has errors
+   - Reference to non-existent method
+   - Infinite loop in ability
+
+3. **Animation issue:**
+   - Missing animation files
+   - Corrupted animation data
+
+**Debug steps:**
+
+1. **Identify the trigger:**
+   - What move was used?
+   - What ability activated?
+   - What happened right before crash?
+
+2. **Test in isolation:**
+   - Debug battle with specific Pokémon
+   - Test the suspected move/ability
+   - Check errorlog.txt
+
+3. **Check PBS:**
+   - Verify move function code exists
+   - Check ability ID is valid
+   - Compare to working examples
+
+**Solutions:**
+- Fix or remove broken custom moves
+- Temporarily disable custom abilities
+- Reset animation data
+- Check Gen 9 move implementations
+</Accordion>
+
+<Accordion title="'Function code not found' error">
+**Error:** "Unable to find function code [number] for [move]"
+
+**Cause:** Move references non-existent function code.
+
+**In PBS/moves.txt:**
+```
+# Wrong - function 999 doesn't exist
+999,CUSTOMMOVE,Custom Move,999,80,NORMAL,Physical,100,20,0,00,0,abef,"Description"
+
+# Correct - use existing function code
+999,CUSTOMMOVE,Custom Move,000,80,NORMAL,Physical,100,20,0,00,0,abef,"Description"
+```
+
+**Solutions:**
+
+1. **Use existing function code:**
+   - Check other moves for valid codes
+   - Use 000 for basic damage
+   - Reference move function list
+
+2. **Implement the function:**
+   - Define the function in battle scripts
+   - Follow function code format
+   - Test thoroughly
+
+3. **Fix typo:**
+   - Check for leading zeros
+   - Verify exact format
+</Accordion>
+
+<Accordion title="Gen 9 ability not working">
+**Problem:** Gen 9 ability doesn't activate or has no effect.
+
+**Check implementation status:**
+
+Open `PBS/abilities.txt` and find the ability:
+
+- **No marking** = Should be fully implemented
+- **#TODO** = Not implemented yet
+- **#A MEDIAS** = Partially implemented
+- **#NO HECHA** = Not done
+
+**Common issues:**
+
+1. **Ability not yet implemented:**
+   - Proto Synthesis (#290) - marked #A MEDIAS
+   - Quark Drive (#291) - marked #A MEDIAS
+   - Some complex abilities need custom scripting
+
+2. **Conditions not met:**
+   - Weather-dependent abilities need weather
+   - Terrain abilities need terrain active
+   - Some need specific battle formats
+
+3. **Visual effects only:**
+   - Effect works but no message
+   - Works but not obvious
+
+**Solutions:**
+- Check [Generation 9 Features](/resources/generation-9-features) for status
+- Script missing abilities yourself
+- Use alternative abilities temporarily
+- Test with Debug to verify conditions
+</Accordion>
+
+## Graphics & Performance
+
+<Accordion title="Missing or blank sprites">
+**Symptoms:**
+- Pokémon appears as blank/invisible
+- Icon shows as empty box
+- Graphics don't display
+
+**Causes:**
+
+1. **Missing sprite file:**
+   - File doesn't exist in Graphics folder
+   - Wrong filename
+   - Wrong location
+
+2. **Wrong file format:**
+   - Must be PNG format
+   - Proper transparency
+   - Correct color depth
+
+3. **Filename mismatch:**
+   ```
+   # PBS says: #999
+   # Graphics file must be: Graphics/Battlers/999.png
+   # Back sprite: Graphics/Battlers/999b.png
+   # Icon: Graphics/Icons/icon999.png
+   ```
+
+**Solutions:**
+
+1. **Check filename:**
+   - Match PBS entry number exactly
+   - Check capitalization (shouldn't matter but verify)
+   - Verify file extension is .png
+
+2. **Check file location:**
+   - Front: `Graphics/Battlers/[ID].png`
+   - Back: `Graphics/Battlers/[ID]b.png`
+   - Icon: `Graphics/Icons/icon[ID].png`
+   - Female: Add `f` before `.png`
+   - Shiny: Add `s` before `.png`
+
+3. **Verify file format:**
+   - Open in image editor
+   - Save as PNG-24 with transparency
+   - Test in game
+</Accordion>
+
+<Accordion title="Game running slowly / Lag">
+**Symptoms:**
+- Low FPS
+- Choppy animation
+- Delayed inputs
+- Long load times
+
+**Common causes:**
+
+1. **Too many Parallel Process events:**
+   - Events constantly running
+   - No Wait commands
+   - Complex calculations
+
+**Solution:**
+- Use switches to disable unused events
+- Add Wait commands in loops
+- Use Autorun instead when possible
+
+2. **Large maps:**
+   - Too many events on one map
+   - Very large map size
+   - Complex graphics
+
+**Solution:**
+- Split into smaller maps
+- Reduce event count
+- Use Erase Event when possible
+
+3. **Script inefficiency:**
+   - Custom scripts with poor performance
+   - Unnecessary calculations each frame
+
+**Solution:**
+- Review custom scripts
+- Cache calculations
+- Optimize loops
+
+4. **Computer limitations:**
+   - Older/slower computer
+   - Running too many programs
+
+**Solution:**
+- Close other programs
+- Update graphics drivers
+- Run on better hardware
+</Accordion>
+
+<Accordion title="Audio problems / No sound">
+**Symptoms:**
+- No music or sound effects
+- Audio cutting out
+- Crackling or distortion
+
+**Causes & Solutions:**
+
+1. **Missing audio files:**
+   - Check Audio/BGM and Audio/SE folders
+   - Verify filenames match calls
+   - Supported formats: MP3, OGG, WAV, MIDI
+
+2. **Volume set to 0:**
+   - Check in-game Options
+   - Verify system volume
+   - Test other games
+
+3. **Codec issues:**
+   - Install codec packs
+   - Convert to different format
+   - Use OGG for best compatibility
+
+4. **Audio driver problems:**
+   - Update audio drivers
+   - Try running as administrator
+   - Check Windows audio settings
+</Accordion>
+
+## Save Data Issues
+
+<Accordion title="Can't save game / Save corruption">
+**Error:** "Failed to save game" or corrupted save data
+
+**Causes:**
+
+1. **File permissions:**
+   - Folder is read-only
+   - No write permission
+   - Antivirus blocking
+
+**Solution:**
+- Right-click folder → Properties
+- Uncheck "Read-only"
+- Add to antivirus exceptions
+
+2. **Disk full:**
+   - No space remaining
+
+**Solution:**
+- Free up disk space
+- Save to different location
+
+3. **Long file path:**
+   - Path exceeds Windows limit
+
+**Solution:**
+- Move game folder closer to root
+- Example: `C:/Games/` instead of long path
+
+4. **Corrupted save data:**
+   - Save file damaged
+
+**Solution:**
+- Delete Game.rxdata
+- Load backup save if available
+- Start new game
+</Accordion>
+
+<Accordion title="Save file from old version won't load">
+**Problem:** Save file incompatible after updating game/BES.
+
+**Cause:** Script changes between versions.
+
+**Solutions:**
+
+1. **Use save converter:**
+   - Some updates include save converters
+   - Check update notes
+
+2. **Manual fix (advanced):**
+   - Load save in Marshal editor
+   - Update data structures
+   - Very complex, not recommended
+
+3. **Start new game:**
+   - Often the safest option
+   - Use Debug to recreate progress
+
+**Prevention:**
+- Test updates on copy first
+- Keep backups of save files
+- Finish games before major updates
+- Warn players about incompatible updates
+</Accordion>
+
+## Getting More Help
+
+<Info>
+If your problem isn't listed here:
+</Info>
+
+1. **Check errorlog.txt** in your game folder
+2. **Search the issue** on Relic Castle or Pokécommunity
+3. **Ask in community** with detailed information:
+   - Exact error message
+   - Steps to reproduce
+   - What you've tried
+   - Relevant code snippets
+   - BES version
+
+4. **Review other resources:**
+   - [FAQ](/resources/faq)
+   - [Community](/resources/community)
+   - [Generation 9 Features](/resources/generation-9-features)
+
+<Note>
+When asking for help, always provide the exact error message and relevant code. Screenshots of errors are very helpful.
+</Note>
+
+## Preventive Measures
+
+**Best practices to avoid issues:**
+
+✅ **Do:**
+- Backup regularly
+- Test after every change
+- Keep notes of modifications
+- Use version control (Git)
+- Read error messages carefully
+- Test with Debug enabled
+
+❌ **Don't:**
+- Edit without backing up
+- Make multiple changes before testing
+- Ignore warnings
+- Delete scripts without understanding them
+- Skip PBS compilation
+- Distribute with Debug enabled

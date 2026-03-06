@@ -1,0 +1,309 @@
+---
+title: Battle Mechanics
+description: Core battle system architecture, damage calculation, and turn order in Pokémon Essentials BES
+---
+
+# Battle Mechanics
+
+The battle system in Pokémon Essentials BES handles all combat interactions between Pokémon, including turn order, damage calculations, type effectiveness, and critical hits.
+
+## Battle System Architecture
+
+### Core Battle Classes
+
+The battle system is organized around several key classes:
+
+<ParamField path="PokeBattle_Pokemon" type="class">
+  Represents an individual Pokémon in battle with stats, moves, and status conditions.
+</ParamField>
+
+<ParamField path="PokeBattle_Trainer" type="class">
+  Represents a trainer with their party of Pokémon and battle settings.
+</ParamField>
+
+<ParamField path="BattleChallenge" type="class">
+  Manages organized battle formats like Battle Tower, Battle Palace, and Battle Arena.
+</ParamField>
+
+### Battle Initialization
+
+```ruby
+# Creating a Battle Challenge
+def pbBattleChallenge
+  if !$PokemonGlobal.challenge
+    $PokemonGlobal.challenge=BattleChallenge.new
+  end
+  return $PokemonGlobal.challenge
+end
+```
+
+## Turn Order and Priority
+
+### Priority System
+
+Moves execute based on their priority value defined in `PBS/moves.txt`. Higher priority moves execute first.
+
+<Note>
+Priority values range from -6 (lowest) to +5 (highest). Most moves have priority 0.
+</Note>
+
+**Priority Examples from moves.txt:**
+
+```
+# Sucker Punch - Priority +1
+26,SUCKERPUNCH,Golpe Bajo,116,70,DARK,Physical,100,5,0,00,1,abef
+
+# Focus Punch - Priority -3
+84,FOCUSPUNCH,Puño Certero,115,150,FIGHTING,Physical,100,20,0,00,-3,abfj
+
+# Dragon Tail - Priority -6
+58,DRAGONTAIL,Cola Dragón,0EC,60,DRAGON,Physical,90,10,0,00,-6,abef
+```
+
+### Speed Calculation
+
+When moves have the same priority, the Pokémon with higher Speed stat attacks first.
+
+<Accordion title="Speed Tie Resolution">
+If two Pokémon have identical Speed stats and priority, the order is determined randomly.
+</Accordion>
+
+## Damage Calculation
+
+### Base Damage Formula
+
+The damage calculation uses the following core formula:
+
+```
+Damage = ((2 × Level ÷ 5 + 2) × Power × A/D) ÷ 50 + 2
+```
+
+Where:
+- **Level**: Attacker's level
+- **Power**: Move's base power
+- **A**: Attacker's Attack or Special Attack stat
+- **D**: Defender's Defense or Special Defense stat
+
+### Move Data Structure
+
+Each move in `PBS/moves.txt` contains damage information:
+
+```
+ID,MOVENAME,DisplayName,FunctionCode,Power,Type,Category,Accuracy,PP,EffectChance,Target,Priority,Flags,Description
+```
+
+**Example:**
+
+```
+1,MEGAHORN,Megacuerno,000,120,BUG,Physical,85,10,0,00,0,abef,"Violent charge with imposing horns."
+```
+
+<ParamField path="Power" type="integer">
+  Base damage of the move (0 for status moves)
+</ParamField>
+
+<ParamField path="Category" type="enum">
+  - `Physical`: Uses Attack vs Defense
+  - `Special`: Uses Special Attack vs Special Defense
+  - `Status`: No direct damage
+</ParamField>
+
+## Type Effectiveness
+
+### Type Chart System
+
+Type effectiveness is compiled from `PBS/types.txt` into `Data/types.dat`.
+
+```ruby
+# From 039_PSystem_Utilities.rb - Type Compilation
+def pbCompileTypes
+  pbWriteDefaultTypes
+  sections=[]
+  typechart=[]
+  types=[]
+  # ... compilation logic
+  
+  # Type effectiveness values:
+  # 0 = Immune (0x damage)
+  # 1 = Not very effective (0.5x damage)
+  # 2 = Normal effectiveness (1x damage)
+  # 4 = Super effective (2x damage)
+end
+```
+
+**Type Definition Example:**
+
+```ini
+[10]
+Name=Fire
+InternalName=FIRE
+IsSpecialType=true
+Weaknesses=GROUND,ROCK,WATER
+Resistances=BUG,STEEL,FIRE,GRASS,ICE
+```
+
+### Effectiveness Multipliers
+
+<Accordion title="Type Effectiveness Chart">
+- **Immune (0x)**: Ghost immune to Normal/Fighting
+- **Not Very Effective (0.5x)**: Fire resists Fire, Grass, Ice, Bug, Steel
+- **Super Effective (2x)**: Fire weak to Water, Ground, Rock
+- **Dual Types**: Multipliers stack (4x, 0.25x possible)
+</Accordion>
+
+## Critical Hits
+
+### Critical Hit System
+
+Critical hits deal increased damage and ignore stat stage changes.
+
+**Critical Hit Stages:**
+
+| Stage | Probability |
+|-------|-------------|
+| 0     | 1/16        |
+| 1     | 1/8         |
+| 2     | 1/2         |
+| 3+    | Always      |
+
+### High Critical Ratio Moves
+
+Moves with the `h` flag have increased critical hit ratios:
+
+```
+# Night Slash - High crit ratio (flag 'h')
+27,NIGHTSLASH,Tajo Umbrío,000,70,DARK,Physical,100,15,0,00,0,abefh
+
+# Attack Order - High crit ratio (flag 'h')
+2,ATTACKORDER,Al Ataque,000,90,BUG,Physical,100,15,0,00,0,befh
+```
+
+## Accuracy System
+
+### Accuracy Check
+
+Accuracy is checked using:
+
+```
+Hit Rate = Move Accuracy × (Attacker Accuracy Stage ÷ Defender Evasion Stage)
+```
+
+<ParamField path="Accuracy" type="integer">
+  Base accuracy percentage (0 = never miss, 100 = always hits barring evasion)
+</ParamField>
+
+**Accuracy Examples:**
+
+```
+# Thunder - 70% accuracy
+65,THUNDER,Trueno,008,110,ELECTRIC,Special,70,10,30,00,0,bef
+
+# Shock Wave - Never misses (0 accuracy = bypasses checks)
+76,SHOCKWAVE,Onda Voltio,0A5,60,ELECTRIC,Special,0,20,0,00,0,bef
+
+# Zap Cannon - 50% accuracy
+67,ZAPCANNON,Electrocañón,007,120,ELECTRIC,Special,50,5,100,00,0,befn
+```
+
+## Move Flags
+
+Move flags in `PBS/moves.txt` determine special properties:
+
+<Accordion title="Common Move Flags">
+- **a**: Move makes contact
+- **b**: Target can use Protect/Detect
+- **c**: Target can use Magic Coat
+- **d**: Target can use Snatch
+- **e**: Can be used by Mirror Move
+- **f**: Affected by King's Rock flinch
+- **h**: High critical hit ratio
+- **i**: Affected by Iron Fist ability
+- **j**: Punch-based move
+- **k**: Sound-based move
+- **m**: Pulse-based move
+- **n**: Bomb/ball move
+</Accordion>
+
+## Battle Flow
+
+### Turn Structure
+
+1. **Move Selection**: Players and AI choose moves
+2. **Priority Sorting**: Moves sorted by priority, then Speed
+3. **Move Execution**: Moves execute in calculated order
+4. **Effect Application**: Damage, status, stat changes applied
+5. **End of Turn**: Weather, status damage, ability effects
+
+### Organized Battles
+
+Organized battles like Battle Tower use special rules:
+
+```ruby
+def pbOrganizedBattleEx(opponent,challengedata,endspeech,endspeechwin)
+  scene=pbNewBattleScene
+  
+  # Heal party before battle
+  for i in 0...$Trainer.party.length
+    $Trainer.party[i].heal
+  end
+  
+  # Create battle with special rules
+  battle=challengedata.createBattle(scene,$Trainer,opponent)
+  battle.internalbattle=false
+  
+  # Adjust levels based on challenge rules
+  oldlevels=challengedata.adjustLevels($Trainer.party,opponent.party)
+  
+  # Start battle
+  decision=battle.pbStartBattle
+  
+  # Restore after battle
+  challengedata.unadjustLevels($Trainer.party,opponent.party,oldlevels)
+end
+```
+
+## Code Examples
+
+### Creating a Battle Pokemon
+
+```ruby
+class PBPokemon
+  def createPokemon(level,iv,trainer)
+    pokemon=PokeBattle_Pokemon.new(@species,level,trainer,false)
+    pokemon.setItem(@item)
+    pokemon.personalID=rand(65536)
+    pokemon.personalID|=rand(65536)<<8
+    pokemon.personalID-=pokemon.personalID%25
+    pokemon.personalID+=nature
+    pokemon.moves[0]=PBMove.new(self.convertMove(@move1))
+    pokemon.moves[1]=PBMove.new(self.convertMove(@move2))
+    pokemon.moves[2]=PBMove.new(self.convertMove(@move3))
+    pokemon.moves[3]=PBMove.new(self.convertMove(@move4))
+    pokemon.calcStats
+    return pokemon
+  end
+end
+```
+
+### Level Adjustment for Battle Challenges
+
+```ruby
+# From Battle Challenge rules
+if mode==1 # Open Level
+  rules.setRuleset(StandardRules(numPokemon,PBExperience::MAXLEVEL))
+  rules.setLevelAdjustment(OpenLevelAdjustment.new(30))
+elsif mode==2 # Battle Tent
+  rules.setRuleset(StandardRules(numPokemon,PBExperience::MAXLEVEL))
+  rules.setLevelAdjustment(OpenLevelAdjustment.new(60))
+else
+  rules.setRuleset(StandardRules(numPokemon,50))
+  rules.setLevelAdjustment(OpenLevelAdjustment.new(50)) 
+end
+```
+
+## Related Systems
+
+See also:
+- [Move Effects](/api/move-effects) - Function codes and move implementations
+- [Ability Effects](/api/ability-effects) - How abilities modify battle mechanics
+- [Data Loading](/api/data-loading) - How battle data is loaded from PBS files

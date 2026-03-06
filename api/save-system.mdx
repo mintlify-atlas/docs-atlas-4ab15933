@@ -1,0 +1,491 @@
+---
+title: Save System
+description: Save file structure, game state management, and save/load mechanics in Pokémon Essentials BES
+---
+
+# Save System
+
+The save system in Pokémon Essentials BES handles persisting game state between play sessions. It uses Ruby's Marshal serialization to save and load complex game objects.
+
+## Save File Structure
+
+### Primary Save File
+
+The main save file (`Game.rxdata` or `Game.rvdata`) contains:
+
+- Player trainer data (`$Trainer`)
+- Party Pokémon (`$Trainer.party`)
+- Pokémon storage system (`$PokemonStorage`)
+- Game variables and switches (`$game_variables`, `$game_switches`)
+- Map state (`$game_map`)
+- Global flags (`$PokemonGlobal`)
+- Player position and events
+
+<Note>
+Save files use Marshal serialization, which converts Ruby objects to binary format.
+</Note>
+
+## Core Save Functions
+
+### pbSave Function
+
+```ruby
+def pbSave(safesave=false)
+  # Get save file path
+  if (Object.const_defined?(:RTP) rescue false)
+    savefile = RTP.getSaveFileName("Game.rxdata")
+  else
+    savefile = "Game.rxdata"
+  end
+  
+  if safesave
+    # Safe save: write to temp file first, then rename
+    File.open(savefile+".tmp","wb") {|f|
+      Marshal.dump($Trainer, f)
+      Marshal.dump($PokemonGlobal, f)
+      Marshal.dump($PokemonBag, f)
+      Marshal.dump($PokemonStorage, f)
+      Marshal.dump($game_system, f)
+      Marshal.dump($game_map, f)
+      Marshal.dump($game_player, f)
+      Marshal.dump($game_switches, f)
+      Marshal.dump($game_variables, f)
+      Marshal.dump($game_self_switches, f)
+    }
+    
+    # Atomic rename
+    File.rename(savefile+".tmp", savefile)
+  else
+    # Direct save
+    File.open(savefile,"wb") {|f|
+      Marshal.dump($Trainer, f)
+      Marshal.dump($PokemonGlobal, f)
+      Marshal.dump($PokemonBag, f)
+      Marshal.dump($PokemonStorage, f)
+      Marshal.dump($game_system, f)
+      Marshal.dump($game_map, f)
+      Marshal.dump($game_player, f)
+      Marshal.dump($game_switches, f)
+      Marshal.dump($game_variables, f)
+      Marshal.dump($game_self_switches, f)
+    }
+  end
+  
+  Graphics.frame_reset
+end
+```
+
+<Accordion title="Safe Save vs Direct Save">
+**Safe Save** (safesave=true):
+- Writes to a temporary file first
+- Renames temp file to actual save file
+- Prevents corruption if save is interrupted
+- Used for important saves (completing challenges, major events)
+
+**Direct Save** (safesave=false):
+- Writes directly to save file
+- Faster but less safe
+- Used for quick saves during gameplay
+</Accordion>
+
+### pbLoad Function
+
+```ruby
+def pbLoad
+  # Determine save file location
+  if (Object.const_defined?(:RTP) rescue false)
+    savefile = RTP.getSaveFileName("Game.rxdata")
+  else
+    savefile = "Game.rxdata"
+  end
+  
+  return false if !safeExists?(savefile)
+  
+  File.open(savefile,"rb") {|f|
+    $Trainer = Marshal.load(f)
+    $PokemonGlobal = Marshal.load(f)
+    $PokemonBag = Marshal.load(f)
+    $PokemonStorage = Marshal.load(f)
+    $game_system = Marshal.load(f)
+    $game_map = Marshal.load(f)
+    $game_player = Marshal.load(f)
+    $game_switches = Marshal.load(f)
+    $game_variables = Marshal.load(f)
+    $game_self_switches = Marshal.load(f)
+  }
+  
+  return true
+end
+```
+
+## Save Game State
+
+### Trainer Object
+
+```ruby
+class PokeBattle_Trainer
+  attr_accessor :name           # Player name
+  attr_accessor :id             # Trainer ID
+  attr_accessor :metaID         # Player character ID
+  attr_accessor :trainertype    # Trainer type constant
+  attr_accessor :outfit         # Outfit number
+  attr_accessor :party          # Array of Pokémon
+  attr_accessor :pokedex        # Pokédex data
+  attr_accessor :badges         # Badge array
+  attr_accessor :money          # Player money
+  attr_accessor :seen           # Pokémon seen flags
+  attr_accessor :owned          # Pokémon owned flags
+  
+  def initialize(name, trainertype)
+    @name = name
+    @trainertype = trainertype
+    @party = []
+    @badges = []
+    @money = 3000  # Starting money
+    @seen = []
+    @owned = []
+    @pokedex = false
+  end
+end
+```
+
+### PokemonGlobal Object
+
+```ruby
+class PokemonGlobal
+  attr_accessor :bridge              # Bridge state
+  attr_accessor :bicycle             # Has bicycle
+  attr_accessor :surfing             # Currently surfing
+  attr_accessor :diving              # Currently diving
+  attr_accessor :sliding             # Currently sliding on ice
+  attr_accessor :repel               # Repel steps remaining
+  attr_accessor :flashUsed           # Flash used flag
+  attr_accessor :encounter           # Current encounter data
+  attr_accessor :nextBattleBGM       # BGM for next battle
+  attr_accessor :nextBattleME        # ME for next battle
+  attr_accessor :nextBattleBack      # Background for next battle
+  attr_accessor :pokecenterMapId     # Last Pokémon Center map
+  attr_accessor :pokecenterX         # Last Pokémon Center X
+  attr_accessor :pokecenterY         # Last Pokémon Center Y
+  attr_accessor :pokecenterDirection # Facing direction at center
+  attr_accessor :healingSpot         # Current healing location
+  attr_accessor :visitedMaps         # Maps player has visited
+  attr_accessor :partner             # Partner trainer for double battles
+  attr_accessor :challenge           # Battle Challenge data
+  attr_accessor :lastbattle          # Last battle recording
+  
+  def initialize
+    @repel = 0
+    @bridge = 0
+    @bicycle = false
+    @surfing = false
+    @diving = false
+    @visitedMaps = []
+  end
+end
+```
+
+### PokemonStorage Object
+
+```ruby
+class PokemonStorage
+  attr_reader :boxes      # Array of PC boxes
+  attr_accessor :currentBox  # Currently selected box
+  
+  def initialize(maxBoxes=24, maxPokemon=30)
+    @boxes = []
+    @maxBoxes = maxBoxes
+    @maxPokemon = maxPokemon
+    
+    for i in 0...maxBoxes
+      @boxes[i] = []
+    end
+    
+    @currentBox = 0
+  end
+  
+  def pbStoreCaught(pokemon)
+    # Find box with space
+    for i in 0...@maxBoxes
+      box = (@currentBox + i) % @maxBoxes
+      if @boxes[box].length < @maxPokemon
+        @boxes[box].push(pokemon)
+        return box
+      end
+    end
+    return -1  # No space
+  end
+  
+  def full?
+    for box in @boxes
+      return false if box.length < @maxPokemon
+    end
+    return true
+  end
+end
+```
+
+## Battle Challenge Saving
+
+Organized battles (Battle Tower, etc.) use special save logic:
+
+```ruby
+class BattleChallengeData
+  def pbStart(t,numRounds)
+    @inProgress=true
+    @resting=false
+    @decision=0
+    @swaps=t.currentSwaps
+    @wins=t.currentWins
+    @battleNumber=1
+    @trainers=[]
+    @numRounds=numRounds
+    
+    # Generate trainers
+    btTrainers=pbGetBTTrainers(pbBattleChallenge.currentChallenge)
+    while @trainers.length<@numRounds
+      newtrainer=pbBattleChallengeTrainer(@wins+@trainers.length,btTrainers)
+      @trainers.push(newtrainer)
+    end
+    
+    # Save starting position
+    @start=[$game_map.map_id,$game_player.x,$game_player.y]
+    @oldParty=$Trainer.party
+    $Trainer.party=@party if @party
+    
+    pbSave(true)  # Safe save
+  end
+  
+  def pbSaveInProgress
+    # Save at starting position (not current position)
+    oldmapid=$game_map.map_id
+    oldx=$game_player.x
+    oldy=$game_player.y
+    olddirection=$game_player.direction
+    
+    $game_map.map_id=@start[0]
+    $game_player.moveto2(@start[1],@start[2])
+    $game_player.direction=8  # facing up
+    
+    pbSave(true)
+    
+    # Restore actual position
+    $game_map.map_id=oldmapid
+    $game_player.moveto2(oldx,oldy)
+    $game_player.direction=olddirection
+  end
+  
+  def pbEnd
+    $Trainer.party=@oldParty
+    return if !@inProgress
+    save=(@decision!=0)
+    reset
+    $game_map.need_refresh=true
+    if save
+      pbSave(true)
+    end 
+  end
+end
+```
+
+<Accordion title="Why Battle Challenges Save Differently">
+Battle Challenges save at the entrance rather than the player's current location:
+
+1. **Consistent State**: Always resume at challenge start
+2. **No Exploits**: Can't save in the middle to retry battles
+3. **Clean Exit**: Properly restores party after challenge
+4. **Progress Tracking**: Saves wins/losses separately from main game
+</Accordion>
+
+## Auto-Save System
+
+<Note>
+Pokémon Essentials BES doesn't have auto-save by default, but you can implement it.
+</Note>
+
+**Example auto-save implementation:**
+
+```ruby
+def pbAutoSave
+  return if !$Trainer
+  return if $game_temp.in_battle
+  return if $game_temp.in_menu
+  
+  # Don't auto-save in certain maps
+  return if pbGetMetadata($game_map.map_id, MetadataDisableSaving)
+  
+  # Check if enough time has passed
+  if !$PokemonGlobal.lastAutoSave
+    $PokemonGlobal.lastAutoSave = Time.now
+  end
+  
+  time_since_last = Time.now - $PokemonGlobal.lastAutoSave
+  return if time_since_last < 300  # 5 minutes
+  
+  # Perform auto-save
+  pbMessage("Saving...")
+  pbSave(true)
+  $PokemonGlobal.lastAutoSave = Time.now
+end
+```
+
+## Save Data Validation
+
+### Checking Save File Existence
+
+```ruby
+def pbSaveFileExists?
+  if (Object.const_defined?(:RTP) rescue false)
+    savefile = RTP.getSaveFileName("Game.rxdata")
+  else
+    savefile = "Game.rxdata"
+  end
+  return safeExists?(savefile)
+end
+```
+
+### Backup and Recovery
+
+```ruby
+def pbBackupSave
+  if (Object.const_defined?(:RTP) rescue false)
+    savefile = RTP.getSaveFileName("Game.rxdata")
+    backupfile = RTP.getSaveFileName("Game.rxdata.bak")
+  else
+    savefile = "Game.rxdata"
+    backupfile = "Game.rxdata.bak"
+  end
+  
+  if safeExists?(savefile)
+    File.copy(savefile, backupfile)
+  end
+end
+
+def pbRestoreBackup
+  if (Object.const_defined?(:RTP) rescue false)
+    savefile = RTP.getSaveFileName("Game.rxdata")
+    backupfile = RTP.getSaveFileName("Game.rxdata.bak")
+  else
+    savefile = "Game.rxdata"
+    backupfile = "Game.rxdata.bak"
+  end
+  
+  if safeExists?(backupfile)
+    File.copy(backupfile, savefile)
+    return true
+  end
+  return false
+end
+```
+
+## Marshal Serialization
+
+### What Gets Saved
+
+Marshal can serialize:
+- Numbers, strings, booleans
+- Arrays and hashes
+- Custom classes (with `_dump`/`_load` methods)
+- Game objects inheriting from RPG classes
+
+### What Cannot Be Saved
+
+<Note>
+These objects cannot be serialized with Marshal:
+
+- Procs and lambdas
+- Singleton classes
+- IO objects (files, sockets)
+- Threads
+- Certain system objects
+</Note>
+
+### Custom Serialization
+
+```ruby
+class PBPokemon
+  def _dump(depth)
+    # Convert to array for serialization
+    return [@species,@item,@nature,@move1,@move2,
+       @move3,@move4,@ev].pack("vvCvvvvC")
+  end
+
+  def self._load(str)
+    # Reconstruct from serialized data
+    data=str.unpack("vvCvvvvC")
+    return self.new(
+       data[0],data[1],data[2],data[3],
+       data[4],data[5],data[6],data[7]
+    )
+  end
+end
+```
+
+## Save File Location
+
+### Windows Save Location
+
+```ruby
+def pbGetSaveFolder
+  if (Object.const_defined?(:RTP) rescue false)
+    folder = RTP.getSaveFolder
+  else
+    folder = ""
+  end
+  
+  # Typically: C:/Users/[Username]/Saved Games/[Game Name]
+  return folder
+end
+```
+
+### My Documents Integration
+
+```ruby
+def pbGetMyDocumentsFolder()
+  csidl_personal=0x0005
+  shGetSpecialFolderLocation=Win32API.new(
+     "shell32.dll","SHGetSpecialFolderLocation","llp","i")
+  shGetPathFromIDList=Win32API.new(
+     "shell32.dll","SHGetPathFromIDList","lp","i")
+  
+  idl=[0].pack("V")
+  ret=shGetSpecialFolderLocation.call(0,csidl_personal,idl)
+  return "." if ret!=0
+  
+  path="\0"*512
+  ret=shGetPathFromIDList.call(idl.unpack("V")[0],path)
+  return "." if ret==0
+  
+  return path.gsub(/\0/,"")
+end
+```
+
+## Save Triggers
+
+Common events that trigger saves:
+
+1. **Manual Save**: Player uses save menu
+2. **Pokémon Center**: After healing at a center
+3. **Battle Challenge**: Before starting challenge
+4. **After Major Events**: Catching legendaries, defeating gym leaders
+5. **Before Difficult Battles**: Elite Four, rival battles
+
+## Performance Considerations
+
+<Accordion title="Save File Size">
+Typical save file sizes:
+
+- **New Game**: 50-100 KB
+- **Mid Game**: 200-500 KB
+- **End Game**: 500 KB - 1 MB
+- **With PC Storage**: +50 KB per 100 Pokémon
+
+Large saves (>2 MB) may indicate memory leaks or excessive temporary data.
+</Accordion>
+
+## Related Systems
+
+See also:
+- [Data Loading](/api/data-loading) - How game data is loaded at startup
+- [PBS Compiler](/api/pbs-compiler) - Compiling PBS files to data files
+- [Battle Mechanics](/api/battle-mechanics) - Battle state management

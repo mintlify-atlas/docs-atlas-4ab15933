@@ -1,0 +1,366 @@
+---
+title: "Game Structure"
+description: "Understanding the folder organization and key files in Pokémon Essentials BES"
+---
+
+## Project Structure Overview
+
+A Pokémon Essentials BES project has a well-organized folder structure. Understanding this organization is essential for effective game development.
+
+```txt Complete Project Structure
+YourGame/
+├── Audio/           # Sound effects and music
+├── Data/            # Compiled game data and scripts
+├── Fonts/           # Game fonts
+├── Graphics/        # Sprites, tilesets, and UI graphics
+├── PBS/             # Plain text database files
+├── Tools/           # Development utilities
+├── Temporal/        # Temporary files
+├── Editor.exe       # RPG Maker XP Editor
+├── Editor.ini       # Editor configuration
+├── Game.exe         # Main game executable
+├── Game.ini         # Game configuration
+├── Game.rxproj      # RPG Maker project file
+└── mkxp.json        # MKXP configuration (Linux/Mac)
+```
+
+## Core Directories
+
+### Audio/
+
+Contains all sound effects and music:
+
+```txt Audio Structure
+Audio/
+├── BGM/     # Background Music
+│   ├── Battle.mid
+│   ├── Route1.ogg
+│   └── Title.mp3
+├── BGS/     # Background Sounds (ambient)
+│   ├── Rain.ogg
+│   └── Cave.ogg
+├── ME/      # Music Effects (jingles)
+│   ├── Victory.mid
+│   └── ItemGet.ogg
+└── SE/      # Sound Effects
+    ├── Choose.wav
+    ├── Jump.wav
+    └── BattleStart.ogg
+```
+
+<Note>
+Supported audio formats: MP3, OGG, WAV, MID (MIDI)
+</Note>
+
+### Data/
+
+Stores compiled game data and scripts:
+
+```txt Data Structure
+Data/
+├── Scripts.rxdata           # Compiled Ruby scripts
+├── EditorScripts/          # Source Ruby files
+│   ├── 001_Debug_Settings.rb
+│   ├── 016_PBMove.rb
+│   ├── 031_PokeBattle_Pokemon.rb
+│   └── ...
+├── *.rxdata                # RPG Maker data files
+│   ├── Actors.rxdata
+│   ├── MapXXX.rxdata
+│   └── System.rxdata
+└── *.dat                   # Compiled PBS data
+    ├── dexdata.dat
+    ├── moves.dat
+    ├── items.dat
+    └── ...
+```
+
+<Warning>
+Don't edit .rxdata or .dat files directly. Use PBS files and RPG Maker XP instead.
+</Warning>
+
+### Graphics/
+
+All visual assets organized by category:
+
+```txt Graphics Structure
+Graphics/
+├── Animations/      # Battle animations
+├── Autotiles/       # Animated map tiles
+├── Battlebacks/     # Battle backgrounds
+├── Battlers/        # Pokémon battle sprites
+│   ├── 001.png      # Bulbasaur front
+│   ├── 001b.png     # Bulbasaur back
+│   └── 001s.png     # Bulbasaur shiny
+├── Characters/      # Overworld sprites
+├── Fogs/           # Weather effects
+├── Icons/          # UI icons
+├── Panoramas/      # Background images
+├── Pictures/       # Event pictures
+├── Tilesets/       # Map tilesets
+├── Titles/         # Title screen images
+├── Transitions/    # Scene transitions
+└── Windowskins/    # UI window styles
+```
+
+<Info>
+All graphics should be in PNG format for best quality.
+</Info>
+
+### PBS/
+
+Plain text database files:
+
+```txt PBS Structure
+PBS/
+├── pokemon.txt        # Pokémon species data
+├── moves.txt          # Move definitions
+├── abilities.txt      # Ability definitions
+├── items.txt          # Item definitions
+├── trainers.txt       # Trainer battles
+├── trainertypes.txt   # Trainer classes
+├── encounters.txt     # Wild encounters
+├── metadata.txt       # Map metadata
+├── tm.txt            # TM/HM compatibility
+├── types.txt         # Type effectiveness
+├── phone.txt         # Pokégear contacts
+├── shadowmoves.txt   # Shadow Pokémon moves
+└── ...
+```
+
+### Tools/
+
+Development utilities:
+
+```txt Tools Structure
+Tools/
+├── animmaker.exe         # Animation creator
+├── animmaker.txt         # Animation docs
+├── extendtext.exe        # Text extension tool
+├── optipng.exe          # PNG optimizer
+└── Extraer Importar Scripts/  # Script extraction tools
+```
+
+<Tip>
+Keep the Tools/ folder during development but remove it before distribution.
+</Tip>
+
+## Key Files
+
+### Game.exe / Game_Vanilla.exe
+
+The main executable files:
+
+- **Game.exe**: BES-specific executable with enhancements
+- **Game_Vanilla.exe**: Standard RPG Maker XP runtime
+
+### Game.ini
+
+Game configuration file:
+
+```ini Game.ini
+[Game]
+RTP1=RPGVXAce
+RTP2=
+RTP3=
+Library=RGSS104E.dll
+Scripts=Data\Scripts.rxdata
+Title=Pokemon Essentials BES
+```
+
+### Game.rxproj
+
+RPG Maker project identifier:
+
+```txt Game.rxproj
+RPGXP 1.05
+```
+
+### mkxp.json
+
+Configuration for MKXP (cross-platform RPG Maker runtime):
+
+```json mkxp.json
+{
+  "rgssVersion": 1,
+  "enableReset": false,
+  "midiSoundFont": "soundfont.sf2"
+}
+```
+
+## Compiled Data Files
+
+When PBS files are compiled, they create `.dat` files:
+
+| PBS File | Output DAT File | Contents |
+|----------|----------------|----------|
+| pokemon.txt | dexdata.dat | Pokémon species data |
+| moves.txt | moves.dat | Move definitions |
+| abilities.txt | (in messages.dat) | Ability data |
+| items.txt | items.dat | Item definitions |
+| trainers.txt | trainerlists.dat | Trainer battles |
+| trainertypes.txt | trainertypes.dat | Trainer classes |
+| tm.txt | tm.dat | TM compatibility |
+| types.txt | types.dat | Type chart |
+
+## Save Files
+
+Player progress is stored in save files:
+
+```txt Save File Locations
+Game_*.rxdata        # Main save files (slot 1-4)
+Game_*.bak          # Backup save files
+```
+
+<Warning>
+Never distribute your personal save files with your game!
+</Warning>
+
+## Temporary Files
+
+The game creates temporary files during gameplay:
+
+```txt Temporal Structure
+Temporal/
+└── (screenshot files for save game display)
+```
+
+## Best Practices
+
+### Organization
+
+<CardGroup cols={2}>
+  <Card title="Group Related Assets" icon="folder">
+    Keep sprites, sounds, and data for features together
+  </Card>
+  <Card title="Use Descriptive Names" icon="tag">
+    Name files clearly: `trainer_blue.png` not `img001.png`
+  </Card>
+  <Card title="Document Changes" icon="book">
+    Keep notes on modifications and custom additions
+  </Card>
+  <Card title="Version Control" icon="code-branch">
+    Use Git to track changes to PBS and script files
+  </Card>
+</CardGroup>
+
+### File Management
+
+<Steps>
+  <Step title="Backup Regularly">
+    Create backups before making major changes
+  </Step>
+  <Step title="Clean Unused Files">
+    Remove unused graphics and audio to reduce size
+  </Step>
+  <Step title="Optimize Graphics">
+    Use optipng.exe to compress PNG files
+  </Step>
+  <Step title="Test After Changes">
+    Always test the game after modifying structure
+  </Step>
+</Steps>
+
+## Custom Content Locations
+
+Where to put your custom content:
+
+### Custom Pokémon Sprites
+
+```txt
+Graphics/Battlers/
+├── 9001.png        # Custom Pokémon #9001 front
+├── 9001b.png       # Back sprite
+├── 9001s.png       # Shiny front
+└── 9001sb.png      # Shiny back
+```
+
+### Custom Items
+
+```txt
+Graphics/Icons/
+└── item999.png     # Custom item icon
+
+PBS/
+└── items.txt       # Define item data
+```
+
+### Custom Music
+
+```txt
+Audio/BGM/
+└── CustomRoute.ogg  # Your custom music file
+```
+
+### Custom Scripts
+
+```txt
+Data/EditorScripts/
+└── 999_YourCustomScript.rb
+```
+
+<Note>
+Use high numbers (900+) for custom content to avoid conflicts with base game.
+</Note>
+
+## Distribution Structure
+
+When distributing your game, include:
+
+### Required Files
+- ✅ Game.exe
+- ✅ Game.ini
+- ✅ Audio/
+- ✅ Graphics/
+- ✅ Data/ (compiled .dat and .rxdata files)
+- ✅ Fonts/
+- ✅ RGSS DLL files
+
+### Optional for Distribution
+- ⚠️ PBS/ (not needed for players)
+- ⚠️ Tools/ (not needed for players)
+- ⚠️ Editor.exe (not needed for players)
+- ⚠️ Data/EditorScripts/ (scripts are in Scripts.rxdata)
+
+### Never Include
+- ❌ Your save files (Game_*.rxdata)
+- ❌ Personal notes
+- ❌ Backup files (.bak)
+
+## Checking Your Structure
+
+Verify your project structure:
+
+```ruby Script Check
+# Check if essential directories exist
+required_dirs = [
+  "Audio/BGM",
+  "Audio/SE",
+  "Graphics/Battlers",
+  "PBS",
+  "Data"
+]
+
+required_dirs.each do |dir|
+  if !FileTest.directory?(dir)
+    puts "Missing directory: #{dir}"
+  end
+end
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="PBS System" icon="file-lines" href="/concepts/pbs-system">
+    Learn about editing PBS data files
+  </Card>
+  <Card title="Creating Pokémon" icon="sparkles" href="/development/creating-pokemon">
+    Start adding custom Pokémon
+  </Card>
+  <Card title="RPG Maker Integration" icon="puzzle-piece" href="/concepts/rpgmaker-integration">
+    Using the map editor and events
+  </Card>
+  <Card title="Scripting" icon="code" href="/scripting/ruby-basics">
+    Understanding the script system
+  </Card>
+</CardGroup>

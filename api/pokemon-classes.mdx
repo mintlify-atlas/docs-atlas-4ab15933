@@ -1,0 +1,742 @@
+---
+title: "Pokémon Classes"
+description: "Reference for PokeBattle_Pokemon and related classes that represent Pokémon in the game"
+---
+
+## Overview
+
+The Pokémon class system in Pokémon Essentials BES handles individual Pokémon data, stats, moves, and battle mechanics. The primary class is `PokeBattle_Pokemon`, which stores all data for a single Pokémon.
+
+**Source**: `Data/EditorScripts/031_PokeBattle_Pokemon.rb`
+
+---
+
+## PokeBattle_Pokemon
+
+The main class for storing Pokémon data. Accessible via `$Trainer.party` for the player's party.
+
+### Core Attributes
+
+#### Stats (Read-Only)
+
+<ResponseField name="totalhp" type="Integer">
+  The Pokémon's maximum HP
+</ResponseField>
+
+<ResponseField name="attack" type="Integer">
+  Current Attack stat
+</ResponseField>
+
+<ResponseField name="defense" type="Integer">
+  Current Defense stat
+</ResponseField>
+
+<ResponseField name="speed" type="Integer">
+  Current Speed stat
+</ResponseField>
+
+<ResponseField name="spatk" type="Integer">
+  Current Special Attack stat
+</ResponseField>
+
+<ResponseField name="spdef" type="Integer">
+  Current Special Defense stat
+</ResponseField>
+
+#### Individual Values & Effort Values
+
+<ResponseField name="iv" type="Array<Integer>">
+  Array of 6 Individual Values for HP, Attack, Defense, Speed, Special Attack, and Special Defense
+  
+  **Range**: 0-31 for each stat
+</ResponseField>
+
+<ResponseField name="ev" type="Array<Integer>">
+  Array of 6 Effort Values
+  
+  **Limits**: 
+  - Maximum 252 per stat (`EVSTATLIMIT`)
+  - Maximum 510 total (`EVLIMIT`)
+</ResponseField>
+
+#### Basic Information
+
+<ResponseField name="species" type="Integer">
+  Species (National Pokédex number)
+</ResponseField>
+
+<ResponseField name="name" type="String">
+  Nickname of the Pokémon
+</ResponseField>
+
+<ResponseField name="level" type="Integer">
+  Current level (calculated from experience)
+  
+  **Range**: 1-100
+</ResponseField>
+
+<ResponseField name="exp" type="Integer">
+  Current experience points
+</ResponseField>
+
+<ResponseField name="happiness" type="Integer">
+  Current happiness/friendship value
+  
+  **Range**: 0-255
+</ResponseField>
+
+#### Battle State
+
+<ResponseField name="hp" type="Integer">
+  Current HP
+</ResponseField>
+
+<ResponseField name="status" type="Integer">
+  Status condition (see `PBStatuses`)
+  
+  **Values**:
+  - `0` - None
+  - `1` - Sleep
+  - `2` - Poison
+  - `3` - Burn
+  - `4` - Paralysis
+  - `5` - Freeze
+</ResponseField>
+
+<ResponseField name="statusCount" type="Integer">
+  Sleep turn counter or Toxic flag
+</ResponseField>
+
+#### Moves
+
+<ResponseField name="moves" type="Array<PBMove>">
+  Array of up to 4 moves (PBMove objects)
+</ResponseField>
+
+<ResponseField name="firstmoves" type="Array<Integer>">
+  The moves known when this Pokémon was first obtained
+</ResponseField>
+
+#### Items & Equipment
+
+<ResponseField name="item" type="Integer">
+  Held item ID
+</ResponseField>
+
+<ResponseField name="itemRecycle" type="Integer">
+  Consumed held item (used in battle only)
+</ResponseField>
+
+<ResponseField name="itemInitial" type="Integer">
+  Initial held item (used in battle only)
+</ResponseField>
+
+<ResponseField name="ballused" type="Integer">
+  Poké Ball type used to catch this Pokémon
+</ResponseField>
+
+#### Trainer Information
+
+<ResponseField name="personalID" type="Integer">
+  32-bit Personal ID (determines gender, shininess, etc.)
+</ResponseField>
+
+<ResponseField name="trainerID" type="Integer">
+  32-bit Trainer ID (upper 16 bits = secret ID)
+</ResponseField>
+
+<ResponseField name="ot" type="String">
+  Original Trainer's name
+</ResponseField>
+
+<ResponseField name="otgender" type="Integer">
+  Original Trainer's gender
+  
+  **Values**: 0=male, 1=female, 2=mixed, 3=unknown
+</ResponseField>
+
+#### Special Flags
+
+<ResponseField name="abilityflag" type="Integer">
+  Forces the first/second/hidden ability (0/1/2)
+</ResponseField>
+
+<ResponseField name="genderflag" type="Integer">
+  Forces male (0) or female (1)
+</ResponseField>
+
+<ResponseField name="natureflag" type="Integer">
+  Forces a particular nature
+</ResponseField>
+
+<ResponseField name="shinyflag" type="Boolean">
+  Forces shininess (true/false)
+</ResponseField>
+
+---
+
+## Constructor
+
+### initialize
+
+```ruby
+def initialize(species, level, player=nil, withMoves=true)
+```
+
+Creates a new Pokémon.
+
+<ParamField path="species" type="Integer|String|Symbol" required>
+  Pokémon species (ID, name, or constant)
+</ParamField>
+
+<ParamField path="level" type="Integer" required>
+  Initial level (1-100)
+</ParamField>
+
+<ParamField path="player" type="PokeBattle_Trainer" default="nil">
+  Original trainer (defaults to current player if nil)
+</ParamField>
+
+<ParamField path="withMoves" type="Boolean" default="true">
+  Whether to initialize with level-up moves
+</ParamField>
+
+**Example**:
+```ruby
+# Create a level 25 Pikachu
+pokemon = PokeBattle_Pokemon.new(:PIKACHU, 25, $Trainer)
+
+# Create without moves
+pokemon = PokeBattle_Pokemon.new(25, 50, $Trainer, false)
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:884-981`
+
+---
+
+## Level & Experience
+
+### level
+
+```ruby
+def level
+def level=(value)
+```
+
+Gets or sets the Pokémon's level. Setting the level adjusts experience points.
+
+**Example**:
+```ruby
+pokemon.level = 50
+puts pokemon.level  # => 50
+puts pokemon.exp    # => (experience for level 50)
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:121-131`
+
+### isEgg?
+
+```ruby
+def isEgg?
+```
+
+Returns whether this Pokémon is an egg.
+
+**Returns**: `true` if `@eggsteps > 0`
+
+**Source**: `031_PokeBattle_Pokemon.rb:134-136`
+
+### growthrate
+
+```ruby
+def growthrate
+```
+
+Returns the Pokémon's growth rate (experience curve).
+
+**Returns**: Integer (0-5) representing growth rate type
+
+**Source**: `031_PokeBattle_Pokemon.rb:141-147`
+
+---
+
+## Gender & Nature
+
+### gender
+
+```ruby
+def gender
+```
+
+Returns the Pokémon's gender.
+
+**Returns**: `0` (male), `1` (female), or `2` (genderless)
+
+**Source**: `031_PokeBattle_Pokemon.rb:162-177`
+
+### isMale? / isFemale? / isGenderless?
+
+```ruby
+def isMale?
+def isFemale?
+def isGenderless?
+```
+
+Convenience methods for checking gender.
+
+**Example**:
+```ruby
+if pokemon.isMale?
+  puts "It's a boy!"
+elsif pokemon.isFemale?
+  puts "It's a girl!"
+else
+  puts "It's genderless!"
+end
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:197-209`
+
+### nature
+
+```ruby
+def nature
+```
+
+Returns the Pokémon's nature ID.
+
+**Returns**: Integer (0-24)
+
+**Calculation**: `@personalID % 25` (unless overridden by `@natureflag`)
+
+**Source**: `031_PokeBattle_Pokemon.rb:297-300`
+
+### setNature
+
+```ruby
+def setNature(value)
+```
+
+Sets the Pokémon's nature and recalculates stats.
+
+<ParamField path="value" type="Integer|String|Symbol" required>
+  Nature to set
+</ParamField>
+
+**Example**:
+```ruby
+pokemon.setNature(:ADAMANT)
+pokemon.setNature(0)  # Hardy
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:316-322`
+
+---
+
+## Ability
+
+### ability
+
+```ruby
+def ability
+```
+
+Returns the ID of this Pokémon's current ability.
+
+**Source**: `031_PokeBattle_Pokemon.rb:235-248`
+
+### hasAbility?
+
+```ruby
+def hasAbility?(value=0)
+```
+
+Checks if the Pokémon has a specific ability.
+
+<ParamField path="value" type="Integer|String|Symbol" default="0">
+  Ability to check (0 = check if has any ability)
+</ParamField>
+
+**Example**:
+```ruby
+if pokemon.hasAbility?(:STATIC)
+  puts "Has Static ability!"
+end
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:251-261`
+
+### hasHiddenAbility?
+
+```ruby
+def hasHiddenAbility?
+```
+
+Returns whether this Pokémon has its hidden ability.
+
+**Source**: `031_PokeBattle_Pokemon.rb:268-271`
+
+---
+
+## Shininess
+
+### isShiny?
+
+```ruby
+def isShiny?
+```
+
+Returns whether this Pokémon is shiny.
+
+**Algorithm**: XORs personal ID with trainer ID and checks against `SHINYPOKEMONCHANCE`
+
+**Source**: `031_PokeBattle_Pokemon.rb:328-335`
+
+### makeShiny / makeNotShiny
+
+```ruby
+def makeShiny
+def makeNotShiny
+```
+
+Forces the Pokémon to be shiny or not shiny.
+
+**Example**:
+```ruby
+pokemon.makeShiny
+puts pokemon.isShiny?  # => true
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:338-345`
+
+---
+
+## Types
+
+### type1 / type2
+
+```ruby
+def type1
+def type2
+```
+
+Returns the Pokémon's first or second type.
+
+**Returns**: Integer (type ID from `PBTypes`)
+
+**Source**: `031_PokeBattle_Pokemon.rb:396-411`
+
+### hasType?
+
+```ruby
+def hasType?(type)
+```
+
+Checks if the Pokémon has a specific type.
+
+<ParamField path="type" type="Integer|String|Symbol" required>
+  Type to check
+</ParamField>
+
+**Example**:
+```ruby
+if pokemon.hasType?(:ELECTRIC)
+  puts "Electric type!"
+end
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:387-393`
+
+---
+
+## Move Management
+
+### numMoves
+
+```ruby
+def numMoves
+```
+
+Returns the number of moves the Pokémon knows.
+
+**Returns**: Integer (0-4)
+
+**Source**: `031_PokeBattle_Pokemon.rb:417-423`
+
+### hasMove?
+
+```ruby
+def hasMove?(move)
+```
+
+Checks if the Pokémon knows a specific move.
+
+<ParamField path="move" type="Integer|String|Symbol" required>
+  Move to check
+</ParamField>
+
+**Example**:
+```ruby
+if pokemon.hasMove?(:THUNDERBOLT)
+  puts "Knows Thunderbolt!"
+end
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:426-435`
+
+### pbLearnMove
+
+```ruby
+def pbLearnMove(move)
+```
+
+Silently teaches a move to the Pokémon. Erases the first move if necessary.
+
+<ParamField path="move" type="Integer|String|Symbol" required>
+  Move to learn
+</ParamField>
+
+**Example**:
+```ruby
+pokemon.pbLearnMove(:THUNDERBOLT)
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:476-503`
+
+### pbDeleteMove
+
+```ruby
+def pbDeleteMove(move)
+```
+
+Removes a specific move from the Pokémon.
+
+**Source**: `031_PokeBattle_Pokemon.rb:506-519`
+
+### pbDeleteMoveAtIndex
+
+```ruby
+def pbDeleteMoveAtIndex(index)
+```
+
+Removes the move at a specific index (0-3).
+
+**Source**: `031_PokeBattle_Pokemon.rb:522-531`
+
+### resetMoves
+
+```ruby
+def resetMoves
+```
+
+Resets moves to the default moves for the Pokémon's level.
+
+**Source**: `031_PokeBattle_Pokemon.rb:456-473`
+
+---
+
+## Items
+
+### hasItem?
+
+```ruby
+def hasItem?(value=0)
+```
+
+Checks if the Pokémon is holding an item.
+
+<ParamField path="value" type="Integer|String|Symbol" default="0">
+  Item to check (0 = check if holding any item)
+</ParamField>
+
+**Example**:
+```ruby
+if pokemon.hasItem?(:LEFTOVERS)
+  puts "Holding Leftovers!"
+end
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:627-637`
+
+### setItem
+
+```ruby
+def setItem(value)
+```
+
+Gives an item to the Pokémon.
+
+**Example**:
+```ruby
+pokemon.setItem(:LEFTOVERS)
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:640-645`
+
+---
+
+## Healing
+
+### heal
+
+```ruby
+def heal
+```
+
+Fully heals the Pokémon (HP, status, and PP).
+
+**Source**: `031_PokeBattle_Pokemon.rb:761-766`
+
+### healHP
+
+```ruby
+def healHP
+```
+
+Restores HP to maximum.
+
+**Source**: `031_PokeBattle_Pokemon.rb:736-739`
+
+### healStatus
+
+```ruby
+def healStatus
+```
+
+Cures status conditions.
+
+**Source**: `031_PokeBattle_Pokemon.rb:742-746`
+
+### healPP
+
+```ruby
+def healPP(index=-1)
+```
+
+Restores PP for moves.
+
+<ParamField path="index" type="Integer" default="-1">
+  Move index to heal (-1 = all moves)
+</ParamField>
+
+**Source**: `031_PokeBattle_Pokemon.rb:749-758`
+
+---
+
+## Stat Calculation
+
+### calcStats
+
+```ruby
+def calcStats
+```
+
+Recalculates all stats based on base stats, IVs, EVs, level, and nature.
+
+**Formula**:
+- **HP**: `((base*2 + IV + (EV/4)) * level / 100) + level + 10`
+- **Other stats**: `(((base*2 + IV + (EV/4)) * level / 100) + 5) * nature_modifier / 100`
+
+**Source**: `031_PokeBattle_Pokemon.rb:847-877`
+
+---
+
+## Usage Examples
+
+### Creating a Pokémon
+
+```ruby
+# Create a basic Pokémon
+pokemon = PokeBattle_Pokemon.new(:PIKACHU, 25, $Trainer)
+
+# Create with specific properties
+pokemon = PokeBattle_Pokemon.new(:CHARIZARD, 50, $Trainer)
+pokemon.setAbility(1)  # Second ability
+pokemon.setNature(:ADAMANT)
+pokemon.makeShiny
+pokemon.setItem(:CHARCOAL)
+```
+
+### Modifying Stats
+
+```ruby
+pokemon = PokeBattle_Pokemon.new(:PIKACHU, 50, $Trainer)
+
+# Set IVs (perfect IVs)
+for i in 0...6
+  pokemon.iv[i] = 31
+end
+
+# Add EVs
+pokemon.ev[PBStats::SPEED] = 252
+pokemon.ev[PBStats::SPATK] = 252
+pokemon.ev[PBStats::HP] = 6
+
+# Recalculate stats
+pokemon.calcStats
+```
+
+### Move Management
+
+```ruby
+pokemon = PokeBattle_Pokemon.new(:PIKACHU, 50, $Trainer)
+
+# Delete all moves
+pokemon.pbDeleteAllMoves
+
+# Teach specific moves
+pokemon.pbLearnMove(:THUNDERBOLT)
+pokemon.pbLearnMove(:QUICKATTACK)
+pokemon.pbLearnMove(:IRONTAIL)
+pokemon.pbLearnMove(:GRASSKNOT)
+
+# Check if knows a move
+if pokemon.hasMove?(:THUNDERBOLT)
+  puts "Knows Thunderbolt!"
+end
+```
+
+### Battle State
+
+```ruby
+# Damage the Pokémon
+pokemon.hp -= 50
+
+# Apply status
+pokemon.status = PBStatuses::BURN
+
+# Check if fainted
+if pokemon.hp == 0
+  puts "#{pokemon.name} fainted!"
+end
+
+# Heal
+pokemon.heal
+```
+
+---
+
+## Constants
+
+```ruby
+EVLIMIT = 510        # Maximum total EVs
+EVSTATLIMIT = 252    # Maximum EVs per stat
+```
+
+**Source**: `031_PokeBattle_Pokemon.rb:55-56`
+
+---
+
+## Related Classes
+
+- **PBMove**: Represents individual moves
+- **PokeBattle_Trainer**: Trainer class that holds Pokémon parties
+- **PBSpecies**: Species constant definitions
+- **PBTypes**: Type constant definitions
+- **PBNatures**: Nature constant definitions
+
+## See Also
+
+- [PBMove](/api/pbmove) - Move instances
+- [PBMoveData](/api/pbmovedata) - Move data
+- [Trainer Classes](/api/trainer-classes) - Trainer management

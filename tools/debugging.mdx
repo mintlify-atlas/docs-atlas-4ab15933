@@ -1,0 +1,422 @@
+---
+title: Debugging & Testing
+description: Debug mode, error logging, and testing techniques for Pokémon Essentials BES
+---
+
+Pokémon Essentials BES includes comprehensive debugging tools to help you test your game, identify errors, and troubleshoot issues during development.
+
+## Debug Mode
+
+Debug mode provides special commands and information displays while playtesting your game.
+
+### Enabling Debug Mode
+
+Debug mode is typically enabled automatically when running the game from the editor or during development.
+
+<Note>
+Debug mode should be disabled in release builds to prevent players from accessing debug features.
+</Note>
+
+## Debug Commands
+
+Pokémon Essentials includes numerous debug commands accessible during gameplay:
+
+### Common Debug Keys
+
+| Key | Function |
+|-----|----------|
+| **F12** | Soft reset (restart game) |
+| **F8** | Screenshot |
+| **F9** | Debug menu (if available) |
+| **Ctrl** | Hold to speed up game (fast-forward) |
+
+### Debug Menu Functions
+
+The debug menu provides access to:
+
+- **Pokémon debugger** - Edit party Pokémon stats, moves, abilities
+- **Item manager** - Add/remove items from bag
+- **Switch/variable editor** - Modify game switches and variables
+- **Warp to map** - Instantly teleport to any map
+- **Battle tester** - Start test battles with specific Pokémon
+- **Animation tester** - Preview move animations
+- **Event trigger** - Force common events to run
+
+<Info>
+Access the debug menu during gameplay (specific key depends on your Essentials configuration, often F9 or accessed through in-game menu).
+</Info>
+
+## Error Logging
+
+Pokémon Essentials automatically logs errors and debug information to help troubleshoot issues.
+
+### Debug Log File
+
+**Location:** `Data/debuglog.txt`
+
+The debug log records:
+
+- Battle sequences and calculations
+- Move damage calculations
+- AI decision-making
+- Status changes and abilities
+- HP modifications
+- Round-by-round battle flow
+
+### Debug Log Example
+
+```
+******************************************
+[Habilidad disparada] Intimidación de Gyarados
+[Cambio características] Ataque de Nidoran salvaje bajó 1 nivel(es)
+
+***Round 1***
+[AI] Nidoran salvaje's moves: Arañazo=100, Látigo=100
+[AI] Will use Látigo
+[Priority] Gyarados (0), Nidoran salvaje (1)
+Gyarados usó Cascada
+Move's damage calculated to be 53
+[Modificación PS] Nidoran salvaje perdió 44 PS (44=>0)
+[Pokémon debilitado] Nidoran salvaje
+
+***Jugador ganó***
+```
+
+<Note>
+The debug log is invaluable for understanding battle mechanics and troubleshooting AI behavior.
+</Note>
+
+## Error Handling
+
+### Error Messages
+
+When errors occur during development, Pokémon Essentials displays:
+
+- **Error type** - Ruby exception class
+- **Error message** - Description of the error
+- **Stack trace** - Line numbers and script names
+- **Affected code** - Context around the error
+
+### Common Error Types
+
+#### NoMethodError
+
+Calling a method that doesn't exist:
+
+```ruby
+undefined method 'some_method' for nil:NilClass
+```
+
+**Common causes:**
+- Variable is nil when it shouldn't be
+- Typo in method name
+- Missing object initialization
+
+#### NameError
+
+Referencing undefined variable or constant:
+
+```ruby
+uninitialized constant ClassName
+```
+
+**Common causes:**
+- Typo in class/constant name
+- Script not loaded (load order issue)
+- Missing require statement
+
+#### SyntaxError
+
+Invalid Ruby syntax:
+
+```ruby
+syntax error, unexpected end-of-input
+```
+
+**Common causes:**
+- Missing `end` keyword
+- Unclosed string or parenthesis
+- Invalid Ruby syntax
+
+#### ArgumentError
+
+Wrong number of arguments:
+
+```ruby
+wrong number of arguments (given 2, expected 1)
+```
+
+**Common causes:**
+- Incorrect function call
+- Changed function signature
+- Missing optional parameters
+
+## Testing Techniques
+
+### Playtesting from Editor
+
+<Steps>
+  <Step title="Open Editor">
+    Launch the RPG Maker XP Editor with `Editor.exe`.
+  </Step>
+  
+  <Step title="Set Starting Position">
+    Configure where the player starts for testing.
+  </Step>
+  
+  <Step title="Press F12">
+    Launch playtest mode to test your changes.
+  </Step>
+  
+  <Step title="Check Logs">
+    Review `Data/debuglog.txt` for debug information.
+  </Step>
+</Steps>
+
+### Console Output
+
+Use `print` and `p` for debug output:
+
+```ruby
+print "Debug: Variable value = #{some_variable}\n"
+p some_object  # Prints object.inspect
+```
+
+<Info>
+Console output appears in the game window or console if running from terminal.
+</Info>
+
+### Debug Statements
+
+Add temporary debug code:
+
+```ruby
+def some_function(param)
+  puts "DEBUG: Entering some_function with param=#{param}"
+  # Your code here
+  result = calculate_something(param)
+  puts "DEBUG: Result calculated as #{result}"
+  return result
+end
+```
+
+### Conditional Debugging
+
+Use debug flags to control debug output:
+
+```ruby
+DEBUG_MODE = true
+
+def debug_log(message)
+  puts message if DEBUG_MODE
+end
+
+debug_log("This only prints in debug mode")
+```
+
+## Battle Debugging
+
+Battle debugging is particularly detailed in Pokémon Essentials.
+
+### Battle Log Entries
+
+The debug log tracks:
+
+- **Ability triggers** - When abilities activate
+- **Stat changes** - Stat stage modifications
+- **AI decisions** - What the AI chooses and why
+- **Priority order** - Move order based on priority and speed
+- **Move execution** - Which moves are used
+- **Damage calculation** - Calculated damage values
+- **HP changes** - HP modifications with before/after values
+- **Status changes** - Status condition applications
+- **Round results** - Winner/loser determination
+
+### Reading Battle Logs
+
+```
+***Round 1***
+[AI] Hoppip salvaje's moves: Placaje=100, Polvo Veneno=100
+[AI] Will use Placaje
+```
+
+This shows:
+- Round number
+- AI's available moves with scores
+- AI's selected move
+
+```
+Move's damage calculated to be 11
+[Modificación PS] Chansey perdió 11 PS (130=>119)
+```
+
+This shows:
+- Calculated damage
+- HP change (before => after)
+
+### Testing Specific Battles
+
+Use the battle tester to:
+
+1. Set up specific Pokémon with exact stats
+2. Test move interactions
+3. Verify ability triggers
+4. Check damage calculations
+5. Test AI behavior
+
+## Common Debugging Scenarios
+
+### Event Not Triggering
+
+<Steps>
+  <Step title="Check Event Trigger">
+    Verify the event trigger type (Action Button, Player Touch, etc.).
+  </Step>
+  
+  <Step title="Check Conditions">
+    Ensure event page conditions are met (switches, variables).
+  </Step>
+  
+  <Step title="Check Priority">
+    Verify event priority setting allows interaction.
+  </Step>
+  
+  <Step title="Test Positioning">
+    Ensure player is in the correct position relative to event.
+  </Step>
+</Steps>
+
+### Script Errors
+
+<Steps>
+  <Step title="Read Error Message">
+    Carefully read the error type and message.
+  </Step>
+  
+  <Step title="Check Stack Trace">
+    Find the line number and script name in the stack trace.
+  </Step>
+  
+  <Step title="Open Script">
+    Navigate to the problematic script and line number.
+  </Step>
+  
+  <Step title="Identify Issue">
+    Look for typos, nil values, or logic errors.
+  </Step>
+  
+  <Step title="Fix and Test">
+    Correct the error and test again.
+  </Step>
+</Steps>
+
+### Data Not Loading
+
+<Warning>
+Always compile PBS data after making changes to PBS text files. Use the debug menu or compilation script to regenerate `.rxdata` files.
+</Warning>
+
+**Common causes:**
+- PBS files not compiled
+- Syntax errors in PBS files
+- Missing required fields
+- File encoding issues
+
+### Performance Issues
+
+**Debugging techniques:**
+
+1. **Profile code** - Add timing code:
+   ```ruby
+   start_time = Time.now
+   # Your code here
+   elapsed = Time.now - start_time
+   puts "Operation took #{elapsed} seconds"
+   ```
+
+2. **Check event frequency** - Parallel Process events run every frame
+3. **Review scripts** - Look for infinite loops or heavy calculations
+4. **Monitor resources** - Check memory usage and file I/O
+
+## Debugging Tools
+
+### In-Game Console
+
+Some Essentials versions include an in-game console for executing Ruby code on the fly.
+
+### PBS File Compiler
+
+Compile PBS files to detect syntax errors before runtime:
+
+- Use debug menu compilation option
+- Watch for error messages during compilation
+- Fix PBS syntax errors
+
+### Script Verification
+
+Before running:
+
+```ruby
+ruby -c script_file.rb
+```
+
+This checks syntax without executing the script.
+
+## Best Practices
+
+### During Development
+
+- **Test frequently** - Test changes immediately
+- **Use version control** - Commit working states
+- **Keep backups** - Backup before major changes
+- **Document bugs** - Keep a list of known issues
+- **Incremental changes** - Make small, testable changes
+
+### Debug Code
+
+- **Remove debug code** - Clean up before release
+- **Use debug flags** - Control debug output with constants
+- **Meaningful messages** - Write clear debug messages
+- **Context information** - Include relevant values in debug output
+
+### Error Handling
+
+- **Graceful failures** - Handle errors without crashing
+- **User-friendly messages** - Display helpful error information
+- **Log errors** - Write errors to log files
+- **Validation** - Validate input and data
+
+## Preparing for Release
+
+<Steps>
+  <Step title="Disable Debug Mode">
+    Turn off all debug features and commands.
+  </Step>
+  
+  <Step title="Remove Debug Code">
+    Delete or comment out debug print statements and test code.
+  </Step>
+  
+  <Step title="Clear Logs">
+    Delete `Data/debuglog.txt` before building release.
+  </Step>
+  
+  <Step title="Test Release Build">
+    Thoroughly test the release version without debug features.
+  </Step>
+  
+  <Step title="Error Handling">
+    Ensure proper error handling for players (no raw Ruby errors).
+  </Step>
+</Steps>
+
+<Warning>
+Never release a game with debug mode enabled - it allows players to cheat and breaks game balance.
+</Warning>
+
+## Related Resources
+
+- [Script Extractor](/tools/script-extractor) - Extract scripts for easier debugging
+- [RPG Maker XP Editor](/tools/editor) - Test maps and events
+- [Scripting Guide](/scripting/overview) - Learn to write error-free scripts
+- [PBS Files](/pbs/overview) - Understand PBS data format

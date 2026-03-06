@@ -1,0 +1,161 @@
+---
+title: Introduction to Pokémon Essentials BES
+description: Learn about Pokémon Essentials BES, the powerful RPG Maker XP toolkit for creating your own Pokémon fan games
+---
+
+## What is Pokémon Essentials BES?
+
+Pokémon Essentials BES (Base Española) is an unofficial fork of Pokémon Essentials v16.2 and the successor to the "Base de Pira". It's a comprehensive toolkit built on RPG Maker XP that provides everything you need to create your own Pokémon fan games.
+
+BES stands out by bringing **fully functional content up to Generation 9**, including all Pokémon, moves, and abilities, while maintaining the philosophy of adding only what's strictly necessary and integrating seamlessly with the original codebase for maximum compatibility.
+
+<Note>
+  Pokémon Essentials BES is ideal for both veteran and novice Spanish-speaking game makers, and is suitable for all types of projects.
+</Note>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Generation 9 Support" icon="sparkles">
+    All Pokémon, moves, and abilities through Generation 9 are fully functional and ready to use
+  </Card>
+  
+  <Card title="Quality of Life Improvements" icon="wrench">
+    Important QoL enhancements and bug fixes that improve the development experience
+  </Card>
+  
+  <Card title="Modern Compatibility" icon="code">
+    Methods adjusted to be compatible with newer Essentials versions while maintaining v16.2 stability
+  </Card>
+  
+  <Card title="PBS Data System" icon="database">
+    Easy-to-edit text files for Pokémon stats, moves, abilities, items, trainers, and more
+  </Card>
+</CardGroup>
+
+## What's Included
+
+### Complete Pokémon Data
+- **1000+ Pokémon** from all nine generations
+- Detailed stats, types, abilities, and evolution chains
+- Complete movesets including level-up and egg moves
+- Regional forms and Mega Evolutions
+
+### Battle System
+- **900+ Moves** with accurate effects and mechanics
+- **300+ Abilities** functioning as intended
+- Type effectiveness system
+- Status conditions and weather effects
+
+### Graphics & Audio
+- Pokémon sprites for all species
+- Trainer sprites and battle backgrounds
+- Music and sound effects
+- UI elements and icons
+
+### Development Tools
+- Animation Maker (`animmaker.exe`) for creating battle animations
+- Script extraction/import tools
+- PBS file editors
+- Map editor through RPG Maker XP
+
+## What You Can Build
+
+With Pokémon Essentials BES, you can create:
+
+- **Traditional Pokémon Games**: Create your own region, gym leaders, Elite Four, and storyline
+- **ROM Hack-Style Projects**: Reimagine existing Pokémon games with new features
+- **Challenge Runs**: Design specialized games like Nuzlocke variants or monotype challenges
+- **Creative Fangames**: Experiment with new types, mechanics, or completely new stories
+- **Educational Projects**: Learn game development with a familiar, well-documented system
+
+<Warning>
+  Pokémon Essentials BES is for **fan game development only**. Never use it for commercial projects. Always respect Nintendo, Game Freak, and The Pokémon Company's intellectual property rights.
+</Warning>
+
+## System Architecture
+
+Pokémon Essentials BES is built on several key components:
+
+```ruby
+# Core structure
+Game.exe          # Main executable (MKXP-based)
+Data/             # Compiled game data and scripts
+PBS/              # Plain text data files (editable)
+Graphics/         # Sprites, tilesets, UI elements
+Audio/            # BGM, BGS, ME, and SE files
+Tools/            # Development utilities
+```
+
+### PBS Files (Plain-Based Scripting)
+
+The PBS system allows you to edit game data without touching Ruby code:
+
+<CodeGroup>
+```txt pokemon.txt
+[1]
+Name=Bulbasaur
+InternalName=BULBASAUR
+Type1=GRASS
+Type2=POISON
+BaseStats=45,49,49,45,65,65
+GenderRate=FemaleOneEighth
+GrowthRate=Parabolic
+BaseEXP=64
+Abilities=OVERGROW
+HiddenAbility=CHLOROPHYLL
+Moves=1,TACKLE,3,GROWL,7,LEECHSEED,9,VINEWHIP
+```
+
+```txt abilities.txt
+1,STENCH,Hedor,"Debido al mal olor que emana, al atacar al rival puede hacerlo retroceder."
+2,DRIZZLE,Llovizna,"Hace que llueva cuando entra en combate."
+3,SPEEDBOOST,Impulso,"Aumenta la Velocidad en cada turno."
+```
+
+```txt moves.txt
+1,MEGAHORN,Megacuerno,000,120,BUG,Physical,85,10,0,00,0,abef,"Violenta embestida con cuernos imponentes."
+```
+</CodeGroup>
+
+## Community & Credits
+
+Pokémon Essentials BES builds upon the work of many contributors:
+
+- **Original Pokémon Essentials**: Flameguru, Poccil, Maruno
+- **BES Compilation**: Pira, Clara
+- **PBS Data**: Alexandrite, Clara, Jaizu, Nero
+- **Sprites**: Smogon Sprite Project and numerous sprite artists
+- **Scripts**: Extensive community contributions
+
+<Note>
+  If you use this base for your project, please provide appropriate credits to the scripters and spriters who contributed resources.
+</Note>
+
+## Getting Started
+
+Ready to start your Pokémon game development journey?
+
+<CardGroup cols={2}>
+  <Card title="Installation Guide" icon="download" href="/installation">
+    Set up RPG Maker XP and Pokémon Essentials BES on your system
+  </Card>
+  
+  <Card title="Quickstart Tutorial" icon="rocket" href="/quickstart">
+    Create your first map and make your first changes to the game
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+For more information about Pokémon Essentials BES features and additions:
+
+- [Complete Feature Documentation](https://docs.google.com/document/d/1XWg6KQovDcALt8BB3sfL-4HpjchJRAbEEqvY0uHm5Qo/edit?usp=sharing)
+- [Download Latest Version](https://drive.google.com/file/d/1LZ2Y64mg3EamoP2gHdlx1DgtqZQ3FasE/view?usp=sharing)
+- Pokémon Essentials Wiki (accessible via Tools folder)
+
+---
+
+<Note>
+  **Next Steps**: Follow our [installation guide](/installation) to set up your development environment, then jump into the [quickstart tutorial](/quickstart) to make your first game changes.
+</Note>

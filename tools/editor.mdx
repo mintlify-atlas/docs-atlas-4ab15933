@@ -1,0 +1,229 @@
+---
+title: RPG Maker XP Editor
+description: Using the RPG Maker XP Editor to create maps, events, and game data in Pokémon Essentials BES
+---
+
+The RPG Maker XP Editor is the primary tool for creating and editing maps, events, database entries, and other visual elements of your Pokémon game.
+
+## Editor Files
+
+Pokémon Essentials BES includes the following editor files:
+
+- **Editor.exe** - The RPG Maker XP editor application
+- **Editor.ini** - Configuration file that specifies which script library to load
+
+### Editor Configuration
+
+The `Editor.ini` file configures the editor to use the EditorScripts:
+
+```ini
+[Game]
+Library=RGSS102E.dll
+Scripts=Data\EditorScripts.rxdata
+Title=Pokemon Essentials
+RTP1=
+RTP2=
+RTP3=
+```
+
+<Note>
+The editor uses `EditorScripts.rxdata` instead of the main `Scripts.rxdata` file to provide editor-specific functionality.
+</Note>
+
+## Opening the Editor
+
+<Steps>
+  <Step title="Launch the Editor">
+    Double-click `Editor.exe` in your game's root directory to open the RPG Maker XP Editor.
+  </Step>
+  
+  <Step title="Load Your Project">
+    The editor will automatically load your Pokémon Essentials project based on the configuration in `Editor.ini`.
+  </Step>
+</Steps>
+
+## Map Editor
+
+The map editor is where you create and design the world of your Pokémon game.
+
+### Creating Maps
+
+<Steps>
+  <Step title="Open the Map Tree">
+    The left panel shows your map hierarchy. Right-click to create new maps.
+  </Step>
+  
+  <Step title="Set Map Properties">
+    Configure map settings including:
+    - Map name and dimensions
+    - Tileset to use
+    - Background music (BGM)
+    - Battle background
+    - Encounter settings
+  </Step>
+  
+  <Step title="Design the Map">
+    Use the tileset palette to paint tiles onto your map. The editor supports multiple layers:
+    - **Layer 1** - Ground layer (passable terrain)
+    - **Layer 2** - Middle layer (decorations)
+    - **Layer 3** - Top layer (overhead elements like tree canopies)
+  </Step>
+</Steps>
+
+### Map Tools
+
+- **Pencil Tool** - Draw individual tiles
+- **Rectangle Tool** - Fill rectangular areas
+- **Fill Tool** - Fill connected areas with the same tile
+- **Zoom** - Adjust map view scale
+
+## Database Editor
+
+The Database editor manages game data like items, moves, and Pokémon species.
+
+<Warning>
+While the Database editor is available, Pokémon Essentials BES primarily uses PBS files for game data. Many database entries are managed through PBS text files instead. See the [PBS Files](/pbs/overview) section for more information.
+</Warning>
+
+### Database Categories
+
+- **Actors** - Player and trainer data
+- **Classes** - Character classes (not typically used in Pokémon games)
+- **Skills** - Pokémon moves (often managed via PBS)
+- **Items** - Items and equipment (managed via PBS)
+- **Weapons/Armors** - Not used in Pokémon Essentials
+- **Enemies** - Wild Pokémon (managed via PBS)
+- **Troops** - Battle formations
+- **States** - Status conditions
+- **Animations** - Battle animations
+- **Tilesets** - Map tileset definitions
+- **Common Events** - Reusable event scripts
+- **System** - Game system settings
+
+## Event Editor
+
+Events are interactive elements on maps that trigger scripts, dialogue, items, battles, and more.
+
+### Creating Events
+
+<Steps>
+  <Step title="Enter Event Mode">
+    Double-click on a map tile where you want to place an event.
+  </Step>
+  
+  <Step title="Configure Event Properties">
+    Set the event's:
+    - Name (for identification)
+    - Graphic (sprite appearance)
+    - Trigger type (Action Button, Player Touch, Event Touch, Autorun, Parallel Process)
+    - Movement settings
+  </Step>
+  
+  <Step title="Add Event Commands">
+    Build the event's behavior using event commands:
+    - Show Text - Display dialogue
+    - Show Choices - Present player options
+    - Conditional Branch - Logic branching
+    - Script - Execute Ruby code
+    - Transfer Player - Move to different map
+    - And many more...
+  </Step>
+</Steps>
+
+### Event Pages
+
+Events can have multiple pages with different conditions:
+
+- Each page has its own appearance and commands
+- Pages activate based on conditions (switches, variables, items, etc.)
+- Higher-numbered pages take priority when conditions are met
+
+<Info>
+Use event pages to create dynamic NPCs that change dialogue or behavior based on story progress.
+</Info>
+
+## Script Editor
+
+The Script editor allows you to edit Ruby scripts directly within the editor.
+
+<Warning>
+The built-in Script editor has a limited text area. Use the `extendtext.exe` tool to expand the dialog box, or extract scripts to external .rb files for easier editing.
+</Warning>
+
+### Accessing the Script Editor
+
+- Press **F11** or go to **Tools → Script Editor**
+- Navigate through scripts in the left panel
+- Edit Ruby code in the right panel
+
+<Note>
+For serious script development, consider using the [Script Extractor](/tools/script-extractor) to work with scripts as individual .rb files in your preferred code editor.
+</Note>
+
+## Testing Your Game
+
+### Playtest from Editor
+
+Press **F12** or go to **Game → Playtest** to launch your game for testing.
+
+- The game runs in test mode with debug features available
+- Press **F12** during gameplay to soft reset
+- Press **F8** to take screenshots
+
+### Starting Position
+
+Set the player's starting position:
+
+<Steps>
+  <Step title="Open the Map">
+    Navigate to the map where you want the player to start.
+  </Step>
+  
+  <Step title="Set Starting Position">
+    Right-click on the desired tile and select "Set Starting Position", or use the **Database → System** tab to configure it.
+  </Step>
+</Steps>
+
+## Tips for Using the Editor
+
+- **Save Frequently** - Use Ctrl+S to save your work regularly
+- **Backup Your Project** - Make regular backups before major changes
+- **Use Layers** - Organize map tiles across the three layers for proper visual hierarchy
+- **Test Often** - Regularly playtest to catch issues early
+- **Comment Events** - Use event names to describe what each event does
+- **Organize Maps** - Use the map tree hierarchy to keep maps organized by region or purpose
+
+## Common Issues
+
+### Editor Won't Launch
+
+- Ensure `RGSS102E.dll` is present in the game directory
+- Check that `Editor.ini` points to valid files
+- Verify `Data/EditorScripts.rxdata` exists
+
+### Changes Not Appearing in Game
+
+- Save your changes in the editor (Ctrl+S)
+- Ensure you're running `Game.exe`, not the editor playtest
+- Clear any cached data if necessary
+
+### Script Editor Text Box Too Small
+
+Use the `extendtext.exe` tool:
+
+<Steps>
+  <Step title="Open Script or Text Dialog">
+    Open the Show Text or Script dialog box in the editor.
+  </Step>
+  
+  <Step title="Run extendtext.exe">
+    While the dialog is open, run `extendtext.exe` from the Tools folder to expand the text area.
+  </Step>
+</Steps>
+
+## Related Resources
+
+- [Animation Maker](/tools/animation-maker) - Create battle animations
+- [Script Extractor](/tools/script-extractor) - Export scripts for external editing
+- [Debugging](/tools/debugging) - Debug mode features and testing tools
+- [PBS Files](/pbs/overview) - Text-based data management

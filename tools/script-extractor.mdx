@@ -1,0 +1,366 @@
+---
+title: Script Extractor & Importer
+description: Extract and import Ruby scripts between Scripts.rxdata and individual .rb files
+---
+
+Pokémon Essentials BES includes tools to extract scripts from the compiled `Scripts.rxdata` file into individual `.rb` files, and to import them back. This makes script editing much more convenient using external code editors.
+
+## Overview
+
+The script extraction/import system provides:
+
+- **Script Extraction** - Export all scripts from `Scripts.rxdata` to organized `.rb` files
+- **Script Import** - Combine individual `.rb` files back into `Scripts.rxdata`
+- **Folder Organization** - Automatic folder structure based on script sections
+- **Backup System** - Automatic backups when extracting scripts
+
+## Tool Location
+
+The script tools are located in:
+
+```
+Tools/Extraer Importar Scripts/
+  ├── scripts_extract.rb    (extraction tool)
+  └── scripts_combine.rb    (import/combine tool)
+```
+
+<Note>
+The folder name is in Spanish: "Extraer Importar Scripts" means "Extract Import Scripts".
+</Note>
+
+## Scripts.rxdata Structure
+
+The `Scripts.rxdata` file is a serialized Ruby object containing:
+
+- An array of script entries
+- Each entry contains:
+  - Random ID number
+  - Script title/name
+  - Compressed script content (Zlib compressed)
+
+### Script Organization
+
+Scripts in `Scripts.rxdata` use special markers:
+
+- `[[ Section Name ]]` - Creates a folder for the section
+- `==================` - Returns to top-level directory
+- Regular titles - Individual script files
+
+## Extracting Scripts
+
+<Steps>
+  <Step title="Copy Extraction Tool">
+    Copy `scripts_extract.rb` from the Tools folder to your game's root directory (next to `Game.exe`).
+  </Step>
+  
+  <Step title="Run the Script">
+    Execute the extraction script with Ruby:
+    
+    ```bash
+    ruby scripts_extract.rb
+    ```
+  </Step>
+  
+  <Step title="Check Output">
+    Scripts are extracted to `Data/Scripts/` folder with organized subfolders.
+  </Step>
+  
+  <Step title="Verify Backup">
+    The tool automatically creates `Data/ScriptsBackup.rxdata` as a backup of your original scripts.
+  </Step>
+</Steps>
+
+### What Happens During Extraction
+
+1. Reads `Data/Scripts.rxdata`
+2. Checks if scripts are already extracted (skips if so)
+3. Creates `Data/Scripts/` directory
+4. Decompresses and extracts each script to a `.rb` file
+5. Organizes scripts into folders based on section markers
+6. Creates numbered filenames (e.g., `001_Main.rb`, `002_Settings.rb`)
+7. Backs up original `Scripts.rxdata` to `ScriptsBackup.rxdata`
+8. Replaces `Scripts.rxdata` with a loader script
+
+<Info>
+After extraction, the game automatically loads scripts from the `Data/Scripts/` folder instead of the `.rxdata` file.
+</Info>
+
+## Importing Scripts
+
+<Steps>
+  <Step title="Copy Import Tool">
+    Copy `scripts_combine.rb` from the Tools folder to your game's root directory.
+  </Step>
+  
+  <Step title="Edit Scripts">
+    Make your changes to the `.rb` files in `Data/Scripts/` using your preferred code editor.
+  </Step>
+  
+  <Step title="Run the Import Script">
+    Execute the import script with Ruby:
+    
+    ```bash
+    ruby scripts_combine.rb
+    ```
+  </Step>
+  
+  <Step title="Verify Results">
+    The tool combines all `.rb` files back into `Data/Scripts.rxdata`.
+  </Step>
+</Steps>
+
+### What Happens During Import
+
+1. Checks if `Scripts.rxdata` already contains many scripts (skips if so)
+2. Scans `Data/Scripts/` directory for `.rb` files and subfolders
+3. Reads each `.rb` file in order (sorted by filename)
+4. Compresses script content with Zlib
+5. Recreates folder structure using section markers
+6. Saves combined scripts to `Data/Scripts.rxdata`
+
+## File Naming Convention
+
+Extracted scripts use a numbered naming system:
+
+```
+001_ScriptName.rb
+002_AnotherScript.rb
+003_Settings.rb
+...
+999_LastScript.rb
+```
+
+- **3-digit prefix** - Determines script load order
+- **Underscore separator** - Separates number from name
+- **Script name** - Descriptive name from the original script
+- **.rb extension** - Ruby script file
+
+<Warning>
+The numbering determines script execution order. Do not renumber scripts unless you understand the load dependencies.
+</Warning>
+
+## Folder Structure
+
+Scripts are organized into folders based on sections:
+
+```
+Data/Scripts/
+├── 001_Main/
+│   ├── 001_Main.rb
+│   └── 002_Settings.rb
+├── 002_Pokemon/
+│   ├── 001_Pokemon.rb
+│   ├── 002_Pokemon_Forms.rb
+│   └── 003_Pokemon_Evolution.rb
+├── 003_Battle/
+│   └── ...
+└── 999_Editor.rb
+```
+
+### Folder Naming
+
+- **001_FolderName/** - Top-level section folder
+- **Subfolders** - Can nest up to 2 levels deep
+- **Scripts in folder** - Numbered within their folder
+
+## Special Character Handling
+
+Script titles may contain characters invalid for filenames. The tool escapes them:
+
+| Character | Escaped As |
+|-----------|------------|
+| `\`       | `&bs;`     |
+| `/`       | `&fs;`     |
+| `:`       | `&cn;`     |
+| `*`       | `&as;`     |
+| `?`       | `&qm;`     |
+| `"`       | `&dq;`     |
+| `<`       | `&lt;`     |
+| `>`       | `&gt;`     |
+| `|`       | `&po;`     |
+
+<Note>
+These escape sequences are automatically handled when importing scripts back.
+</Note>
+
+## Editing Extracted Scripts
+
+### Recommended Workflow
+
+<Steps>
+  <Step title="Extract Once">
+    Extract scripts at the beginning of your project and work with `.rb` files from then on.
+  </Step>
+  
+  <Step title="Use External Editor">
+    Edit scripts with a proper code editor:
+    - Visual Studio Code
+    - Sublime Text
+    - Atom
+    - RubyMine
+  </Step>
+  
+  <Step title="Test Frequently">
+    Run your game directly - it loads from `Data/Scripts/` automatically.
+  </Step>
+  
+  <Step title="Import for Distribution">
+    Only import scripts back to `.rxdata` when preparing a release build.
+  </Step>
+</Steps>
+
+### Benefits of External Editing
+
+- **Syntax highlighting** - Better code readability
+- **Code completion** - Faster development
+- **Search/replace** - Find code across all scripts
+- **Version control** - Git integration for script changes
+- **Multiple files open** - Compare and edit multiple scripts
+- **Better text area** - No need for `extendtext.exe`
+
+## Script Loader System
+
+After extraction, the `Scripts.rxdata` file is replaced with a minimal loader script that:
+
+1. Scans the `Data/Scripts/` directory
+2. Loads `.rb` files in order
+3. Executes them in sequence
+
+<Info>
+The loader is created automatically by the extraction tool. You don't need to modify it.
+</Info>
+
+## Common Issues
+
+### "Scripts look like they're already extracted"
+
+The extraction tool detects if scripts are already extracted (by checking if `Scripts.rxdata` has fewer than 10 entries).
+
+**Solution:** This is normal - scripts are already in the `Data/Scripts/` folder.
+
+### "Scripts.rxdata already has a bunch of scripts in it"
+
+The import tool won't overwrite a full `Scripts.rxdata` file.
+
+**Solution:** 
+- Backup your `Scripts.rxdata`
+- Delete or rename it
+- Run the import tool again
+
+### Game Won't Start After Extraction
+
+**Possible causes:**
+- Scripts weren't extracted correctly
+- `Data/Scripts/` folder is missing or empty
+- Script loader wasn't created
+
+**Solution:**
+- Restore from `ScriptsBackup.rxdata`
+- Re-extract scripts
+
+### Scripts Load in Wrong Order
+
+Script order is determined by filename sorting.
+
+**Solution:**
+- Check the numeric prefixes (001, 002, etc.)
+- Ensure no gaps or duplicates in numbering
+- Verify folder structure matches the intended organization
+
+### Changes Not Appearing
+
+**Solutions:**
+- Ensure you saved the `.rb` file
+- Restart the game (scripts load at startup)
+- Check for syntax errors in your script
+- Verify you're editing the right file in `Data/Scripts/`
+
+## Tips for Working with Scripts
+
+### Version Control
+
+Extracted scripts work great with Git:
+
+```gitignore
+# .gitignore
+Data/Scripts.rxdata
+Data/ScriptsBackup.rxdata
+```
+
+Commit the `Data/Scripts/` folder instead:
+
+```bash
+git add Data/Scripts/
+git commit -m "Update Pokemon species definitions"
+```
+
+### Searching Code
+
+Use grep or editor search to find code:
+
+```bash
+grep -r "def pbStartBattle" Data/Scripts/
+```
+
+### Script Organization
+
+Keep related scripts together:
+
+- Group by functionality
+- Use clear folder names
+- Maintain consistent naming
+- Document script purposes
+
+### Backup Strategy
+
+- Keep `ScriptsBackup.rxdata` safe
+- Use version control for script changes
+- Make backups before major refactoring
+- Test thoroughly after script modifications
+
+## Advanced Usage
+
+### Custom Script Organization
+
+You can reorganize scripts by:
+
+1. Extracting scripts
+2. Renumbering and reorganizing `.rb` files
+3. Updating folder structure
+4. Importing back to `.rxdata`
+
+<Warning>
+Be careful when reordering scripts - dependencies must load before dependent scripts.
+</Warning>
+
+### Partial Extraction
+
+Modify `scripts_extract.rb` to extract only specific scripts:
+
+```ruby
+# Only extract scripts containing "Pokemon" in the name
+scripts.each_with_index do |e, i|
+  _, title, script = e
+  next unless title.include?("Pokemon")
+  # ... extraction code ...
+end
+```
+
+### Script Analysis
+
+Analyze script structure programmatically:
+
+```ruby
+scripts = File.open("Data/Scripts.rxdata", 'rb') { |f| Marshal.load(f) }
+scripts.each_with_index do |entry, i|
+  id, title, compressed = entry
+  script = Zlib::Inflate.inflate(compressed)
+  puts "#{i}: #{title} (#{script.lines.count} lines)"
+end
+```
+
+## Related Resources
+
+- [RPG Maker XP Editor](/tools/editor) - Built-in script editor
+- [Debugging](/tools/debugging) - Debug scripts and find errors
+- [Scripting Guide](/scripting/overview) - Learn Pokémon Essentials scripting

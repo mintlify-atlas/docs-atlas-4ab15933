@@ -1,0 +1,321 @@
+---
+title: "PBMoveData Class"
+description: "Reference for the PBMoveData class that loads static move data from the game database"
+---
+
+## Overview
+
+The `PBMoveData` class loads and stores static data about moves from the game's binary move database (`Data/moves.dat`). This class is used to retrieve move properties like damage, type, accuracy, PP, and battle effects.
+
+Unlike `PBMove` which represents a move instance on a Pokémon, `PBMoveData` provides read-only access to the move's base properties.
+
+**Source**: `Data/EditorScripts/016_PBMove.rb:20-61`
+
+## Class Attributes
+
+All attributes are **read-only** (`attr_reader`).
+
+<ResponseField name="function" type="Integer" required>
+  The move's function code, which determines its battle effect.
+  
+  **Example**: `0` for standard damage, `1` for Sleep, etc.
+</ResponseField>
+
+<ResponseField name="basedamage" type="Integer" required>
+  The base power of the move.
+  
+  **Example**: `80` for Thunderbolt, `0` for status moves
+</ResponseField>
+
+<ResponseField name="type" type="Integer" required>
+  The move's type (see `PBTypes` constants).
+  
+  **Example**: `13` for Electric type
+</ResponseField>
+
+<ResponseField name="accuracy" type="Integer" required>
+  The move's base accuracy.
+  
+  **Range**: `0-100` or `0` for moves that never miss
+</ResponseField>
+
+<ResponseField name="totalpp" type="Integer" required>
+  The base PP (Power Points) of the move without PP Ups.
+  
+  **Example**: `15` for Thunderbolt, `5` for Blizzard
+</ResponseField>
+
+<ResponseField name="addlEffect" type="Integer" required>
+  The chance of the move's additional effect occurring.
+  
+  **Example**: `10` for 10% chance, `0` for no additional effect
+</ResponseField>
+
+<ResponseField name="target" type="Integer" required>
+  Defines which Pokémon the move can target in battle.
+  
+  **Values**:
+  - `0` - Single adjacent opponent
+  - `1` - User
+  - `2` - Single adjacent ally
+  - `4` - All opponents
+  - And more...
+</ResponseField>
+
+<ResponseField name="priority" type="Integer" required>
+  The move's priority bracket.
+  
+  **Range**: `-6` to `+5`
+  
+  **Example**: `1` for Quick Attack, `0` for normal priority, `-5` for Counter
+</ResponseField>
+
+<ResponseField name="flags" type="Integer" required>
+  Bitfield containing various move flags.
+  
+  Flags include:
+  - Contact move
+  - Protect-able
+  - Magic Coat-able
+  - Snatch-able
+  - Mirror Move-able
+  - And more...
+</ResponseField>
+
+<ResponseField name="category" type="Integer" required>
+  The move's damage category.
+  
+  **Values**:
+  - `0` - Physical
+  - `1` - Special  
+  - `2` - Status
+</ResponseField>
+
+## Methods
+
+### initialize
+
+```ruby
+def initialize(moveid)
+```
+
+Loads move data from the binary database for the specified move ID.
+
+<ParamField path="moveid" type="Integer" required>
+  The ID of the move to load data for
+</ParamField>
+
+**Behavior**:
+1. Opens `Data/moves.dat` (using cached data from `$PokemonTemp` if available)
+2. Seeks to the move's data position (moveid * 14 bytes)
+3. Reads 14 bytes of move data:
+   - `function` (2 bytes)
+   - `basedamage` (1 byte)
+   - `type` (1 byte)
+   - `category` (1 byte)
+   - `accuracy` (1 byte)
+   - `totalpp` (1 byte)
+   - `addlEffect` (1 byte)
+   - `target` (2 bytes)
+   - `priority` (1 byte, signed)
+   - `flags` (2 bytes)
+4. Closes the file
+
+**Example**:
+```ruby
+# Load data for Thunderbolt (ID 85)
+movedata = PBMoveData.new(85)
+
+puts movedata.basedamage  # => 90
+puts movedata.accuracy    # => 100
+puts movedata.totalpp     # => 15
+puts movedata.type        # => 13 (Electric)
+```
+
+**Source**: `016_PBMove.rb:41-60`
+
+---
+
+## Data Loading System
+
+### PokemonTemp Helper
+
+The `PokemonTemp` class provides caching for move data to improve performance:
+
+```ruby
+class PokemonTemp
+  attr_accessor :pokemonMoveData
+  
+  def pbOpenMoveData
+    # Caches move data in memory
+    # Returns a StringInput for reading
+  end
+end
+```
+
+**Source**: `016_PBMove.rb:1-16`
+
+### Legacy Format
+
+The `initializeOld` method supports the older RSATTACKS.dat format:
+
+```ruby
+def initializeOld(moveid)
+  # Reads 9-byte format from Data/rsattacks.dat
+  # No category field in old format
+end
+```
+
+**Source**: `016_PBMove.rb:26-39`
+
+---
+
+## Usage Examples
+
+### Loading Move Data
+
+```ruby
+# Load data for a specific move
+movedata = PBMoveData.new(1)  # Pound
+
+puts "Function: #{movedata.function}"
+puts "Base Power: #{movedata.basedamage}"
+puts "Type: #{PBTypes.getName(movedata.type)}"
+puts "Accuracy: #{movedata.accuracy}"
+puts "PP: #{movedata.totalpp}"
+puts "Category: #{['Physical','Special','Status'][movedata.category]}"
+```
+
+### Checking Move Properties
+
+```ruby
+movedata = PBMoveData.new(85)  # Thunderbolt
+
+# Check if it's a damaging move
+if movedata.basedamage > 0
+  puts "Damage: #{movedata.basedamage}"
+end
+
+# Check accuracy
+if movedata.accuracy == 0
+  puts "Never misses"
+else
+  puts "Accuracy: #{movedata.accuracy}%"
+end
+
+# Check for additional effects
+if movedata.addlEffect > 0
+  puts "Additional effect chance: #{movedata.addlEffect}%"
+end
+```
+
+### Move Type Checking
+
+```ruby
+def is_physical_move?(moveid)
+  movedata = PBMoveData.new(moveid)
+  return movedata.category == 0
+end
+
+def is_special_move?(moveid)
+  movedata = PBMoveData.new(moveid)
+  return movedata.category == 1
+end
+
+def is_status_move?(moveid)
+  movedata = PBMoveData.new(moveid)
+  return movedata.category == 2
+end
+```
+
+### Calculating Damage Range
+
+```ruby
+def calculate_damage_range(attacker_stat, defender_stat, moveid, level)
+  movedata = PBMoveData.new(moveid)
+  
+  return 0 if movedata.basedamage == 0  # Status move
+  
+  base_damage = ((2 * level / 5 + 2) * movedata.basedamage * 
+                 attacker_stat / defender_stat / 50 + 2)
+  
+  # Random multiplier: 0.85 to 1.00
+  min_damage = (base_damage * 0.85).floor
+  max_damage = base_damage
+  
+  return [min_damage, max_damage]
+end
+```
+
+### Priority Move Detection
+
+```ruby
+def is_priority_move?(moveid)
+  movedata = PBMoveData.new(moveid)
+  return movedata.priority > 0
+end
+
+# Example usage
+if is_priority_move?(98)  # Quick Attack
+  puts "This is a priority move!"
+end
+```
+
+### Move Targeting
+
+```ruby
+def get_move_target_description(moveid)
+  movedata = PBMoveData.new(moveid)
+  
+  case movedata.target
+  when 0
+    "Single adjacent opponent"
+  when 1
+    "User"
+  when 2  
+    "Single adjacent ally"
+  when 4
+    "All opponents"
+  when 8
+    "All Pokémon except user"
+  else
+    "Unknown target"
+  end
+end
+```
+
+## Performance Notes
+
+- **Caching**: The `PokemonTemp.pbOpenMoveData` method caches move data in memory to avoid repeated file I/O
+- **Creation Cost**: Creating a new `PBMoveData` object involves file I/O; cache results if querying the same move repeatedly
+- **Read-Only**: All attributes are read-only; move data cannot be modified at runtime
+
+## File Format
+
+Move data is stored in binary format in `Data/moves.dat`:
+
+| Offset | Size | Field       | Type           |
+|--------|------|-------------|----------------|
+| 0      | 2    | function    | Unsigned 16-bit|
+| 2      | 1    | basedamage  | Unsigned 8-bit |
+| 3      | 1    | type        | Unsigned 8-bit |
+| 4      | 1    | category    | Unsigned 8-bit |
+| 5      | 1    | accuracy    | Unsigned 8-bit |
+| 6      | 1    | totalpp     | Unsigned 8-bit |
+| 7      | 1    | addlEffect  | Unsigned 8-bit |
+| 8      | 2    | target      | Unsigned 16-bit|
+| 10     | 1    | priority    | Signed 8-bit   |
+| 11     | 2    | flags       | Unsigned 16-bit|
+
+**Total**: 14 bytes per move
+
+## Related Classes
+
+- **PBMove**: Represents a move instance on a Pokémon
+- **PBMoves**: Constant module with move ID definitions
+- **PokemonTemp**: Provides move data caching
+
+## See Also
+
+- [PBMove](/api/pbmove) - Move instances
+- [Pokémon Classes](/api/pokemon-classes) - Move usage in battles

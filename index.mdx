@@ -1,97 +1,121 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Welcome to Pokémon Essentials BES"
+description: "A comprehensive RPG Maker XP framework for creating Pokémon fangames with complete Gen 1-9 Pokémon, moves, and abilities"
 ---
 
-## Setting up
+<div style={{
+  background: 'linear-gradient(135deg, #ef7025 0%, #4fa1ab 100%)',
+  borderRadius: '20px',
+  padding: '48px 32px',
+  marginBottom: '32px',
+  color: '#ffffff'
+}}>
+  <h1 style={{ fontSize: '48px', fontWeight: '400', marginBottom: '16px', color: '#ffffff' }}>
+    Build Your Pokémon Game
+  </h1>
+  <p style={{ fontSize: '18px', marginBottom: '32px', color: '#ffffff', opacity: 0.95 }}>
+    Pokémon Essentials BES is a powerful framework that brings all Pokémon, moves, and abilities from Generations 1-9 to RPG Maker XP. Create your dream Pokémon fangame with ease.
+  </p>
+  <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+    <a 
+      href="/quickstart" 
+      style={{
+        background: '#1a73e8',
+        color: '#ffffff',
+        padding: '12px 32px',
+        borderRadius: '20px',
+        textDecoration: 'none',
+        fontWeight: '700',
+        display: 'inline-block'
+      }}
+    >
+      Get Started
+    </a>
+    <a 
+      href="https://github.com/espparki1/PokemonValhalla" 
+      style={{
+        background: 'transparent',
+        color: '#ffffff',
+        padding: '12px 32px',
+        borderRadius: '20px',
+        textDecoration: 'none',
+        border: '2px solid #ffffff'
+      }}
+    >
+      View on GitHub
+    </a>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+## Key Features
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Complete Gen 1-9 Data" icon="database" href="/resources/generation-9-features">
+    Over 1000 Pokémon with accurate stats, moves, abilities, and evolutions from all nine generations
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="PBS System" icon="file-lines" href="/concepts/pbs-system">
+    Edit game data using simple text files - no coding required for basic customization
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Battle System" icon="swords" href="/api/battle-mechanics">
+    Fully functional battle mechanics with type effectiveness, status conditions, and weather effects
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Ruby Scripting" icon="code" href="/scripting/ruby-basics">
+    Extend and customize your game with powerful Ruby scripts and event system
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Quick Start
 
-Everything you need to create world-class documentation.
+<Steps>
+  <Step title="Download the Framework">
+    Get the latest version of Pokémon Essentials BES and extract it to your desired location
+  </Step>
+  <Step title="Install RPG Maker XP">
+    Ensure you have RPG Maker XP installed to edit maps and events
+  </Step>
+  <Step title="Open the Project">
+    Launch Game.exe to play or Editor.exe to start creating your game
+  </Step>
+</Steps>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## What You Can Build
 
-## Need inspiration?
+<CardGroup cols={3}>
+  <Card title="Custom Pokémon Games" icon="gamepad">
+    Create entirely new Pokémon adventures with custom regions and storylines
+  </Card>
+  <Card title="ROM Hack Alternatives" icon="wand-magic-sparkles">
+    Build games without the limitations of traditional ROM hacking
+  </Card>
+  <Card title="Battle Simulators" icon="trophy">
+    Develop competitive battle systems and tournament tools
+  </Card>
+</CardGroup>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+## Framework Highlights
+
+- **1000+ Pokémon**: Complete data for all Pokémon through Generation 9
+- **800+ Moves**: All moves with accurate effects and animations
+- **300+ Abilities**: Every ability from the official games
+- **500+ Items**: Evolution stones, TMs, berries, held items, and more
+- **Type System**: Full type chart including Fairy type
+- **Regional Forms**: Support for Alolan, Galarian, Hisuian, and Paldean forms
+- **Mega Evolution**: Complete Mega Evolution system
+- **Z-Moves**: Z-Crystal support with Z-Move mechanics
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card title="Core Concepts" icon="book" href="/concepts/framework-overview">
+    Understand how Pokémon Essentials BES works under the hood
+  </Card>
+  <Card title="Game Development" icon="hammer" href="/development/creating-pokemon">
+    Start building your game with step-by-step guides
+  </Card>
+  <Card title="API Reference" icon="code-branch" href="/api/pbmove">
+    Explore the complete API documentation for scripting
+  </Card>
+  <Card title="Community" icon="users" href="/resources/community">
+    Join the community and get help from other developers
+  </Card>
+</CardGroup>

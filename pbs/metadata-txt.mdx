@@ -1,0 +1,473 @@
+---
+title: metadata.txt
+description: Complete reference for defining map metadata in PBS/metadata.txt
+---
+
+The `metadata.txt` file defines metadata for maps, including music, weather, environment settings, and player spawn points. Each map has its own section.
+
+## File Format
+
+Each map is defined by a section header with its map ID, followed by field definitions:
+
+```ini
+[MapID]
+FieldName=Value
+FieldName2=Value2
+```
+
+## Example Entries
+
+```ini
+[000]
+WildVictoryME=Victory - Wild Pokemon.ogg
+WildBattleBGM=Battle! (Wild Pokemon)
+TrainerVictoryME=Victory - Trainer.ogg
+TrainerBattleBGM=Battle! (Trainer)
+PlayerA=POKEMONTRAINER_Red,boy_run.png,boy_bike,boy_surf_offset
+PlayerB=POKEMONTRAINER_Leaf,trchar001,girl_bike,girl_surf_offset
+Home=4,22,5,2
+
+[001]
+Outdoor=true
+ShowArea=true
+MapPosition=0,13,11
+```
+
+## Global Settings (Map 000)
+
+Map ID `[000]` contains global game settings that apply to all maps.
+
+<ParamField path="WildBattleBGM" type="String">
+  Default wild Pokémon battle music.
+  
+  ```ini
+  WildBattleBGM=Battle! (Wild Pokemon)
+  ```
+</ParamField>
+
+<ParamField path="WildVictoryME" type="String">
+  Victory music effect after wild battles.
+  
+  ```ini
+  WildVictoryME=Victory - Wild Pokemon.ogg
+  ```
+</ParamField>
+
+<ParamField path="TrainerBattleBGM" type="String">
+  Default trainer battle music.
+  
+  ```ini
+  TrainerBattleBGM=Battle! (Trainer)
+  ```
+</ParamField>
+
+<ParamField path="TrainerVictoryME" type="String">
+  Victory music effect after trainer battles.
+  
+  ```ini
+  TrainerVictoryME=Victory - Trainer.ogg
+  ```
+</ParamField>
+
+<ParamField path="BicycleBGM" type="String">
+  Music played when riding a bicycle.
+  
+  ```ini
+  BicycleBGM=Bike
+  ```
+</ParamField>
+
+<ParamField path="SurfBGM" type="String">
+  Music played when surfing.
+  
+  ```ini
+  SurfBGM=Surf
+  ```
+</ParamField>
+
+<ParamField path="PlayerA" type="Player Data">
+  Male player character settings. Format:
+  ```
+  TrainerType,Charset,Bike,Surf,Run,DiveSurf,FishOffset,MotorBike
+  ```
+  
+  ```ini
+  PlayerA=POKEMONTRAINER_Red,boy_run.png,boy_bike,boy_surf_offset,boy_run,boy_surf_offset,boy_fish_offset,boy_fish_offset
+  ```
+</ParamField>
+
+<ParamField path="PlayerB" type="Player Data">
+  Female player character settings. Same format as PlayerA.
+  
+  ```ini
+  PlayerB=POKEMONTRAINER_Leaf,trchar001,girl_bike,girl_surf_offset,girl_run,girl_surf_offset,girl_fish_offset,girl_fish_offset
+  ```
+</ParamField>
+
+<ParamField path="Home" type="Coordinates">
+  Starting position when starting new game or blacking out. Format: `MapID,X,Y,Direction`
+  
+  Direction values: 2=Down, 4=Left, 6=Right, 8=Up
+  
+  ```ini
+  Home=4,22,5,2  # Map 4, X=22, Y=5, facing down
+  ```
+</ParamField>
+
+## Map-Specific Settings
+
+Settings for individual maps (Map ID 1 and above).
+
+### Environment Settings
+
+<ParamField path="Outdoor" type="Boolean">
+  Whether the map is outdoors. Affects day/night cycle.
+  
+  ```ini
+  Outdoor=true   # Outdoor map
+  Outdoor=false  # Indoor map (or omit)
+  ```
+</ParamField>
+
+<ParamField path="ShowArea" type="Boolean">
+  Display location name when entering the map.
+  
+  ```ini
+  ShowArea=true   # Show location popup
+  ShowArea=false  # No popup (or omit)
+  ```
+</ParamField>
+
+<ParamField path="Bicycle" type="Boolean">
+  Whether the bicycle can be used on this map.
+  
+  ```ini
+  Bicycle=true   # Can use bike
+  Bicycle=false  # Cannot use bike
+  ```
+</ParamField>
+
+<ParamField path="BicycleAlways" type="Boolean">
+  Forces bicycle use (Cycling Road).
+  
+  ```ini
+  BicycleAlways=true
+  ```
+</ParamField>
+
+<ParamField path="HealingSpot" type="Coordinates">
+  Where player respawns after whiteout. Format: `MapID,X,Y`
+  
+  ```ini
+  HealingSpot=2,8,8  # Respawn at map 2, position (8,8)
+  ```
+</ParamField>
+
+<ParamField path="Weather" type="Weather,Probability">
+  Weather conditions on the map. Format: `WeatherType,Chance`
+  
+  Weather types:
+  - `Rain` - Rain
+  - `Storm` - Heavy rain with thunder
+  - `Snow` - Snowfall
+  - `Blizzard` - Heavy snow
+  - `Sandstorm` - Sandstorm
+  - `HeavyRain` - Intense rain
+  - `Sun` - Harsh sunlight
+  - `Fog` - Foggy
+  
+  Probability: 0-100 (percentage chance)
+  
+  ```ini
+  Weather=Rain,50      # 50% chance of rain
+  Weather=Snow,100     # Always snowing
+  Weather=Sandstorm,30 # 30% sandstorm
+  ```
+</ParamField>
+
+<ParamField path="MapPosition" type="Region,X,Y">
+  Position on the region map. Format: `RegionID,X,Y`
+  
+  ```ini
+  MapPosition=0,13,11  # Region 0, position (13,11)
+  MapPosition=0,13,10
+  ```
+</ParamField>
+
+<ParamField path="DiveMap" type="MapID">
+  Map ID to warp to when diving underwater.
+  
+  ```ini
+  DiveMap=42  # Dive to map 42
+  ```
+</ParamField>
+
+<ParamField path="DarkMap" type="Boolean">
+  Map is dark and requires Flash to illuminate.
+  
+  ```ini
+  DarkMap=true
+  ```
+</ParamField>
+
+<ParamField path="SafariMap" type="Boolean">
+  Map is part of Safari Zone.
+  
+  ```ini
+  SafariMap=true
+  ```
+</ParamField>
+
+<ParamField path="SnapEdges" type="Boolean">
+  Player snaps to edges when moving near them.
+  
+  ```ini
+  SnapEdges=true
+  ```
+</ParamField>
+
+<ParamField path="Dungeon" type="Boolean">
+  Map is a dungeon (affects escape behavior).
+  
+  ```ini
+  Dungeon=true
+  ```
+</ParamField>
+
+<ParamField path="BattleBack" type="String">
+  Battle background graphic name (without extension).
+  
+  Common values:
+  - `IndoorA`, `IndoorB`, `IndoorC`
+  - `Cave`, `Rocky`
+  - `Forest`, `Grass`
+  - `Sand`, `Beach`
+  - `Water`, `Ocean`
+  - `Elite`
+  
+  ```ini
+  BattleBack=IndoorB
+  BattleBack=Cave
+  BattleBack=Forest
+  ```
+</ParamField>
+
+<ParamField path="WildBattleBGM" type="String">
+  Wild battle music for this specific map (overrides global).
+  
+  ```ini
+  WildBattleBGM=Battle! (Legendary)
+  ```
+</ParamField>
+
+<ParamField path="TrainerBattleBGM" type="String">
+  Trainer battle music for this specific map (overrides global).
+  
+  ```ini
+  TrainerBattleBGM=Battle! (Gym Leader)
+  ```
+</ParamField>
+
+<ParamField path="BicycleBGM" type="String">
+  Bicycle music for this specific map (overrides global).
+  
+  ```ini
+  BicycleBGM=Cycling Road
+  ```
+</ParamField>
+
+## Complete Examples
+
+### Outdoor Route
+
+```ini
+[005]
+# Ruta 1
+Outdoor=true
+ShowArea=true
+MapPosition=0,13,7
+```
+
+- Outdoor map with day/night
+- Shows location name
+- Position on region map
+
+### Town/City
+
+```ini
+[001]
+# Perales
+Outdoor=true
+ShowArea=true
+MapPosition=0,13,11
+```
+
+- Outdoor town
+- Shows location name
+- Specific map position
+
+### Indoor Building
+
+```ini
+[003]
+# Laboratorio
+BattleBack=IndoorB
+HealingSpot=2,8,8
+MapPosition=0,13,9
+```
+
+- Indoor (no Outdoor field)
+- Custom battle background
+- Healing spot set
+- Still has map position for Town Map
+
+### Player's House
+
+```ini
+[004]
+# CasaPrincipal
+MapPosition=0,13,8
+```
+
+- Simple indoor location
+- Only needs map position
+
+### Cave Map
+
+```ini
+[020]
+# Mt. Moon
+Outdoor=false
+DarkMap=true
+BattleBack=Cave
+Dungeon=true
+MapPosition=0,15,5
+```
+
+- Dark cave (needs Flash)
+- Cave battle background
+- Marked as dungeon
+- Cannot use Escape Rope
+
+### Water Route
+
+```ini
+[025]
+# Sea Route
+Outdoor=true
+ShowArea=true
+BattleBack=Water
+Bicycle=false
+MapPosition=0,10,8
+```
+
+- Outdoor water route
+- Water battle background
+- Cannot use bicycle
+- Shows area name
+
+### Special Location
+
+```ini
+[050]
+# Victory Road
+Outdoor=false
+DarkMap=true
+Dungeon=true
+BattleBack=Rocky
+Bicycle=false
+WildBattleBGM=Battle! (Victory Road)
+MapPosition=0,20,5
+```
+
+- Dark dungeon
+- Rocky battle background
+- No bicycle
+- Custom wild battle music
+
+## Global Settings Example
+
+```ini
+[000]
+WildVictoryME=Victory - Wild Pokemon.ogg
+WildBattleBGM=Battle! (Wild Pokemon)
+BicycleBGM=Bike
+SurfBGM=Surf
+TrainerVictoryME=Victory - Trainer.ogg
+TrainerBattleBGM=Battle! (Trainer)
+PlayerB=POKEMONTRAINER_Leaf,trchar001,girl_bike,girl_surf_offset,girl_run,girl_surf_offset,girl_fish_offset,girl_fish_offset
+PlayerA=POKEMONTRAINER_Red,boy_run.png,boy_bike,boy_surf_offset,boy_run,boy_surf_offset,boy_fish_offset,boy_fish_offset
+Home=4,22,5,2
+```
+
+## Weather Examples
+
+<Accordion title="Rain Route">
+  ```ini
+  [030]
+  Outdoor=true
+  ShowArea=true
+  Weather=Rain,70
+  MapPosition=0,12,6
+  ```
+  
+  70% chance of rain when entering the map.
+</Accordion>
+
+<Accordion title="Snowy Mountain">
+  ```ini
+  [035]
+  Outdoor=true
+  ShowArea=true
+  Weather=Snow,100
+  BattleBack=Snow
+  MapPosition=0,15,3
+  ```
+  
+  Always snowing.
+</Accordion>
+
+<Accordion title="Desert">
+  ```ini
+  [040]
+  Outdoor=true
+  ShowArea=true
+  Weather=Sandstorm,80
+  BattleBack=Sand
+  MapPosition=0,8,10
+  ```
+  
+  80% sandstorm probability.
+</Accordion>
+
+## Map Position Guide
+
+The `MapPosition` field places your location on the Town Map/Fly screen:
+
+```ini
+MapPosition=RegionID,X,Y
+```
+
+- **RegionID**: Which region map (usually 0 for main region)
+- **X**: Horizontal position on map
+- **Y**: Vertical position on map
+
+Example region layout:
+```
+MapPosition=0,13,11  # Top-left town
+MapPosition=0,13,10  # Route below
+MapPosition=0,13,9   # Next town
+MapPosition=0,13,7   # Further route
+```
+
+<Note>
+  **Music Files**: All music file references (BGM, ME) should match filenames in your Audio/BGM and Audio/ME folders, without the file extension.
+</Note>
+
+<Note>
+  **Battle Backgrounds**: Battle background names must match files in Graphics/Battlebacks/ folder. Use the filename without extension.
+</Note>
+
+<Note>
+  **Comments**: Use `#` for comments to document your maps. Comments are ignored by the game.
+</Note>

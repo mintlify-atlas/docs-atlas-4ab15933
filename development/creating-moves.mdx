@@ -1,0 +1,365 @@
+---
+title: Creating Moves
+description: Learn how to define new moves using the PBS/moves.txt file in Pokémon Essentials BES
+---
+
+# Creating Moves
+
+Moves are defined in the `PBS/moves.txt` file. Each move has properties that determine its type, power, accuracy, effects, and more.
+
+## Move Entry Structure
+
+Each move is defined on a single line with comma-separated values:
+
+```txt
+ID,InternalName,Name,FunctionCode,BasePower,Type,Category,Accuracy,TotalPP,EffectChance,Target,Priority,Flags,Description
+```
+
+## Real Example: Megahorn
+
+```txt
+1,MEGAHORN,Megacuerno,000,120,BUG,Physical,85,10,0,00,0,abef,"Violenta embestida con cuernos imponentes."
+```
+
+Let's break down each field:
+
+## Field Definitions
+
+<ParamField path="ID" type="number" required>
+  Unique identifier for the move. Must be sequential starting from 1.
+</ParamField>
+
+<ParamField path="InternalName" type="string" required>
+  Internal code name, all uppercase. Used in scripts and PBS files.
+  
+  Example: `MEGAHORN`, `THUNDERBOLT`, `EARTHQUAKE`
+</ParamField>
+
+<ParamField path="Name" type="string" required>
+  Display name shown to players.
+  
+  Example: `Megacuerno`, `Rayo`, `Terremoto`
+</ParamField>
+
+<ParamField path="FunctionCode" type="string" required>
+  Three-digit code that determines the move's special effect.
+  
+  - `000` - Standard damage move with no special effect
+  - `007` - May paralyze target
+  - `00A` - May burn target
+  - `00C` - May freeze target
+  - `013` - Confuses target
+  - See full list in the scripts
+</ParamField>
+
+<ParamField path="BasePower" type="number" required>
+  The base damage of the move. Use `0` for status moves.
+  
+  - Weak moves: 40-60
+  - Medium moves: 70-90
+  - Strong moves: 100-120
+  - Ultimate moves: 130-150+
+</ParamField>
+
+<ParamField path="Type" type="string" required>
+  The move's type: `NORMAL`, `FIRE`, `WATER`, `ELECTRIC`, `GRASS`, `ICE`, `FIGHTING`, `POISON`, `GROUND`, `FLYING`, `PSYCHIC`, `BUG`, `ROCK`, `GHOST`, `DRAGON`, `DARK`, `STEEL`, `FAIRY`
+</ParamField>
+
+<ParamField path="Category" type="string" required>
+  Attack category:
+  - `Physical` - Uses Attack stat
+  - `Special` - Uses Special Attack stat
+  - `Status` - Non-damaging move
+</ParamField>
+
+<ParamField path="Accuracy" type="number" required>
+  Hit chance from 0-100. Use `0` for moves that never miss.
+</ParamField>
+
+<ParamField path="TotalPP" type="number" required>
+  Base Power Points (number of times the move can be used).
+  
+  Typical values: 5, 10, 15, 20, 25, 30, 35, 40
+</ParamField>
+
+<ParamField path="EffectChance" type="number" required>
+  Percentage chance (0-100) for secondary effects to trigger. Use `0` if no secondary effect or effect always triggers.
+</ParamField>
+
+<ParamField path="Target" type="string" required>
+  Who the move affects:
+  - `00` - Single adjacent enemy
+  - `01` - User
+  - `02` - Random enemy
+  - `04` - All enemies
+  - `08` - All allies
+  - `10` - User's side
+  - `20` - Both sides
+</ParamField>
+
+<ParamField path="Priority" type="number" required>
+  Move speed priority. Higher numbers go first.
+  
+  - `-6` to `-1` - Slower than normal
+  - `0` - Normal priority
+  - `1` to `5` - Faster than normal (Quick Attack, Extremespeed)
+</ParamField>
+
+<ParamField path="Flags" type="string" required>
+  Letter codes indicating move properties:
+  - `a` - Move makes contact
+  - `b` - Affected by Protect
+  - `c` - Affected by Magic Coat
+  - `d` - Affected by Snatch
+  - `e` - Can be used while frozen
+  - `f` - Thaws user if frozen
+  - `g` - High critical hit ratio
+  - `h` - Guaranteed critical hit
+  - `i` - Bite-based move (affected by Strong Jaw)
+  - `j` - Punch-based move (affected by Iron Fist)
+  - `k` - Sound-based move
+  - `l` - Powder-based move
+  - `m` - Pulse move
+  - `n` - Bomb move
+</ParamField>
+
+<ParamField path="Description" type="string" required>
+  Move description shown in-game. Enclosed in quotes.
+</ParamField>
+
+## Move Examples by Type
+
+### Physical Attack Moves
+
+```txt
+# Standard physical move
+4,XSCISSOR,Tijera X,000,80,BUG,Physical,100,15,0,00,0,abef,"Cruza las guadañas o las garras para atacar."
+
+# High critical ratio
+57,DRAGONCLAW,Garra Dragón,000,80,DRAGON,Physical,100,15,0,00,0,abef,"Araña al objetivo con garras afiladas."
+
+# Multi-hit move
+14,PINMISSILE,Pin Misil,0C0,25,BUG,Physical,95,20,0,00,0,bef,"Lanza finas púas que hieren de dos a cinco veces."
+```
+
+### Special Attack Moves
+
+```txt
+# May lower Defense
+3,BUGBUZZ,Zumbido,046,90,BUG,Special,100,10,10,00,0,befk,"Onda sónica dañina. Puede disminuir la Defensa Especial."
+
+# Never misses
+76,SHOCKWAVE,Onda Voltio,0A5,60,ELECTRIC,Special,0,20,0,00,0,bef,"Ataque eléctrico muy rápido e ineludible."
+
+# Charge turn move
+195,SOLARBEAM,Rayo Solar,0C4,120,GRASS,Special,100,10,0,00,0,bef,"Primer turno: absorbe luz. Segundo turno: ataca."
+```
+
+### Status Moves
+
+```txt
+# Stat boost
+63,DRAGONDANCE,Danza Dragón,026,0,DRAGON,Status,0,20,0,10,0,d,"Danza mística que sube el Ataque y la Velocidad."
+
+# Paralysis
+83,THUNDERWAVE,Onda Trueno,007,0,ELECTRIC,Status,90,20,0,00,0,bce,"Ligera descarga que paraliza al objetivo."
+
+# Weather
+150,SUNNYDAY,Día Soleado,0FF,0,FIRE,Status,0,5,0,20,0,,"Intensifica el sol durante cinco turnos."
+```
+
+## Common Function Codes
+
+<CodeGroup>
+
+```txt Damage + Status
+000 - Standard damage, no effect
+007 - May paralyze (10-30% chance)
+00A - May burn (10-30% chance)
+00C - May freeze (10% chance)
+00D - May freeze + thaw user
+00F - May cause flinching (30% chance)
+010 - May flinch (30% chance)
+013 - Confuses target (100% chance)
+```
+
+```txt Stat Changes
+020 - May raise user's Sp. Atk (10-70% chance)
+042 - Lowers target's Attack
+043 - Lowers target's Defense
+044 - Lowers target's Speed
+045 - Lowers target's Sp. Atk
+046 - Lowers target's Sp. Def
+047 - Lowers target's Accuracy
+```
+
+```txt Healing & Recovery
+0DD - Drains HP (restores 50% of damage)
+0D5 - Heals 50% of user's max HP
+0D6 - Heals 50% of max HP
+0D8 - Restores HP (varies by weather)
+```
+
+```txt Special Mechanics
+0A5 - Never misses
+0C2 - Recharge turn required
+0C4 - Charge turn (like Solar Beam)
+0C9 - Two-turn move (like Fly)
+0EE - User switches out after attack
+```
+
+</CodeGroup>
+
+<Note>
+  Function codes are defined in the game's scripts. Check `PokeBattle_Move` and `PokeBattle_MoveEffect` for the complete list and their implementations.
+</Note>
+
+## Priority Moves
+
+Moves with priority always go before normal moves:
+
+```txt
+# Priority +1
+78,CHARGEBEAM,Rayo Carga,020,50,ELECTRIC,Special,90,10,70,00,0,bef,"Lanza un rayo eléctrico."
+
+# Priority +1 (Quick Attack)
+310,QUICKATTACK,Ataque Rápido,000,40,NORMAL,Physical,100,30,0,00,1,abef,"Ataque rápido."
+
+# Priority +2 (Extremespeed)
+278,EXTREMESPEED,Veloc. Extrema,000,80,NORMAL,Physical,100,5,0,00,2,abef,"Ataque muy rápido."
+
+# Priority +3 (Fake Out)
+306,FAKEOUT,Sorpresa,012,40,NORMAL,Physical,100,10,100,00,3,abe,"Ataca primero y hace retroceder. Solo funciona en primer turno."
+```
+
+## Multi-Turn and Special Moves
+
+### Recharge Moves
+
+```txt
+# Hyper Beam - requires recharge
+263,HYPERBEAM,Hiperrayo,0C2,150,NORMAL,Special,90,5,0,00,0,bef,"Muy eficaz, pero el atacante deberá descansar en el siguiente turno."
+
+# Giga Impact
+262,GIGAIMPACT,Gigaimpacto,0C2,150,NORMAL,Physical,90,5,0,00,0,abef,"Carga usando toda la fuerza. Descansa el turno siguiente."
+```
+
+### Two-Turn Moves
+
+```txt
+# Fly
+156,FLY,Vuelo,0C9,90,FLYING,Physical,95,15,0,00,0,abef,"Primer turno: vuela. Segundo turno: ataca."
+
+# Dig
+225,DIG,Excavar,0CA,80,GROUND,Physical,100,10,0,00,0,abef,"Primer turno: cava. Segundo turno: ataca."
+```
+
+## OHKO Moves
+
+One-hit knockout moves have a function code of `070`:
+
+```txt
+# Fissure
+235,FISSURE,Fisura,070,1,GROUND,Physical,30,5,0,00,0,be,"Abre una grieta. Fulmina en un golpe."
+
+# Guillotine  
+332,GUILLOTINE,Guillotina,070,1,NORMAL,Physical,30,5,0,00,0,abe,"Ataque con pinzas que debilita de un golpe si acierta."
+```
+
+<Warning>
+  OHKO moves bypass HP and instantly KO the target if they hit. Always use base power of `1` and low accuracy.
+</Warning>
+
+## Weather and Terrain Moves
+
+```txt
+# Sunny Day
+150,SUNNYDAY,Día Soleado,0FF,0,FIRE,Status,0,5,0,20,0,,"Intensifica el sol durante cinco turnos."
+
+# Rain Dance
+305,RAINDANCE,Danza Lluvia,101,0,WATER,Status,0,5,0,20,0,,"Genera lluvia que refuerza movimientos de tipo Agua."
+
+# Sandstorm
+324,SANDSTORM,Tormenta Arena,100,0,ROCK,Status,0,10,0,20,0,,"Tormenta de arena durante cinco turnos."
+
+# Hail
+257,HAIL,Granizo,102,0,ICE,Status,0,10,0,20,0,,"Tormenta de granizo durante cinco turnos."
+```
+
+## Creating a New Move
+
+<Steps>
+
+### Find the next available ID
+
+Look at the last move in `moves.txt` and use the next number.
+
+### Choose your function code
+
+Decide what effect you want:
+- Standard damage: `000`
+- Status effect: `007` (paralyze), `00A` (burn), etc.
+- Stat changes: `042` (lower Attack), `020` (raise Sp. Atk), etc.
+
+### Define the move
+
+```txt
+999,CUSTOMMOVE,Custom Move,000,80,FIRE,Special,100,15,20,00,0,bef,"A custom fire move that may burn."
+```
+
+### For status moves, use 0 power
+
+```txt
+1000,CUSTOMBOOST,Custom Boost,032,0,PSYCHIC,Status,0,20,0,10,0,d,"Greatly raises Special Attack."
+```
+
+</Steps>
+
+## Move Flags Reference
+
+<CodeGroup>
+
+```txt Contact & Protection
+a - Makes contact with target
+b - Affected by Protect/Detect
+c - Affected by Magic Coat (reflected)
+d - Affected by Snatch
+e - Can be used while frozen
+f - Thaws user if frozen
+```
+
+```txt Critical & Type-Specific  
+g - High critical hit ratio (Slash, Karate Chop)
+h - Always critical (Frost Breath, Storm Throw)
+i - Bite-based (boosted by Strong Jaw)
+j - Punch-based (boosted by Iron Fist)
+k - Sound-based (blocks Soundproof)
+l - Powder-based (doesn't affect Grass types)
+```
+
+```txt Special Categories
+m - Pulse move (boosted by Mega Launcher)
+n - Bomb/ball move (blocks Bulletproof)
+```
+
+</CodeGroup>
+
+<Tip>
+  When creating moves, always test with multiple Pokémon to ensure the power level is balanced and the effect works as intended.
+</Tip>
+
+## Power Calculation
+
+Moves calculate damage based on:
+- **Base Power** - The value in the moves.txt file
+- **Attack/Sp. Attack stat** - From the user
+- **Defense/Sp. Defense stat** - From the target  
+- **STAB** - 1.5x if move type matches user type
+- **Type effectiveness** - 0x, 0.5x, 1x, 2x, or 4x
+- **Random factor** - 0.85x to 1.0x
+
+## Next Steps
+
+- [Creating Abilities](/development/creating-abilities) - Define custom abilities
+- [Creating Items](/development/creating-items) - Make items that teach moves (TMs)
+- [Creating Pokémon](/development/creating-pokemon) - Add moves to Pokémon learnsets

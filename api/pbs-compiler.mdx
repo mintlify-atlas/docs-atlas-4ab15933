@@ -1,0 +1,598 @@
+---
+title: PBS Compiler
+description: PBS compilation process, data validation, and recompiling after changes in Pokémon Essentials BES
+---
+
+# PBS Compiler
+
+The PBS (Pokémon Script) Compiler converts human-readable text files into optimized binary data files. This system allows developers to edit game data in simple text format while maintaining fast runtime performance.
+
+## Compilation Overview
+
+### What Gets Compiled
+
+The compiler processes these PBS files:
+
+| PBS File | Output File | Contains |
+|----------|-------------|----------|
+| `types.txt` | `types.dat` | Type chart and type definitions |
+| `moves.txt` | `moves.dat` | Move data (power, accuracy, effects) |
+| `abilities.txt` | Constants | Ability constants and descriptions |
+| `pokemon.txt` | `dexdata.dat`, `attacksRS.dat`, `evolutions.dat` | Species stats, moves, evolutions |
+| `items.txt` | `items.dat` | Item definitions and properties |
+| `tm.txt` | `tm.dat` | TM/HM compatibility |
+| `trainers.txt` | `trainers.dat` | Trainer battle data |
+| `trainertypes.txt` | `trainertypes.dat` | Trainer class definitions |
+| `encounters.txt` | `encounters.dat` | Wild Pokémon encounters |
+| `metadata.txt` | `metadata.dat` | Map metadata |
+| `townmap.txt` | `townmap.dat` | Region map data |
+
+## Main Compiler Entry Point
+
+The compiler is typically accessed through the Debug menu or Editor:
+
+```ruby
+# From 045_Compiler.rb
+def pbCompileAll
+  # Compile all PBS files in order
+  Win32API.SetWindowText("Compiling...")
+  
+  pbCompileTypes
+  pbCompileTownMap
+  pbCompileConnections
+  pbCompileAbilities
+  pbCompileMoves
+  pbCompileItems
+  pbCompileBerryPlants
+  pbCompilePokemonData
+  pbCompileMachines
+  pbCompileTrainers
+  pbCompileMetadata
+  pbCompileEncounters
+  
+  Win32API.SetWindowText("Compilation complete")
+  pbMessage("Compilation of PBS files is complete.")
+end
+```
+
+<Note>
+Compilation can take 10-60 seconds depending on the amount of data and computer speed.
+</Note>
+
+## Compilation Process
+
+### Step 1: File Reading
+
+The compiler reads PBS files line by line:
+
+```ruby
+def pbCompilerEachPreppedLine(filename)
+  File.open(filename,"rb"){|f|
+    FileLineData.file=filename
+    lineno=1
+    
+    f.each_line {|line|
+      # Strip UTF-8 BOM if present
+      if lineno==1 && line[0]==0xEF && line[1]==0xBB && line[2]==0xBF
+        line=line[3,line.length-3]
+      end
+      
+      # Remove comments and whitespace
+      line=prepline(line)
+      
+      # Skip empty lines and comments
+      if !line[/^\#/] && !line[/^\s*$/]
+        FileLineData.setLine(line,lineno)
+        yield line, lineno
+      end
+      
+      lineno+=1
+      
+      # Update progress display
+      if lineno%500==0
+        Graphics.update
+      end
+      if lineno%50==0
+        Win32API.SetWindowText(_INTL("Processing line {1}",lineno))
+      end
+    }
+  }
+end
+```
+
+### Step 2: Data Validation
+
+Each field is validated during parsing:
+
+```ruby
+def pbGetCsvRecord(rec,lineno,schema)
+  record=[]
+  repeat=(schema[1][0,1]=="*")
+  start=repeat ? 1 : 0
+  
+  begin
+    for i in start...schema[1].length
+      chr=schema[1][i,1]
+      case chr
+      when "u"  # Unsigned integer
+        record.push(csvPosInt!(rec,lineno))
+      when "i"  # Signed integer
+        record.push(csvInt!(rec,lineno))
+      when "x"  # Hexadecimal
+        field=csvfield!(rec)     
+        if !field[/^[A-Fa-f0-9]+$/]
+          raise _INTL("Field '{1}' is not a hexadecimal number",field)
+        end
+        record.push(field.hex)
+      when "s"  # String
+        record.push(csvfield!(rec))
+      when "e"  # Enum
+        record.push(csvEnumField!(rec,schema[2+i-start],"",lineno))
+      when "b"  # Boolean
+        record.push(csvBoolean!(rec,lineno))
+      end
+    end
+    break if repeat && rec==""
+  end while repeat
+  
+  return (schema[1].length==1) ? record[0] : record
+end
+```
+
+<Accordion title="Schema Format Codes">
+- **u**: Unsigned integer (0-255)
+- **v**: Unsigned integer >0
+- **i**: Signed integer
+- **I**: Optional unsigned integer
+- **x**: Hexadecimal number
+- **s**: String
+- **S**: Optional string
+- **n**: Name (alphanumeric + underscore)
+- **N**: Optional name
+- **b**: Boolean (true/false/yes/no/1/0)
+- **e**: Enumerated value
+- **\***: Repeat following pattern
+</Accordion>
+
+### Step 3: Binary Generation
+
+Validated data is packed into binary format:
+
+```ruby
+def pbCompileMoves
+  records=[]
+  movedata=[]
+  
+  pbCompilerEachPreppedLine("PBS/moves.txt"){|line,lineno|
+    record=pbGetCsvRecord(line,lineno,[0,"vnsxueeuuuxiss",
+       nil,nil,nil,nil,nil,PBTypes,["Physical","Special","Status"],
+       nil,nil,nil,nil,nil,nil,nil
+    ])
+    
+    # Pack into binary format
+    movedata[record[0]]=[
+       record[3],  # Function code (2 bytes)
+       record[4],  # Base damage (1 byte)
+       record[5],  # Type (1 byte)
+       record[6],  # Category (1 byte)
+       record[7],  # Accuracy (1 byte)
+       record[8],  # Total PP (1 byte)
+       record[9],  # Effect chance (1 byte)
+       record[10], # Target (2 bytes)
+       record[11], # Priority (1 byte, signed)
+       flags,      # Flags (2 bytes)
+       0           # Contest type (1 byte)
+    ].pack("vCCCCCCvCvC")
+  }
+  
+  # Write to file
+  File.open("Data/moves.dat","wb"){|file|
+    for i in 0...movedata.length
+      file.write(movedata[i] ? movedata[i] : defaultdata)
+    end
+  }
+end
+```
+
+### Step 4: Constant Generation
+
+Constants are generated for use in scripts:
+
+```ruby
+def pbCompileMoves
+  # ... data compilation ...
+  
+  # Generate constants
+  code="class PBMoves\r\n"
+  for rec in records
+    code+="#{rec[1]}=#{rec[0]}\r\n"  # e.g., TACKLE=1
+  end
+  code+="\r\ndef PBMoves.getName(id)\r\n"
+  code+="return pbGetMessage(MessageTypes::Moves,id)\r\nend"
+  code+="\r\ndef PBMoves.getCount\r\nreturn #{records.length}\r\nend\r\n"
+  code+="\r\ndef PBMoves.maxValue\r\nreturn #{maxValue}\r\nend\r\nend"
+  
+  # Compile and save
+  eval(code)
+  pbAddScript(code,"PBMoves")
+end
+```
+
+**Generated code example:**
+
+```ruby
+class PBMoves
+  MEGAHORN=1
+  ATTACKORDER=2
+  BUGBUZZ=3
+  # ... more moves ...
+  
+  def PBMoves.getName(id)
+    return pbGetMessage(MessageTypes::Moves,id)
+  end
+  
+  def PBMoves.getCount
+    return 559
+  end
+  
+  def PBMoves.maxValue
+    return 559
+  end
+end
+```
+
+## Type Compilation
+
+Types require special handling for the type chart:
+
+```ruby
+def pbCompileTypes
+  pbWriteDefaultTypes
+  sections=[]
+  typechart=[]
+  types=[]
+  
+  pbCompilerEachCommentedLine("PBS/types.txt") {|line,lineno|
+    # Parse type definitions
+    # ...
+  }
+  
+  # Build type chart
+  count=maxValue+1
+  for i in 0...count
+    type=typehash[i]
+    j=0; k=i
+    while j<count
+      typechart[k]=2  # Default: normal effectiveness
+      atype=typehash[j]
+      
+      if type && atype
+        # Check weaknesses, resistances, immunities
+        typechart[k]=4 if type[5].include?(atype[2])  # 4 = super effective
+        typechart[k]=1 if type[6].include?(atype[2])  # 1 = not very effective
+        typechart[k]=0 if type[7].include?(atype[2])  # 0 = immune
+      end
+      
+      j+=1
+      k+=count
+    end
+  end
+  
+  save_data([pseudotypes,specialtypes,typechart],"Data/types.dat")
+end
+```
+
+<Accordion title="Type Chart Array Structure">
+The type chart is a flat array where:
+
+```
+effectiveness = typechart[attacker_type + (defender_type * type_count)]
+```
+
+**Values:**
+- 0 = Immune (0x damage)
+- 1 = Not very effective (0.5x damage)
+- 2 = Normal (1x damage)
+- 4 = Super effective (2x damage)
+</Accordion>
+
+## Pokémon Data Compilation
+
+Pokémon data is the most complex compilation:
+
+```ruby
+def pbCompilePokemonData
+  dexdatas=[]
+  moves=[]
+  evolutions=[]
+  eggmoves=[]
+  metrics=[SignedWordArray.new,SignedWordArray.new,SignedWordArray.new]
+  
+  File.open("PBS/pokemon.txt","rb"){|f|
+    pbEachFileSection(f){|lastsection,currentmap|
+      dexdata=Array.new(76,0)  # 76 bytes per species
+      
+      # Parse all fields
+      # BaseStats, Type1, Type2, Abilities, etc.
+      
+      dexdatas[currentmap]=dexdata
+      moves[currentmap]=movelist
+      evolutions[currentmap]=evolist
+    }
+  }
+  
+  # Write multiple data files
+  File.open("Data/dexdata.dat","wb"){|f|
+    for i in 1..maxValue
+      if dexdatas[i]
+        dexdatas[i].each {|item| f.fputb(item)}
+      else
+        76.times { f.fputb(0) }
+      end
+    end
+  }
+  
+  # Evolutions
+  File.open("Data/evolutions.dat","wb"){|f|
+    # Write evolution data
+  }
+  
+  # Moves by level
+  File.open("Data/attacksRS.dat","wb"){|f|
+    # Write level-up moves
+  }
+  
+  # Egg moves
+  File.open("Data/eggEmerald.dat","wb"){|f|
+    # Write egg moves
+  }
+end
+```
+
+## Data Validation
+
+### Range Checking
+
+```ruby
+def pbCheckByte(x,valuename)
+  if x<0 || x>255
+    raise _INTL("The value \"{1}\" must be from 0 through 255, got {2}\r\n{3}",
+       valuename,x,FileLineData.linereport)
+  end
+end
+
+def pbCheckWord(x,valuename)
+  if x<0 || x>65535
+    raise _INTL("The value \"{1}\" must be from 0 through 65535, got {2}\r\n{3}",
+       valuename,x,FileLineData.linereport)
+  end
+end
+```
+
+### Enum Validation
+
+```ruby
+def checkEnumField(ret,enumer)
+  if enumer.is_a?(Module)
+    begin
+      if ret=="" || !enumer.const_defined?(ret.to_sym)
+        raise _INTL("Undefined value {1} in {2}\r\n{3}",
+           ret,enumer.name,FileLineData.linereport)
+      end
+    rescue NameError
+      raise _INTL("Incorrect value {1} in {2}\r\n{3}",
+         ret,enumer.name,FileLineData.linereport)
+    end
+    return enumer.const_get(ret.to_sym)
+  end
+end
+```
+
+### Error Reporting
+
+```ruby
+module FileLineData
+  def self.linereport
+    if @section
+      if @key!=nil
+        return _INTL("File {1}, section {2}, key {3}\r\n{4}\r\n",
+           @file,@section,@key,@value)
+      else
+        return _INTL("File {1}, section {2}\r\n{3}\r\n",
+           @file,@section,@value)
+      end
+    else
+      return _INTL("File {1}, line {2}\r\n{3}\r\n",
+           @file,@lineno,@linedata)
+    end
+  end
+end
+```
+
+**Example error message:**
+
+```
+Error: Field 'BaseStats' must have 6 values
+File PBS/pokemon.txt, section 25
+BaseStats=95,125,79,81,100
+```
+
+## Recompiling After Changes
+
+### When to Recompile
+
+You must recompile PBS files when you:
+
+1. Add new Pokémon, moves, or abilities
+2. Change stats, types, or move data
+3. Modify TM compatibility
+4. Update trainer teams
+5. Change wild encounters
+6. Edit type effectiveness
+
+<Note>
+Changes to PBS files do NOT take effect until you recompile!
+</Note>
+
+### Partial Recompilation
+
+You can compile individual systems:
+
+```ruby
+# Compile only moves
+pbCompileMoves
+
+# Compile only Pokémon data
+pbCompilePokemonData
+
+# Compile only trainers
+pbCompileTrainers
+```
+
+### Debug Mode Compilation
+
+```ruby
+# In debug mode, check if PBS files are newer than DAT files
+def pbNeedsRecompile?
+  return false if !$DEBUG
+  
+  # Check if any PBS file is newer than its DAT file
+  pbs_files = [
+    ["PBS/moves.txt", "Data/moves.dat"],
+    ["PBS/pokemon.txt", "Data/dexdata.dat"],
+    ["PBS/abilities.txt", "Data/Constants.rxdata"],
+    # ... more files
+  ]
+  
+  for pair in pbs_files
+    pbs_time = File.mtime(pair[0]) rescue nil
+    dat_time = File.mtime(pair[1]) rescue nil
+    
+    return true if !dat_time  # DAT doesn't exist
+    return true if pbs_time && pbs_time > dat_time  # PBS is newer
+  end
+  
+  return false
+end
+```
+
+## Performance Optimization
+
+### Binary Format Benefits
+
+<Accordion title="Why Binary Data Is Faster">
+**Text parsing (PBS):**
+- Must read entire file
+- Parse each line
+- Convert strings to numbers
+- Validate data types
+- **Time: 100-1000ms**
+
+**Binary reading (DAT):**
+- Seek to exact position
+- Read fixed-size chunks
+- No parsing needed
+- **Time: 1-10ms**
+
+**100x faster!**
+</Accordion>
+
+### Compilation Strategies
+
+```ruby
+def pbFastCompile
+  # Only compile files that changed
+  if pbFileNewer?("PBS/moves.txt", "Data/moves.dat")
+    pbCompileMoves
+  end
+  
+  if pbFileNewer?("PBS/pokemon.txt", "Data/dexdata.dat")
+    pbCompilePokemonData
+  end
+  
+  # ... check other files
+end
+
+def pbFileNewer?(source, target)
+  return true if !safeExists?(target)
+  return false if !safeExists?(source)
+  
+  source_time = File.mtime(source)
+  target_time = File.mtime(target)
+  
+  return source_time > target_time
+end
+```
+
+## Common Compilation Errors
+
+<Accordion title="UTF-8 Encoding Errors">
+**Error:** "Expected a section at the beginning of the file"
+
+**Cause:** File not saved in UTF-8 encoding
+
+**Solution:** Save PBS file as UTF-8 in your text editor
+</Accordion>
+
+<Accordion title="Enum Value Errors">
+**Error:** "Undefined value WATERGUN in PBMoves"
+
+**Cause:** Typo in move/ability/type name, or constant doesn't exist
+
+**Solution:** Check spelling and ensure the constant is defined
+</Accordion>
+
+<Accordion title="Range Errors">
+**Error:** "The value 'BasePower' must be from 0 through 255, got 300"
+
+**Cause:** Value exceeds allowed range
+
+**Solution:** Use valid range (0-255 for bytes, 0-65535 for words)
+</Accordion>
+
+<Accordion title="Missing Required Fields">
+**Error:** "Required entry 'BaseStats' is missing or empty in section 25"
+
+**Cause:** Required field not provided in PBS file
+
+**Solution:** Add all required fields for that section
+</Accordion>
+
+## Compiler Utilities
+
+### Adding Custom Scripts
+
+```ruby
+def pbAddScript(script,sectionname)
+  begin
+    scripts=load_data("Data/Constants.rxdata")
+    scripts=[] if !scripts
+  rescue
+    scripts=[]
+  end
+  
+  s=pbFindScript(scripts,sectionname)
+  if s
+    s[2]=Zlib::Deflate.deflate("#{script}\r\n")
+  else
+    scripts.push([rand(100000000),sectionname,
+       Zlib::Deflate.deflate("#{script}\r\n")])
+  end
+  
+  save_data(scripts,"Data/Constants.rxdata")
+end
+```
+
+### Progress Display
+
+```ruby
+Win32API.SetWindowText("Compiling moves...")
+Graphics.update  # Keep window responsive
+```
+
+## Related Systems
+
+See also:
+- [Data Loading](/api/data-loading) - How compiled data is loaded
+- [Battle Mechanics](/api/battle-mechanics) - How battle data is used
+- [Move Effects](/api/move-effects) - Move function code system

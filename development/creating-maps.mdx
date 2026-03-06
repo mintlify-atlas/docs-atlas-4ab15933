@@ -1,0 +1,559 @@
+---
+title: Creating Maps
+description: Learn how to create maps using RPG Maker XP and define wild encounters in Pokémon Essentials BES
+---
+
+# Creating Maps
+
+Maps are the foundation of your game world. In Pokémon Essentials BES, maps are created using **RPG Maker XP** and wild encounters are defined in `PBS/encounters.txt`.
+
+## Using RPG Maker XP Editor
+
+### Opening the Map Editor
+
+1. Launch your project in RPG Maker XP
+2. The main editor shows your current map in the center
+3. Use the left panel to navigate between maps
+4. The tileset panel on the right shows available tiles
+
+<Note>
+  Pokémon Essentials BES requires **RPG Maker XP** (not VX, VX Ace, or MV/MZ). Make sure you have the correct version installed.
+</Note>
+
+## Map Basics
+
+### Creating a New Map
+
+<Steps>
+
+### Right-click in the map list
+
+In the left panel, right-click the map tree and select "New Map".
+
+### Configure map properties
+
+- **Name**: Display name (e.g., "Route 1", "Pallet Town")
+- **Width/Height**: Map dimensions in tiles (multiples of 16 recommended)
+- **Tileset**: Choose appropriate tileset (Town, Cave, Route, etc.)
+
+### Design your map
+
+Use the tileset panel to place tiles:
+- **Layer 1**: Ground tiles (grass, floor, water)
+- **Layer 2**: Objects (trees, rocks, buildings)
+- **Layer 3**: Decorative overlays (shadows, roofs)
+
+</Steps>
+
+### Map Layers
+
+RPG Maker XP has three tile layers:
+
+```
+Layer 1 - Base terrain (always passable unless marked)
+Layer 2 - Objects and obstacles (trees, buildings)
+Layer 3 - Overhead elements (roof tops, canopies)
+```
+
+<Tip>
+  Use **Layer 3** for elements that should appear above the player character, like tree canopies or building roofs.
+</Tip>
+
+## Map Properties
+
+Double-click a map to access its properties:
+
+<ParamField path="Name" type="string">
+  The internal name of the map. Also used as the display name unless overridden.
+</ParamField>
+
+<ParamField path="Width/Height" type="number">
+  Map dimensions in tiles. Standard sizes:
+  - Small: 20×15
+  - Medium: 30×20
+  - Large: 50×35+
+</ParamField>
+
+<ParamField path="Tileset" type="string">
+  Determines which tiles are available:
+  - **Outdoor** - Routes, towns
+  - **Indoor** - Houses, buildings
+  - **Cave** - Caves, dungeons
+  - **Dungeon** - Special areas
+</ParamField>
+
+<ParamField path="BGM" type="string">
+  Background music file (from `Audio/BGM/`).
+  
+  Leave blank to inherit from parent map.
+</ParamField>
+
+<ParamField path="BGS" type="string">
+  Background sound (from `Audio/BGS/`).
+  
+  Examples: "Waves", "Birds chirping"
+</ParamField>
+
+<ParamField path="Encounter Step" type="number">
+  Steps between wild encounters. Standard: 25
+  
+  Lower = more frequent encounters.
+</ParamField>
+
+## Wild Encounters
+
+Wild encounters are defined in `PBS/encounters.txt`:
+
+### Encounters File Structure
+
+```txt
+#########################
+005 # Ruta 1
+25,10,10
+Land
+RATTATA,1,4
+PIDGEY,1,4
+...
+```
+
+Let's break this down:
+
+<Steps>
+
+### Map ID and Name
+
+```txt
+005 # Ruta 1
+```
+
+- `005` - The map ID from RPG Maker XP
+- `# Ruta 1` - Comment (optional) for reference
+
+### Encounter Configuration
+
+```txt
+25,10,10
+```
+
+- First number: Encounter chance (25 = standard)
+- Second number: Minimum steps between encounters
+- Third number: Maximum steps between encounters
+
+### Encounter Type
+
+```txt
+Land
+```
+
+The terrain type. Available types:
+- `Land` - Walking in grass
+- `LandMorning` - Morning encounters (6am-12pm)
+- `LandDay` - Day encounters (12pm-6pm)  
+- `LandNight` - Night encounters (6pm-6am)
+- `Cave` - Walking in caves
+- `Water` - Surfing
+- `OldRod` - Fishing with Old Rod
+- `GoodRod` - Fishing with Good Rod
+- `SuperRod` - Fishing with Super Rod
+- `RockSmash` - Using Rock Smash
+- `HeadButt` - Using Headbutt on trees
+
+### Pokémon Slots
+
+```txt
+RATTATA,1,4
+PIDGEY,1,4
+```
+
+Each line defines a Pokémon slot:
+- Species internal name
+- Minimum level
+- Maximum level (optional - if omitted, uses minimum level)
+
+</Steps>
+
+## Real Example: Route 1
+
+```txt
+#########################
+005 # Ruta 1
+25,10,10
+Land
+RATTATA,1,4
+PIDGEY,1,4
+RATTATA,1,4
+PIDGEY,1,4
+RATTATA,1,4
+PIDGEY,1,4
+RATTATA,1,3
+PIDGEY,1,3
+RATTATA,1,3
+PIDGEY,1,3
+RATTATA,4
+PIDGEY,4
+LandNight
+RATTATA,1,4
+HOOTHOOT,1,3
+RATTATA,1,4
+HOOTHOOT,1,3
+SPINARAK,1,2
+SPINARAK,1,2
+RATTATA,1,4
+HOOTHOOT,1,4
+RATTATA,1,4
+HOOTHOOT,1,4
+RATTATA,1
+HOOTHOOT,1
+```
+
+This route has:
+- Day encounters (Rattata and Pidgey)
+- Night encounters (Rattata, Hoothoot, and Spinarak)
+- 12 slots per encounter type
+- Level ranges from 1-4
+
+## Encounter Slot Probabilities
+
+The 12 slots have different encounter rates:
+
+```
+Slot 1:  20%
+Slot 2:  20%
+Slot 3:  10%
+Slot 4:  10%
+Slot 5:  10%
+Slot 6:  10%
+Slot 7:  5%
+Slot 8:  5%
+Slot 9:  4%
+Slot 10: 4%
+Slot 11: 1%
+Slot 12: 1%
+```
+
+<Tip>
+  Place your most common Pokémon in slots 1-2, uncommon in slots 3-6, and rare Pokémon in slots 11-12.
+</Tip>
+
+## Water Encounters
+
+```txt
+010 # Route 24
+21,10,10
+Water
+GOLDEEN,10,15
+GOLDEEN,15,20
+GOLDEEN,10,15
+GOLDEEN,15,20
+GOLDEEN,10,15
+```
+
+Surfing encounters work the same way as land encounters.
+
+## Fishing Encounters
+
+```txt
+OldRod
+MAGIKARP,5,5
+MAGIKARP,5,5
+MAGIKARP,5,5
+MAGIKARP,5,5
+GOLDEEN,5,5
+GoodRod
+MAGIKARP,10,20
+GOLDEEN,10,20
+GOLDEEN,10,20
+MAGIKARP,10,20
+GOLDEEN,10,20
+SuperRod
+GOLDEEN,15,25
+SEAKING,25,35
+GOLDEEN,15,25
+SEAKING,25,35
+GOLDEEN,15,25
+```
+
+<Note>
+  Fishing typically uses only 5 slots instead of 12.
+</Note>
+
+## Time-Based Encounters
+
+Use different encounter types for time of day:
+
+```txt
+LandMorning
+PIDGEY,2,5
+RATTATA,2,5
+LandDay
+PIDGEY,2,5
+RATTATA,2,5
+SPEAROW,2,5
+LandNight
+RATTATA,2,5
+HOOTHOOT,2,5
+SPINARAK,2,5
+```
+
+## Map Events
+
+### Creating an Event
+
+1. **Double-click** on the map where you want the event
+2. Set event properties:
+   - **Name**: Descriptive name for organization
+   - **Graphic**: Character sprite or object tile
+   - **Move Route**: Movement pattern (if any)
+   - **Trigger**: How the event activates
+
+### Event Triggers
+
+<ParamField path="Action Button" type="trigger">
+  Activates when player presses the action button (Enter/Space) facing the event.
+  
+  Use for: NPCs, signs, items
+</ParamField>
+
+<ParamField path="Player Touch" type="trigger">
+  Activates when player walks into the event.
+  
+  Use for: Trainers, wild encounters, warps
+</ParamField>
+
+<ParamField path="Event Touch" type="trigger">
+  Activates when event walks into player.
+  
+  Use for: Moving NPCs that approach player
+</ParamField>
+
+<ParamField path="Autorun" type="trigger">
+  Runs immediately when player enters map (if conditions are met).
+  
+  Use for: Cutscenes, one-time events
+</ParamField>
+
+<ParamField path="Parallel Process" type="trigger">
+  Runs constantly in background.
+  
+  Use for: Weather effects, animated objects
+</ParamField>
+
+## Common Events
+
+### NPC Dialog
+
+```ruby
+Kernel.pbMessage("Hello! Welcome to our town!")
+```
+
+### Item Pickup
+
+```ruby
+Kernel.pbItemBall(:POTION)
+```
+
+### Trainer Battle
+
+```ruby
+pbTrainerBattle(:YOUNGSTER,"Joey")
+```
+
+### Warp/Door
+
+```ruby
+Kernel.pbTransferPlayer(10, 15, 20)
+# Map ID 10, X position 15, Y position 20
+```
+
+### Healing Event
+
+```ruby
+Kernel.pbMessage("Let me heal your Pokémon!")
+pbFullHeal
+Kernel.pbMessage("Your Pokémon are fully healed!")
+```
+
+## Map Connections
+
+To connect maps seamlessly:
+
+### Using Map Edges
+
+1. Create events at map edges with **Player Touch** trigger
+2. Use transfer player command to adjacent map
+3. Ensure coordinates align between maps
+
+### Example Edge Transfer
+
+```ruby
+# Event at top edge of Route 1
+Kernel.pbTransferPlayer(6, 15, 28)
+# Transfers to Pallet Town (Map 6) at bottom edge
+```
+
+<Warning>
+  Make sure X/Y coordinates match when connecting maps, or players will appear in wrong positions.
+</Warning>
+
+## Grass Patches
+
+For wild encounter areas:
+
+1. Paint grass tiles on **Layer 1**
+2. Set terrain tag to **Grass** in the Tileset editor
+3. Define encounters in `encounters.txt` for that map
+
+### Making Tall Grass
+
+Use Layer 2 or 3 for grass that covers the player:
+
+```
+Layer 1: Ground
+Layer 2: Tall grass base
+Layer 3: Tall grass top (appears over player)
+```
+
+## Indoor Maps
+
+### Creating a Building Interior
+
+<Steps>
+
+### Create new map
+
+Use "Indoor" tileset.
+
+### Set smaller dimensions
+
+10×8 for small house, 20×15 for large building.
+
+### Add entrance/exit events
+
+Place warp at door to transfer back outside.
+
+### Set BGM
+
+Use indoor music or leave blank.
+
+</Steps>
+
+### Building Entrance (Outside)
+
+```ruby
+# Event on outside door
+Kernel.pbTransferPlayer(15, 7, 12)
+# Transfers to interior map
+```
+
+### Building Exit (Inside)
+
+```ruby
+# Event on inside door
+Kernel.pbTransferPlayer(5, 10, 8)
+# Transfers back outside
+```
+
+## Cave Maps
+
+For cave/dungeon areas:
+
+1. Use **Cave** tileset
+2. Add rock walls and obstacles
+3. Create multiple floors with stairs
+4. Define cave encounters in `encounters.txt`
+
+```txt
+020 # Dark Cave
+30,8,12
+Cave
+ZUBAT,8,12
+GEODUDE,8,12
+ZUBAT,10,14
+GEODUDE,10,14
+```
+
+## Weather Effects
+
+Set weather in map properties or events:
+
+```ruby
+# Rain
+pbSetWeather(1)
+
+# Storm
+pbSetWeather(2)
+
+# Snow
+pbSetWeather(3)
+
+# Clear weather
+pbSetWeather(0)
+```
+
+## Testing Your Maps
+
+<Steps>
+
+### Playtest mode
+
+Press **F12** or use "Game > Playtest" in RPG Maker.
+
+### Debug commands
+
+Press **F8** in-game for debug menu:
+- Teleport to any map
+- Toggle wild encounters
+- Test trainer battles
+
+### Check connections
+
+Walk through all exits to ensure they lead correctly.
+
+### Test encounters
+
+Walk in grass to verify Pokémon and levels.
+
+</Steps>
+
+## Map Design Tips
+
+<Tip>
+  **Keep routes linear**: Use obstacles to guide players without making it feel restrictive.
+  
+  **Vary terrain**: Mix grass, water, and obstacles for visual interest.
+  
+  **Place trainers strategically**: Don't block required paths with too many trainers.
+  
+  **Add rest spots**: Include houses or Pokémon Centers before difficult areas.
+  
+  **Use ledges**: One-way jumps let players skip back through cleared areas.
+</Tip>
+
+## Performance Optimization
+
+- Keep maps under 100×100 tiles when possible
+- Avoid excessive parallel process events
+- Use conditional branches to disable unused events
+- Don't place too many events on one map (150+ can lag)
+
+## Common Issues
+
+### Wild encounters not appearing
+- Check map ID matches in encounters.txt
+- Verify terrain tag is set to "Grass"
+- Ensure encounter rate is not 0
+
+### Player falls through floor
+- Check passability settings in Tileset editor
+- Verify Layer 1 has ground tiles
+
+### Events don't trigger
+- Check event trigger type
+- Verify conditions are met
+- Ensure priority is set correctly
+
+## Next Steps
+
+- [Creating Pokémon](/development/creating-pokemon) - Add Pokémon to your encounters
+- [Creating Trainers](/development/creating-trainers) - Place trainers on your maps
+- [Creating Items](/development/creating-items) - Hide items in your maps for players to find

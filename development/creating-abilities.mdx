@@ -1,0 +1,331 @@
+---
+title: Creating Abilities
+description: Learn how to define Pokémon abilities using the PBS/abilities.txt file in Pokémon Essentials BES
+---
+
+# Creating Abilities
+
+Abilities are special traits that Pokémon have which provide effects during battle or in the overworld. They are defined in `PBS/abilities.txt`.
+
+## Ability Entry Structure
+
+Each ability is defined on a single line with comma-separated values:
+
+```txt
+ID,InternalName,Name,Description
+```
+
+## Real Examples
+
+```txt
+1,STENCH,Hedor,"Debido al mal olor que emana, al atacar al rival puede hacerlo retroceder."
+
+5,STURDY,Robustez,"Evita que el rival pueda debilitarlo de un solo golpe cuando tiene los PS al máximo."
+
+65,OVERGROW,Espesura,"Potencia los movimientos de tipo Planta del Pokémon cuando le quedan pocos PS."
+```
+
+## Field Definitions
+
+<ParamField path="ID" type="number" required>
+  Unique identifier for the ability. Must be sequential starting from 1.
+</ParamField>
+
+<ParamField path="InternalName" type="string" required>
+  Internal code name in all uppercase. Used in scripts and PBS files.
+  
+  Example: `OVERGROW`, `BLAZE`, `INTIMIDATE`
+</ParamField>
+
+<ParamField path="Name" type="string" required>
+  Display name shown to players in battle and menus.
+  
+  Example: `Espesura`, `Mar Llamas`, `Intimidación`
+</ParamField>
+
+<ParamField path="Description" type="string" required>
+  In-game description explaining what the ability does. Enclosed in quotes.
+</ParamField>
+
+## Ability Categories
+
+### Starter Abilities
+
+These abilities boost moves of a certain type when HP is low:
+
+```txt
+65,OVERGROW,Espesura,"Potencia los movimientos de tipo Planta cuando le quedan pocos PS."
+
+66,BLAZE,Mar Llamas,"Potencia los movimientos de tipo Fuego cuando le quedan pocos PS."
+
+67,TORRENT,Torrente,"Potencia los movimientos de tipo Agua cuando le quedan pocos PS."
+
+68,SWARM,Enjambre,"Potencia los movimientos de tipo Bicho cuando le quedan pocos PS."
+```
+
+### Weather Abilities
+
+Abilities that create or interact with weather:
+
+```txt
+2,DRIZZLE,Llovizna,"Hace que llueva cuando entra en combate."
+
+70,DROUGHT,Sequía,"Cuando el Pokémon entra en combate, el tiempo pasa a ser soleado."
+
+45,SANDSTREAM,Chorro Arena,"Crea una tormenta de arena al entrar en combate."
+
+117,SNOWWARNING,Nevada,"El Pokémon invoca una tormenta de granizo al entrar en combate."
+```
+
+### Intimidation Abilities
+
+```txt
+22,INTIMIDATE,Intimidación,"Al entrar en combate amilana al rival de tal manera que su Ataque disminuye."
+
+128,DEFIANT,Competitivo,"Sube mucho el Ataque cuando el rival le baja las características."
+
+154,JUSTIFIED,Justiciero,"Si le alcanza un movimiento de tipo Siniestro, aumenta el Ataque debido a su integridad."
+```
+
+### Absorption Abilities
+
+Abilities that heal when hit by certain move types:
+
+```txt
+10,VOLTABSORB,Absorbe Elec.,"Si le alcanza un movimiento de tipo Eléctrico, recupera PS en vez de sufrir daño."
+
+11,WATERABSORB,Absorbe Agua,"Si le alcanza un movimiento de tipo Agua, recupera PS en vez de sufrir daño."
+
+18,FLASHFIRE,Absorbe Fuego,"Si le alcanza algún movimiento de tipo Fuego, potencia sus propios movimientos de dicho tipo."
+```
+
+### Immunity Abilities
+
+```txt
+7,LIMBER,Flexibilidad,"Evita ser paralizado gracias a la flexibilidad de su cuerpo."
+
+15,INSOMNIA,Insomnio,"Su resistencia al sueño le impide quedarse dormido."
+
+17,IMMUNITY,Inmunidad,"Su sistema inmunitario evita el envenenamiento."
+
+40,MAGMAARMOR,Escudo Magma,"Gracias al magma candente que lo envuelve, evita la congelación."
+
+41,WATERVEIL,Velo Agua,"Evita las quemaduras gracias a la capa de agua que lo envuelve."
+```
+
+### Battle Mechanic Abilities
+
+```txt
+4,BATTLEARMOR,Armadura Batalla,"La robusta coraza que lo protege bloquea los golpes críticos."
+
+75,SHELLARMOR,Caparazón,"La robusta coraza que lo protege bloquea los golpes críticos."
+
+25,WONDERGUARD,Superguarda,"Gracias a un poder misterioso, solo le hacen daño los movimientos supereficaces."
+
+99,NOGUARD,Indefenso,"Al quedar ambos expuestos, tanto los movimientos del Pokémon como los del rival acertarán siempre."
+```
+
+### Stat Boost Abilities
+
+```txt
+37,HUGEPOWER,Potencia,"Duplica la potencia de los ataques físicos."
+
+74,PUREPOWER,Energía Pura,"Duplica la potencia de los ataques físicos."
+
+3,SPEEDBOOST,Impulso,"Aumenta la Velocidad en cada turno."
+
+105,SUPERLUCK,Afortunado,"Su buena suerte aumenta la probabilidad de asestar golpes críticos."
+```
+
+### Contact Abilities
+
+Abilities that trigger when the Pokémon is hit by contact moves:
+
+```txt
+9,STATIC,Elec. Estática,"La electricidad estática que lo envuelve puede paralizar al mínimo contacto."
+
+38,POISONPOINT,Punto Tóxico,"Puede envenenar al mínimo contacto."
+
+49,FLAMEBODY,Cuerpo Llama,"Puede quemar al mínimo contacto."
+
+27,EFFECTSPORE,Efecto Espora,"Puede dormir, envenenar o paralizar al Pokémon con el que entre en contacto al recibir un ataque."
+```
+
+## Creating a New Ability
+
+<Steps>
+
+### Step 1: Find the next ID
+
+Look at the last ability in `abilities.txt` and use the next sequential number.
+
+### Step 2: Choose an internal name
+
+Pick a descriptive, uppercase name:
+
+```txt
+320,FLAMESHIELD,Escudo Llama,"Reduce el daño de ataques de tipo Agua y aumenta el poder de movimientos de tipo Fuego."
+```
+
+### Step 3: Write a clear description
+
+Explain what the ability does in simple terms:
+
+```txt
+321,TOXICTOUCH,Toque Tóxico,"Los movimientos de contacto tienen 30% de probabilidad de envenenar al objetivo."
+```
+
+### Step 4: Implement in scripts (optional)
+
+For the ability to actually work, you'll need to add code in the scripts section. Basic abilities that modify stats or types may work without additional coding if they follow existing patterns.
+
+</Steps>
+
+<Warning>
+  Adding an ability to `abilities.txt` only creates the database entry. To make it functional in battle, you must implement its effect in the game's scripts under `PokeBattle_Ability` or related files.
+</Warning>
+
+## Common Ability Patterns
+
+### Type-Boosting Abilities
+
+Abilities that increase damage of specific move types:
+
+```txt
+91,ADAPTABILITY,Adaptable,"Potencia aún más los movimientos cuyo tipo coincida con el del Pokémon."
+
+89,IRONFIST,Puño Férreo,"Aumenta la potencia de los puñetazos."
+
+185,STRONGJAW,Mandíbula Fuerte,"Su robusta mandíbula le confiere una mordedura potente."
+```
+
+### Speed Manipulation
+
+```txt
+33,SWIFTSWIM,Nado Rápido,"Sube la Velocidad cuando llueve."
+
+34,CHLOROPHYLL,Clorofila,"Sube la Velocidad cuando hace sol."
+
+95,QUICKFEET,Pies Rápidos,"Aumenta la Velocidad si sufre problemas de estado."
+```
+
+### Stat Prevention
+
+```txt
+29,CLEARBODY,Cuerpo Puro,"Evita que bajen sus características a causa de movimientos o habilidades de otros Pokémon."
+
+73,WHITESMOKE,Humo Blanco,"El humo blanco que lo protege evita que otro Pokémon le baje las características."
+
+52,HYPERCUTTER,Corte Fuerte,"Evita que el rival le baje el Ataque."
+```
+
+## Hidden Abilities
+
+Hidden abilities are defined the same way but are designated in `pokemon.txt`:
+
+```txt
+# In pokemon.txt
+[1]
+Name=Bulbasaur
+Abilities=OVERGROW
+HiddenAbility=CHLOROPHYLL
+```
+
+<Note>
+  Hidden abilities are typically rarer and obtained through special means like Max Raid Battles, special distributions, or breeding.
+</Note>
+
+## Multi-Effect Abilities
+
+Some abilities have multiple effects:
+
+```txt
+47,THICKFAT,Sebo,"Gracias a la gruesa capa de grasa que lo protege, reduce a la mitad el daño recibido por ataques de tipo Fuego y Hielo."
+
+87,DRYSKIN,Piel Seca,"Pierde PS si hace sol y los recupera si llueve o recibe un movimiento de tipo Agua. Los movimientos de tipo Fuego, le hacen más daño de lo normal."
+```
+
+## Ability Interactions
+
+### Ability Suppression
+
+```txt
+104,MOLDBREAKER,Rompemoldes,"Las habilidades del objetivo no afectan a los movimientos empleados."
+
+163,TURBOBLAZE,Turbollama,"Las habilidades del objetivo no afectan a los movimientos empleados."
+
+164,TERAVOLT,Terravoltaje,"Las habilidades del objetivo no afectan a los movimientos empleados."
+```
+
+### Ability Copy/Change
+
+```txt
+36,TRACE,Calco,"Al entrar en combate copia la habilidad del rival."
+
+150,IMPOSTER,Impostor,"El Pokémon se transforma en el que tiene enfrente."
+
+152,MUMMY,Momia,"Contagia la habilidad Momia al rival que entre en contacto con él."
+```
+
+## Ability Naming Conventions
+
+<Tip>
+  When creating custom abilities:
+  - Use descriptive internal names (e.g., `IRONBARBS`, not `ABILITY1`)
+  - Keep display names concise (2-3 words max)
+  - Write clear descriptions that explain the effect without being too wordy
+  - Test thoroughly with different Pokémon and battle scenarios
+</Tip>
+
+## Mega Evolution Abilities
+
+Some abilities are exclusive to Mega Evolutions:
+
+```txt
+180,PARENTALBOND,Amor Filial,"Ataque doble en familia."
+
+184,STANCECHANGE,Cambio Táctico,"Adopta la Forma Filo al lanzar un ataque, o bien la Forma Escudo si usa el movimiento Escudo Real."
+```
+
+## Generation-Specific Abilities
+
+Newer abilities (Gen 7+):
+
+```txt
+199,WATERBUBBLE,Pompa,"Potencia los movimientos de tipo Agua, reduce el daño de los movimientos de tipo Fuego e impide que sufra quemaduras."
+
+220,DAZZLING,Cuerpo Vívido,"Desconcierta al rival y le impide utilizar movimientos con prioridad contra el usuario."
+
+229,BATTLEBOND,Fuerte Afecto,"Al derrotar a un rival, los vínculos con su entrenador se refuerzan y se convierte en Greninja Ash."
+```
+
+## Testing Abilities
+
+<Steps>
+
+### Use Debug mode
+
+Press F8 in-game to open debug menu and test abilities.
+
+### Create a test Pokémon
+
+Assign your new ability to a test Pokémon in `pokemon.txt`:
+
+```txt
+[999]
+Name=TestMon
+InternalName=TESTMON
+Abilities=YOURNEWABILITY
+```
+
+### Battle test
+
+Use the debug battle option to verify the ability works as intended in various scenarios.
+
+</Steps>
+
+## Next Steps
+
+- [Creating Pokémon](/development/creating-pokemon) - Assign abilities to Pokémon
+- [Creating Moves](/development/creating-moves) - Create moves that interact with abilities
+- [Creating Items](/development/creating-items) - Items like Ability Capsule affect abilities

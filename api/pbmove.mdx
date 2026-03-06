@@ -1,0 +1,204 @@
+---
+title: "PBMove Class"
+description: "Reference for the PBMove class that represents individual move instances on Pokémon"
+---
+
+## Overview
+
+The `PBMove` class represents an individual move instance on a Pokémon. Each Pokémon can know up to 4 moves, and each move is stored as a `PBMove` object that tracks the move's ID, current PP, and PP Ups applied.
+
+Unlike `PBMoveData` which stores static move data, `PBMove` represents a move that a specific Pokémon knows, including its current PP state.
+
+**Source**: `Data/EditorScripts/016_PBMove.rb:65-90`
+
+## Class Attributes
+
+<ResponseField name="id" type="Integer" required>
+  The move's ID (National Move Dex number). This is read-only after initialization.
+  
+  **Example**: `1` for Pound, `15` for Cut, etc.
+</ResponseField>
+
+<ResponseField name="pp" type="Integer" required>
+  The current amount of PP (Power Points) remaining for this move.
+  
+  **Default**: Set to the move's total PP when initialized
+  
+  **Range**: `0` to `totalpp`
+</ResponseField>
+
+<ResponseField name="ppup" type="Integer" required>
+  The number of PP Ups used on this move.
+  
+  **Default**: `0`
+  
+  **Range**: `0` to `3` (maximum 3 PP Ups per move)
+</ResponseField>
+
+## Methods
+
+### initialize
+
+```ruby
+def initialize(moveid)
+```
+
+Creates a new move instance with the specified move ID.
+
+<ParamField path="moveid" type="Integer" required>
+  The ID of the move to create
+</ParamField>
+
+**Behavior**:
+- Loads move data using `PBMoveData`
+- Sets `@pp` to the move's total PP
+- Sets `@id` to the provided move ID
+- Sets `@ppup` to `0`
+
+**Example**:
+```ruby
+# Create a Thunderbolt move (ID 85)
+move = PBMove.new(85)
+puts move.pp      # => 15 (base PP for Thunderbolt)
+puts move.ppup    # => 0
+```
+
+**Source**: `016_PBMove.rb:84-89`
+
+---
+
+### type
+
+```ruby
+def type
+```
+
+Returns this move's type.
+
+**Returns**: Integer representing the move's type (see `PBTypes`)
+
+**Behavior**:
+- Creates a new `PBMoveData` object to look up the move's type
+- Returns the type ID
+
+**Example**:
+```ruby
+move = PBMove.new(85)  # Thunderbolt
+type = move.type       # Returns type ID for Electric
+```
+
+**Source**: `016_PBMove.rb:71-74`
+
+---
+
+### totalpp
+
+```ruby
+def totalpp
+```
+
+Returns the maximum PP for this move, including PP Ups.
+
+**Returns**: Integer representing total PP
+
+**Formula**: `base_pp + (base_pp * ppup / 5).floor`
+
+**Behavior**:
+- Loads move data to get base PP
+- Calculates bonus PP from PP Ups (20% increase per PP Up)
+- Returns total PP
+
+**Example**:
+```ruby
+move = PBMove.new(85)  # Thunderbolt (base PP: 15)
+puts move.totalpp      # => 15
+
+move.ppup = 1
+puts move.totalpp      # => 18 (15 + 15*1/5 = 15 + 3)
+
+move.ppup = 3
+puts move.totalpp      # => 24 (15 + 15*3/5 = 15 + 9)
+```
+
+**Source**: `016_PBMove.rb:77-81`
+
+---
+
+## Usage Examples
+
+### Creating a Move
+
+```ruby
+# Create a move by ID
+move = PBMove.new(1)  # Pound
+
+# Create a move by constant
+move_id = getID(PBMoves, :THUNDERBOLT)
+move = PBMove.new(move_id)
+```
+
+### Managing PP
+
+```ruby
+move = PBMove.new(85)  # Thunderbolt
+
+# Check current PP
+puts move.pp           # => 15
+
+# Use the move (reduce PP)
+move.pp -= 1
+puts move.pp           # => 14
+
+# Restore PP
+move.pp = move.totalpp
+puts move.pp           # => 15
+```
+
+### Applying PP Ups
+
+```ruby
+move = PBMove.new(85)  # Thunderbolt
+
+puts move.totalpp      # => 15
+move.ppup = 1
+puts move.totalpp      # => 18
+
+move.ppup = 2
+puts move.totalpp      # => 21
+
+move.ppup = 3
+puts move.totalpp      # => 24 (maximum)
+```
+
+### Adding Moves to Pokémon
+
+```ruby
+pokemon = PokeBattle_Pokemon.new(:PIKACHU, 25)
+
+# Pokémon are initialized with default moves
+for i in 0...4
+  if pokemon.moves[i].id > 0
+    puts "Move #{i+1}: #{PBMoves.getName(pokemon.moves[i].id)}"
+    puts "PP: #{pokemon.moves[i].pp}/#{pokemon.moves[i].totalpp}"
+  end
+end
+```
+
+### Creating Empty Moves
+
+```ruby
+# Create an empty move slot (ID 0)
+empty_move = PBMove.new(0)
+puts empty_move.id     # => 0
+```
+
+## Related Classes
+
+- **PBMoveData**: Stores static data about moves (damage, accuracy, type, etc.)
+- **PokeBattle_Pokemon**: Uses `PBMove` objects in its `@moves` array
+- **PBMoves**: Constant module containing move ID definitions
+
+## See Also
+
+- [PBMoveData](/api/pbmovedata) - Static move data
+- [Pokémon Classes](/api/pokemon-classes) - PokeBattle_Pokemon and move management

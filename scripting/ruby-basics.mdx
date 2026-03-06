@@ -1,0 +1,264 @@
+---
+title: Ruby Basics for Pokémon Essentials
+description: Learn Ruby programming fundamentals and how they apply to Pokémon Essentials scripting
+---
+
+## Introduction to Ruby in Essentials
+
+Pokémon Essentials is built on **RGSS** (Ruby Game Scripting System), which uses Ruby 1.8. Understanding Ruby is essential for modifying and extending your Pokémon game.
+
+### What is RGSS?
+
+RGSS (Ruby Game Scripting System) is RPG Maker XP's scripting layer that provides:
+- **Game engine integration** - Access to graphics, input, audio, and game data
+- **Object-oriented programming** - Classes, inheritance, and modules
+- **Event-driven gameplay** - Scripts that respond to player actions
+
+<Note>
+Pokémon Essentials uses Ruby 1.8 syntax. Some modern Ruby features are not available.
+</Note>
+
+## Where Scripts Are Stored
+
+### Main Script Archive
+
+All compiled game scripts are stored in `Data/Scripts.rxdata`. This is a binary file containing all your game's code.
+
+<Warning>
+Always back up `Data/Scripts.rxdata` before making changes. A corrupted file can break your entire game.
+</Warning>
+
+### EditorScripts Folder
+
+During development, scripts are organized in `Data/EditorScripts/` as `.rb` files:
+
+```
+Data/EditorScripts/
+├── 001_Debug_Settings #####.rb
+├── 016_PBMove.rb
+├── 031_PokeBattle_Pokemon.rb
+├── 039_PSystem_Utilities.rb
+└── ...
+```
+
+These files are numbered to control **loading order** - lower numbers load first.
+
+## Ruby Language Basics
+
+### Classes and Objects
+
+Everything in Pokémon Essentials is an object. Here's how the `PBMove` class is defined:
+
+```ruby Data/EditorScripts/016_PBMove.rb
+class PBMove
+  attr_reader(:id)       # This move's ID
+  attr_accessor(:pp)     # The amount of PP remaining for this move
+  attr_accessor(:ppup)   # The number of PP Ups used for this move
+
+  # Gets this move's type.
+  def type
+    movedata=PBMoveData.new(@id)
+    return movedata.type
+  end
+
+  # Gets the maximum PP for this move.
+  def totalpp
+    movedata=PBMoveData.new(@id)
+    tpp=movedata.totalpp
+    return tpp+(tpp*@ppup/5).floor
+  end
+
+  # Initializes this object to the specified move ID.
+  def initialize(moveid)
+    movedata=PBMoveData.new(moveid)
+    @pp=movedata.totalpp
+    @id=moveid
+    @ppup=0
+  end
+end
+```
+
+### Modules as Constants
+
+Essentials uses modules to organize constants. Here's the `PBNatures` module:
+
+```ruby Data/EditorScripts/018_PBNatures.rb
+module PBNatures
+  HARDY   = 0
+  LONELY  = 1
+  BRAVE   = 2
+  ADAMANT = 3
+  NAUGHTY = 4
+  # ... more natures
+
+  def PBNatures.getName(id)
+    names=[
+       _INTL("Hardy"),
+       _INTL("Lonely"),
+       _INTL("Brave"),
+       _INTL("Adamant"),
+       _INTL("Naughty")
+       # ...
+    ]
+    return names[id]
+  end
+end
+```
+
+### Attributes and Accessors
+
+```ruby
+class PokeBattle_Pokemon
+  attr_reader(:totalhp)       # Read-only attribute
+  attr_accessor(:hp)          # Read and write attribute
+  attr_accessor(:species)
+  attr_accessor(:item)
+end
+```
+
+- `attr_reader` - Creates a getter method (read-only)
+- `attr_accessor` - Creates both getter and setter methods (read/write)
+- `attr_writer` - Creates a setter method only (write-only)
+
+## Common Patterns in Essentials
+
+### Instance Variables
+
+Instance variables start with `@` and belong to a specific object:
+
+```ruby
+@species = 25  # Pikachu's species ID
+@hp = 35       # Current HP
+@totalhp = 35  # Maximum HP
+```
+
+### Global Variables
+
+Global variables start with `$` and are accessible everywhere:
+
+```ruby
+$Trainer         # The player's trainer data
+$PokemonBag      # The player's bag
+$game_map        # Current map
+$game_player     # Player character
+```
+
+<Warning>
+Avoid creating new global variables when possible. They can cause unexpected interactions between different parts of your code.
+</Warning>
+
+### Arrays and Data Access
+
+Essentials frequently uses arrays with numeric indices:
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Individual Values array
+@iv=[0,0,0,0,0,0]
+@iv[0]=rand(32)  # HP IV
+@iv[1]=rand(32)  # Attack IV
+@iv[2]=rand(32)  # Defense IV
+@iv[3]=rand(32)  # Speed IV
+@iv[4]=rand(32)  # Special Attack IV
+@iv[5]=rand(32)  # Special Defense IV
+```
+
+### Conditional Logic
+
+```ruby
+# Returns whether this Pokémon is male
+def isMale?
+  return self.gender==0
+end
+
+# Returns whether this Pokémon is an egg
+def isEgg?
+  return @eggsteps>0
+end
+```
+
+### String Interpolation
+
+```ruby
+speciesname=PBSpecies.getName(pokemon.species)
+message=_INTL("Would you like to give a nickname to {1}?",speciesname)
+```
+
+The `_INTL` function handles internationalization and `{1}` is replaced with the first parameter.
+
+## Basic Script Modification
+
+### Adding a New Method
+
+To add functionality to an existing class, simply reopen it:
+
+```ruby
+class PokeBattle_Pokemon
+  # Add a custom method to check if Pokemon is at full HP
+  def isFullHP?
+    return @hp >= @totalhp
+  end
+end
+```
+
+### Modifying Existing Methods
+
+You can override methods by redefining them:
+
+```ruby
+class PokeBattle_Pokemon
+  # Override the happiness change method
+  def changeHappiness(method)
+    gain=0
+    case method
+    when "level up"
+      gain=5  # Custom: Give more happiness on level up
+    when "faint"
+      gain=-1
+    end
+    @happiness+=gain
+    @happiness=[[255,@happiness].min,0].max
+  end
+end
+```
+
+<Tip>
+When modifying existing methods, copy the original code first and make incremental changes. This makes it easier to debug issues.
+</Tip>
+
+## Accessing Game Data
+
+Essentials provides helper functions to access compiled data:
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Returns this Pokémon's growth rate.
+def growthrate
+  dexdata=pbOpenDexData
+  pbDexDataOffset(dexdata,@species,20)
+  ret=dexdata.fgetb
+  dexdata.close
+  return ret
+end
+
+# Returns this Pokémon's first type.
+def type1
+  dexdata=pbOpenDexData
+  pbDexDataOffset(dexdata,@species,8)
+  ret=dexdata.fgetb
+  dexdata.close
+  return ret
+end
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Editor Scripts" icon="folder-tree" href="/scripting/editor-scripts">
+    Learn about the EditorScripts folder structure and organization
+  </Card>
+  <Card title="Battle System" icon="sword" href="/scripting/battle-system">
+    Understand how battles are scripted and calculated
+  </Card>
+  <Card title="Custom Events" icon="calendar-days" href="/scripting/custom-events">
+    Create custom game events using script calls
+  </Card>
+</CardGroup>

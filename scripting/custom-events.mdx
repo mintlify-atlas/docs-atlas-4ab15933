@@ -1,0 +1,561 @@
+---
+title: Custom Events and Script Calls
+description: Using Essentials functions in RPG Maker XP events and creating custom game events
+---
+
+## Introduction to Event Scripting
+
+RPG Maker XP events can call Ruby scripts to integrate with Pokémon Essentials. This allows you to create custom gameplay without modifying core scripts.
+
+## Script Calls in Events
+
+### Using the Script Command
+
+In RPG Maker XP, add a **Script** event command to run Ruby code:
+
+1. Create a new event
+2. Add command: **Script...**
+3. Enter your Ruby code
+
+<Note>
+Script calls run in the context of the event interpreter, so you have access to all global variables and game objects.
+</Note>
+
+## Common Event Patterns
+
+### Giving Pokémon to the Player
+
+```ruby
+# Give a Level 5 Pikachu
+species = PBSpecies::PIKACHU
+level = 5
+pokemon = PokeBattle_Pokemon.new(species, level, $Trainer)
+pbAddPokemon(pokemon)
+```
+
+With custom properties:
+
+```ruby
+# Give a shiny Level 50 Charizard with a specific item
+species = PBSpecies::CHARIZARD
+level = 50
+pokemon = PokeBattle_Pokemon.new(species, level, $Trainer)
+pokemon.makeShiny
+pokemon.setItem(PBItems::CHARCOAL)
+pokemon.pbLearnMove(PBMoves::FLAMETHROWER)
+pbAddPokemon(pokemon)
+```
+
+### Giving Items
+
+```ruby
+# Give 5 Poké Balls
+pbReceiveItem(PBItems::POKEBALL, 5)
+```
+
+```ruby
+# Give a single Rare Candy
+if pbReceiveItem(PBItems::RARECANDY)
+  pbMessage("You received a Rare Candy!")
+else
+  pbMessage("Your bag is full!")
+end
+```
+
+### Checking Party Pokémon
+
+```ruby
+# Check if player has a specific Pokémon
+has_pikachu = false
+for pokemon in $Trainer.party
+  if pokemon.species == PBSpecies::PIKACHU
+    has_pikachu = true
+    break
+  end
+end
+
+if has_pikachu
+  pbMessage("I see you have a Pikachu!")
+else
+  pbMessage("You don't have a Pikachu.")
+end
+```
+
+### Checking Pokémon Attributes
+
+```ruby
+# Check if first Pokémon is at full HP
+first_pokemon = $Trainer.party[0]
+if first_pokemon && first_pokemon.hp >= first_pokemon.totalhp
+  pbMessage("Your Pokémon is at full health!")
+else
+  pbMessage("Your Pokémon needs healing.")
+end
+```
+
+## Working with Variables and Switches
+
+### Accessing Game Variables
+
+```ruby Data/EditorScripts/039_PSystem_Utilities.rb
+# Gets the value of a variable.
+def pbGet(id)
+  return 0 if !id || !$game_variables
+  return $game_variables[id]
+end
+
+# Sets the value of a variable.
+def pbSet(id,value)
+  if id && id>=0
+    $game_variables[id]=value if $game_variables
+    $game_map.need_refresh = true if $game_map
+  end
+end
+```
+
+Usage in events:
+
+```ruby
+# Store party size in variable 10
+pbSet(10, $Trainer.party.length)
+
+# Check variable value
+if pbGet(10) >= 6
+  pbMessage("Your party is full!")
+end
+```
+
+### Using Switches
+
+```ruby
+# Set switch 50 to true
+$game_switches[50] = true
+
+# Check switch 50
+if $game_switches[50]
+  pbMessage("Event already completed!")
+end
+```
+
+## Running Common Events
+
+```ruby Data/EditorScripts/039_PSystem_Utilities.rb
+# Runs a common event and waits until the common event is finished.
+def pbCommonEvent(id)
+  return false if id<0
+  ce=$data_common_events[id]
+  return false if !ce
+  celist=ce.list
+  interp=Interpreter.new
+  interp.setup(celist,0)
+  begin
+    Graphics.update
+    Input.update
+    interp.update
+    pbUpdateSceneMap
+  end while interp.running?
+  return true
+end
+```
+
+Usage:
+
+```ruby
+# Run common event #5
+pbCommonEvent(5)
+```
+
+## Time-Based Events
+
+Essentials provides time event utilities:
+
+```ruby
+# Set a timed event for 24 hours (86400 seconds)
+pbTimeEvent(15, 86400)
+
+# Check if time has elapsed
+if pbTimeEventValid(15)
+  pbMessage("The daily event is ready!")
+  # Reset the timer
+  pbTimeEvent(15, 86400)
+else
+  pbMessage("Come back tomorrow!")
+end
+```
+
+For day-based events:
+
+```ruby
+# Set event to expire after 7 days
+pbTimeEventDays(20, 7)
+
+if pbTimeEventValid(20)
+  pbMessage("A week has passed!")
+end
+```
+
+## Battle Events
+
+### Starting Wild Battles
+
+```ruby
+# Wild Level 10 Pikachu battle
+species = PBSpecies::PIKACHU
+level = 10
+pbWildBattle(species, level)
+```
+
+With multiple Pokémon:
+
+```ruby
+# Double wild battle
+pbDoubleWildBattle(PBSpecies::PIKACHU, 10, PBSpecies::RAICHU, 30)
+```
+
+### Trainer Battles
+
+```ruby
+# Battle against a trainer
+pbTrainerBattle(
+  PBTrainers::YOUNGSTER,  # Trainer type
+  "Joey",                  # Trainer name
+  "Let's battle!",         # Intro speech
+  false,                   # Can lose?
+  0                        # Partner trainer
+)
+```
+
+### Checking Battle Results
+
+The battle functions return true if the player won:
+
+```ruby
+if pbWildBattle(PBSpecies::MEWTWO, 70)
+  pbMessage("You caught Mewtwo!")
+  $game_switches[100] = true
+else
+  pbMessage("Mewtwo fled...")
+end
+```
+
+## Healing and Recovery
+
+### Full Party Heal
+
+```ruby
+# Heal all Pokémon in party
+for pokemon in $Trainer.party
+  pokemon.heal
+end
+pbMessage("Your Pokémon were fully healed!")
+```
+
+### Selective Healing
+
+```ruby
+# Heal only HP
+for pokemon in $Trainer.party
+  pokemon.healHP
+end
+
+# Heal only status
+for pokemon in $Trainer.party
+  pokemon.healStatus
+end
+
+# Restore PP for all moves
+for pokemon in $Trainer.party
+  pokemon.healPP
+end
+```
+
+## Custom Pokémon Modification
+
+### Teaching Moves
+
+```ruby
+# Teach first Pokémon a move
+pokemon = $Trainer.party[0]
+if pokemon
+  pokemon.pbLearnMove(PBMoves::SURF)
+  pbMessage("#{pokemon.name} learned Surf!")
+end
+```
+
+### Changing Pokémon Properties
+
+```ruby
+pokemon = $Trainer.party[0]
+if pokemon
+  # Change level
+  pokemon.level = 50
+  
+  # Change item
+  pokemon.setItem(PBItems::LEFTOVERS)
+  
+  # Change nature
+  pokemon.setNature(PBNatures::ADAMANT)
+  
+  # Make shiny
+  pokemon.makeShiny
+  
+  # Recalculate stats after changes
+  pokemon.calcStats
+end
+```
+
+### Happiness Modification
+
+```ruby Data/EditorScripts/031_PokeBattle_Pokemon.rb
+# Changes the happiness of this Pokémon depending on what happened
+pokemon.changeHappiness("vitamin")  # +5 happiness
+pokemon.changeHappiness("level up") # +5 happiness
+pokemon.changeHappiness("groom")    # +10 happiness
+pokemon.changeHappiness("faint")    # -1 happiness
+```
+
+Direct happiness change:
+
+```ruby
+pokemon = $Trainer.party[0]
+pokemon.happiness = 255  # Max happiness
+```
+
+## Pokérus Events
+
+```ruby
+# Give Pokérus to first Pokémon
+pokemon = $Trainer.party[0]
+if pokemon
+  pokemon.givePokerus
+  pbMessage("#{pokemon.name} caught Pokérus!")
+end
+
+# Check Pokérus status
+# Returns: 0 (not infected), 1 (infected), 2 (cured)
+stage = pokemon.pokerusStage
+case stage
+when 1
+  pbMessage("This Pokémon has Pokérus!")
+when 2
+  pbMessage("This Pokémon had Pokérus.")
+end
+```
+
+## Evolution Events
+
+```ruby
+# Force evolution of first Pokémon
+pokemon = $Trainer.party[0]
+if pokemon
+  # Check if can evolve
+  new_species = pbCheckEvolution(pokemon, PBEvolution::Level)
+  if new_species
+    pbFadeOutInWithMusic {
+      evo = PokemonEvolutionScene.new
+      evo.pbStartScreen(pokemon, new_species)
+      evo.pbEvolution
+      evo.pbEndScreen
+    }
+  end
+end
+```
+
+## Regional and Form Changes
+
+### Changing Forms
+
+```ruby
+# Change form of a Pokémon (e.g., Rotom)
+pokemon = $Trainer.party[0]
+if pokemon && pokemon.species == PBSpecies::ROTOM
+  pokemon.form = 1  # Heat Rotom
+  pokemon.calcStats  # Recalculate stats for new form
+end
+```
+
+## Conditional Events Based on Game State
+
+### Check Badge Count
+
+```ruby
+if $Trainer.numbadges >= 8
+  pbMessage("You have all 8 badges!")
+else
+  pbMessage("You need #{8 - $Trainer.numbadges} more badges.")
+end
+```
+
+### Check Pokédex Progress
+
+```ruby
+# Count seen Pokémon
+seen_count = 0
+for i in 1..PBSpecies.maxValue
+  seen_count += 1 if $Trainer.seen[i]
+end
+
+pbMessage("You've seen #{seen_count} Pokémon!")
+```
+
+### Check Money
+
+```ruby
+if $Trainer.money >= 10000
+  pbMessage("You have enough money!")
+  $Trainer.money -= 10000  # Subtract money
+else
+  pbMessage("You need more money.")
+end
+```
+
+## Map and Location Events
+
+### Teleport Player
+
+```ruby
+# Teleport to map 5, coordinates (10, 15)
+pbTransferPlayer(5, 10, 15)
+```
+
+### Check Current Map
+
+```ruby
+if $game_map.map_id == 25
+  pbMessage("You're in the special area!")
+end
+```
+
+### Check Position
+
+```ruby
+if $game_player.x == 10 && $game_player.y == 15
+  pbMessage("You found the secret spot!")
+end
+```
+
+## Audio Control
+
+### Play Sound Effects
+
+```ruby
+# Play Pokémon cry
+pbPlayCry(PBSpecies::PIKACHU)
+
+# Play custom SE
+pbSEPlay("Battle damage")
+```
+
+### Background Music
+
+```ruby
+# Play specific BGM
+pbBGMPlay("Battle trainer")
+
+# Fade out current music
+pbBGMFade(1.0)
+
+# Stop music
+pbBGMStop
+```
+
+## Advanced Event Patterns
+
+### Creating a Starter Selection Event
+
+```ruby
+cmd = pbMessage("Which Pokémon do you choose?", 
+  ["Bulbasaur", "Charmander", "Squirtle"], -1)
+
+case cmd
+when 0  # Bulbasaur
+  pbAddPokemon(PBSpecies::BULBASAUR, 5)
+  pbMessage("You chose Bulbasaur!")
+when 1  # Charmander
+  pbAddPokemon(PBSpecies::CHARMANDER, 5)
+  pbMessage("You chose Charmander!")
+when 2  # Squirtle
+  pbAddPokemon(PBSpecies::SQUIRTLE, 5)
+  pbMessage("You chose Squirtle!")
+end
+```
+
+### Item Trade Event
+
+```ruby
+if $PokemonBag.pbQuantity(PBItems::REDAPRICORN) >= 1
+  cmd = pbMessage("Trade Red Apricorn for Poké Ball?",
+    ["Yes", "No"], -1)
+  
+  if cmd == 0
+    $PokemonBag.pbDeleteItem(PBItems::REDAPRICORN, 1)
+    pbReceiveItem(PBItems::POKEBALL)
+    pbMessage("Here's your Poké Ball!")
+  end
+else
+  pbMessage("You don't have a Red Apricorn.")
+end
+```
+
+### Conditional Shiny Pokémon Gift
+
+```ruby
+if $game_switches[500] == false  # First time
+  species = PBSpecies::EEVEE
+  level = 10
+  pokemon = PokeBattle_Pokemon.new(species, level, $Trainer)
+  
+  # 1 in 8192 chance for shiny
+  if rand(8192) == 0
+    pokemon.makeShiny
+    pbMessage("Wow! It's a shiny Eevee!")
+  end
+  
+  pbAddPokemon(pokemon)
+  $game_switches[500] = true
+end
+```
+
+<Tip>
+Always use switches to prevent events from repeating when they shouldn't. Set a switch to true after completing an event.
+</Tip>
+
+## Debugging Event Scripts
+
+### Print to Console
+
+```ruby
+# Print debug information
+p "Current party size: #{$Trainer.party.length}"
+p "Player position: #{$game_player.x}, #{$game_player.y}"
+```
+
+### Error Handling
+
+```ruby
+begin
+  # Your code here
+  pokemon = $Trainer.party[0]
+  pokemon.heal
+rescue
+  pbMessage("An error occurred!")
+end
+```
+
+<Warning>
+Always test your script calls thoroughly. Errors in event scripts can crash the game.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Ruby Basics" icon="gem" href="/scripting/ruby-basics">
+    Learn Ruby fundamentals for scripting
+  </Card>
+  <Card title="Editor Scripts" icon="folder-tree" href="/scripting/editor-scripts">
+    Explore the EditorScripts folder structure
+  </Card>
+  <Card title="Battle System" icon="sword" href="/scripting/battle-system">
+    Deep dive into battle mechanics
+  </Card>
+</CardGroup>

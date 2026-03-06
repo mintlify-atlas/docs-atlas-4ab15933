@@ -1,0 +1,531 @@
+---
+title: Creating Trainers
+description: Learn how to define trainer classes and battles using PBS/trainers.txt and PBS/trainertypes.txt
+---
+
+# Creating Trainers
+
+Trainers are defined across two PBS files:
+- `PBS/trainertypes.txt` - Defines trainer classes (their type, battle music, etc.)
+- `PBS/trainers.txt` - Defines individual trainer battles with their Pokémon teams
+
+## Trainer Types
+
+Trainer types are defined in `PBS/trainertypes.txt`:
+
+```txt
+ID,InternalName,Name,BaseMoney,BattleBGM,VictoryBGM,IntroME,Gender,SkillLevel
+```
+
+### Real Examples
+
+```txt
+0,POKEMONTRAINER_Red,Entrenador,60,,,,Male,,
+6,AROMALADY,Señorita Aroma,32,,,,Female,,
+10,BUGCATCHER,Cazabichos,16,,,,Male,,
+59,LEADER_Brock,Líder Gimnasio,100,Battle! (Gym Leader),,,Male,,
+```
+
+### Trainer Type Fields
+
+<ParamField path="ID" type="number" required>
+  Unique identifier for the trainer type.
+</ParamField>
+
+<ParamField path="InternalName" type="string" required>
+  Internal code name in uppercase. Used in events and scripts.
+  
+  Example: `LEADER_Brock`, `BUGCATCHER`, `RIVAL1`
+</ParamField>
+
+<ParamField path="Name" type="string" required>
+  Display name shown before battles.
+  
+  Example: `Líder Gimnasio`, `Cazabichos`, `Rival`
+</ParamField>
+
+<ParamField path="BaseMoney" type="number" required>
+  Base prize money. Actual payout is calculated as: `BaseMoney × Highest Level Pokémon`
+  
+  - Regular trainers: 16-32
+  - Strong trainers: 48-60
+  - Gym Leaders: 100
+  - Elite Four: 100
+</ParamField>
+
+<ParamField path="BattleBGM" type="string">
+  Battle music file name (without extension) from `Audio/BGM/`.
+  
+  Leave empty to use default battle music.
+</ParamField>
+
+<ParamField path="VictoryBGM" type="string">
+  Victory music file name. Leave empty for default.
+</ParamField>
+
+<ParamField path="IntroME" type="string">
+  Music effect played when battle starts. Leave empty for default.
+</ParamField>
+
+<ParamField path="Gender" type="string" required>
+  Trainer gender: `Male`, `Female`, or `Mixed` (for duo battles).
+</ParamField>
+
+<ParamField path="SkillLevel" type="number">
+  Overrides default skill level. Higher values make smarter AI. Leave empty for default.
+</ParamField>
+
+## Trainer Type Categories
+
+### Basic Trainers
+
+```txt
+37,YOUNGSTER,Joven,16,,,,Male,,
+38,LASS,Chica,16,,,,Female,,
+33,CAMPER,Campista,16,,,,Male,,
+34,PICNICKER,Dominguera,16,,,,Female,,
+```
+
+### Specialist Trainers
+
+```txt
+9,BIRDKEEPER,Ornitólogo,32,,,,Male,,
+10,BUGCATCHER,Cazabichos,16,,,,Male,,
+15,FISHERMAN,Pescador,32,,,,Male,,
+18,HIKER,Montañero,32,,,,Male,,
+```
+
+### Gym Leaders
+
+```txt
+59,LEADER_Brock,Líder Gimnasio,100,Battle! (Gym Leader),,,Male,,
+60,LEADER_Misty,Líder Gimnasio,100,Battle! (Gym Leader),,,Female,,
+61,LEADER_Surge,Líder Gimnasio,100,Battle! (Gym Leader),,,Male,,
+```
+
+### Elite Four and Champion
+
+```txt
+67,ELITEFOUR_Lorelei,Alto Mando,100,Battle! (Gym Leader),,,Female,,
+68,ELITEFOUR_Bruno,Alto Mando,100,Battle! (Gym Leader),,,Male,,
+71,CHAMPION,Campeón,100,Battle! (Champion),,,Male,,
+```
+
+### Rival Battles
+
+```txt
+4,RIVAL1,Rival,16,,,,Male,,
+5,RIVAL2,Rival,36,,,,Male,,
+```
+
+### Team Rocket
+
+```txt
+56,TEAMROCKET_M,Recluta Team,32,,,,Male,,
+57,TEAMROCKET_F,Recluta Team,32,,,,Female,,
+58,ROCKETBOSS,Líder Rocket,100,,,,Male,,
+```
+
+## Individual Trainers
+
+Individual trainers and their Pokémon are defined in `PBS/trainers.txt`:
+
+```txt
+TrainerType
+TrainerName
+PartyCount,Item1,Item2,...
+Pokemon1Data
+Pokemon2Data
+...
+```
+
+### Real Example: Brock
+
+```txt
+LEADER_Brock
+Brock
+2,FULLRESTORE,FULLRESTORE
+GEODUDE,12,,DEFENSECURL,HEADSMASH,ROCKPOLISH,ROCKTHROW,0,M,,,,20
+ONIX,14,SITRUSBERRY,HEADSMASH,ROCKTHROW,TERABLAST,ROCKTOMB,0,M,,shiny,,20,,Rocky,,19,WATER
+```
+
+Breaking this down:
+
+<Steps>
+
+### Line 1: Trainer Type
+
+```txt
+LEADER_Brock
+```
+
+The internal name from trainertypes.txt.
+
+### Line 2: Trainer Name
+
+```txt
+Brock
+```
+
+The trainer's display name.
+
+### Line 3: Party Count and Items
+
+```txt
+2,FULLRESTORE,FULLRESTORE
+```
+
+- `2` - Number of Pokémon
+- `FULLRESTORE,FULLRESTORE` - Items the trainer uses in battle
+
+### Lines 4+: Pokémon Data
+
+Each Pokémon follows this format:
+
+```txt
+SPECIES,LEVEL,ITEM,MOVE1,MOVE2,MOVE3,MOVE4,ABILITY,GENDER,FORM,SHINY,SHADOW_LEVEL,BALL,NAME,HAPPINESS,NATURE,IV,TERATYPE
+```
+
+</Steps>
+
+## Pokémon Definition Format
+
+<ParamField path="SPECIES" type="string" required>
+  Internal name of the Pokémon species.
+  
+  Example: `PIKACHU`, `CHARIZARD`, `GARCHOMP`
+</ParamField>
+
+<ParamField path="LEVEL" type="number" required>
+  The level of the Pokémon (1-100).
+</ParamField>
+
+<ParamField path="ITEM" type="string">
+  Held item internal name. Leave blank for no item.
+  
+  Example: `SITRUSBERRY`, `LEFTOVERS`, `CHOICEBAND`
+</ParamField>
+
+<ParamField path="MOVE1,MOVE2,MOVE3,MOVE4" type="string">
+  Up to 4 move internal names. Separate with commas.
+  
+  Leave blank to use level-up moveset.
+</ParamField>
+
+<ParamField path="ABILITY" type="number">
+  Ability index: `0` for first ability, `1` for second, `2` for hidden ability.
+  
+  Leave blank for random.
+</ParamField>
+
+<ParamField path="GENDER" type="string">
+  `M` for male, `F` for female. Leave blank for species default.
+</ParamField>
+
+<ParamField path="FORM" type="number">
+  Form number for Pokémon with alternate forms. Leave blank for default form.
+</ParamField>
+
+<ParamField path="SHINY" type="string">
+  Write `shiny` to make the Pokémon shiny. Leave blank for normal.
+</ParamField>
+
+<ParamField path="SHADOW_LEVEL" type="number">
+  Shadow Pokémon level (for Shadow Pokémon games). Leave blank normally.
+</ParamField>
+
+<ParamField path="BALL" type="number">
+  Poké Ball type. Leave blank for default (Poké Ball).
+</ParamField>
+
+<ParamField path="NAME" type="string">
+  Nickname for the Pokémon. Leave blank for species name.
+</ParamField>
+
+<ParamField path="HAPPINESS" type="number">
+  Friendship value (0-255). Leave blank for species default.
+</ParamField>
+
+<ParamField path="NATURE" type="string">
+  Nature name. Leave blank for random.
+  
+  Examples: `Adamant`, `Modest`, `Jolly`, `Timid`
+</ParamField>
+
+<ParamField path="IV" type="number">
+  Individual Value for all stats (0-31). Leave blank for default.
+</ParamField>
+
+<ParamField path="TERATYPE" type="string">
+  Tera Type for Terastallization. Example: `WATER`, `ELECTRIC`
+</ParamField>
+
+## Trainer Examples
+
+### Simple Trainer
+
+```txt
+CAMPER
+Liam
+2
+DIGLETT,10
+BONSLY,11
+```
+
+A basic trainer with 2 Pokémon at levels 10 and 11, no custom moves or items.
+
+### Trainer with Items
+
+```txt
+LEADER_Brock
+Brock
+2,FULLRESTORE,FULLRESTORE
+GEODUDE,12,,DEFENSECURL,HEADSMASH,ROCKPOLISH,ROCKTHROW
+ONIX,14,SITRUSBERRY,HEADSMASH,ROCKTHROW,TERABLAST,ROCKTOMB
+```
+
+Brock has 2 Full Restores to use. His Onix holds a Sitrus Berry.
+
+### Advanced Configuration
+
+```txt
+POKEMONTRAINER_Brendan
+FiaPlay
+1
+BLAZIKEN,36,,BLAZEKICK,HIGHJUMPKICK,PROTECT,THUNDERPUNCH,,M,,,,,,,,,ELECTRIC
+```
+
+A Blaziken with:
+- Level 36
+- Custom moveset
+- Male gender
+- Tera Type: Electric
+
+### Shiny Pokémon
+
+```txt
+YOUNGSTER
+Test
+1
+ARBOLIVA,50,GRASSIUMZ,NATURALGIFT,GRASSKNOT,RAGE,ROCKTOMB,0,M,,shiny,,20,,,,19
+```
+
+Arboliva is shiny and holds Grassium Z.
+
+### Team Rocket Example
+
+```txt
+TEAMROCKET_M
+Rocket,1
+1
+WEEPINBELL,21,,,,,,,,,,,,,,true
+```
+
+<Note>
+  The `,1` after the name indicates this is version 1 of this trainer (for rematches).
+</Note>
+
+### Multiple Trainers of Same Type
+
+```txt
+CAMPER
+Jeff
+2
+SPEAROW,16
+SENTRET,16
+#-------------------
+CAMPER
+Jeff,1
+2
+FEAROW,29
+FURRET,29
+```
+
+Two versions of Jeff - original and rematch (version 1).
+
+## AI and Battle Intelligence
+
+<ParamField path="SkillLevel" type="number">
+  Controls trainer AI intelligence in `trainertypes.txt`:
+  
+  - `0` or blank - Basic AI (random moves)
+  - `8-16` - Decent AI (considers type effectiveness)
+  - `32-48` - Smart AI (considers stats, status)
+  - `60-100` - Expert AI (Gym Leaders, Champions)
+</ParamField>
+
+### AI Level Examples
+
+```txt
+# Weak trainers
+10,BUGCATCHER,Cazabichos,16,,,,Male,,
+
+# Medium trainers
+35,COOLTRAINER_M,Entre. Guay,60,,,,Male,,
+
+# Gym Leaders (expert AI)
+59,LEADER_Brock,Líder Gimnasio,100,Battle! (Gym Leader),,,Male,,
+```
+
+## Double Battles
+
+For duo trainers (tag battles):
+
+```txt
+COOLCOUPLE
+Alice & Bob
+2
+TURTWIG,19
+CHIMCHAR,19
+```
+
+<Note>
+  The trainer type must have `Gender=Mixed` in trainertypes.txt for duo battles to work properly.
+</Note>
+
+## Rival Battles
+
+### Multiple Versions for Story Progress
+
+```txt
+RIVAL1
+Blue
+3
+PIDGEOTTO,17
+RATTATA,15
+BULBASAUR,18
+#-------------------
+RIVAL1
+Blue,1
+3
+PIDGEOTTO,17
+RATTATA,15
+CHARMANDER,18
+#-------------------
+RIVAL1
+Blue,2
+3
+PIDGEOTTO,17
+RATTATA,15
+SQUIRTLE,18
+```
+
+Three versions of Blue with different starters based on player choice.
+
+## Champion Battle
+
+```txt
+CHAMPION
+Blue
+3
+VENUSAUR,63,SITRUSBERRY
+CHARIZARD,63,SITRUSBERRY
+BLASTOISE,63,SITRUSBERRY
+```
+
+Champion-level battle with all Pokémon holding Sitrus Berries.
+
+## Creating Custom Trainers
+
+<Steps>
+
+### Step 1: Define the trainer type
+
+Add to `trainertypes.txt`:
+
+```txt
+80,CUSTOMTRAINER,Custom Class,50,Battle! (Trainer),,,Male,32
+```
+
+### Step 2: Create the trainer battle
+
+Add to `trainers.txt`:
+
+```txt
+CUSTOMTRAINER
+Custom Name
+3,HYPERPOTION,HYPERPOTION
+PIKACHU,25,LIGHTBALL,THUNDERBOLT,QUICKATTACK,IRONTAIL,ELECTROBALL
+CHARIZARD,30,CHARCOAL,FLAMETHROWER,DRAGONCLAW,AIRSLASH,ROOST
+GENGAR,28,,SHADOWBALL,SLUDGEBOMB,THUNDERBOLT,DESTINYBOND
+```
+
+### Step 3: Set up the battle event
+
+In RPG Maker, create an event that calls the trainer battle:
+
+```ruby
+pbTrainerBattle(:CUSTOMTRAINER,"Custom Name")
+```
+
+</Steps>
+
+## Rematch System
+
+Use version numbers for rematches:
+
+```txt
+PICNICKER
+Susie
+1
+MEOWTH,18
+#-------------------
+PICNICKER
+Susie,1
+1
+PERSIAN,32
+```
+
+First battle is version 0 (no number), rematch is version 1.
+
+<Tip>
+  When creating rematches, significantly increase levels and give evolved Pokémon to show progression.
+</Tip>
+
+## Prize Money Calculation
+
+Prize money is calculated as:
+
+```
+BaseMoney × Highest Level Pokémon in Party
+```
+
+Examples:
+- Youngster (16) with level 10 Pokémon = 160 Pokédollars
+- Gym Leader (100) with level 50 Pokémon = 5000 Pokédollars
+- Champion (100) with level 63 Pokémon = 6300 Pokédollars
+
+## Testing Trainers
+
+<Warning>
+  Always test your trainers in Debug mode before releasing:
+  
+  1. Check that all Pokémon load correctly
+  2. Verify moves are legal for the species
+  3. Test held items work as expected
+  4. Confirm AI difficulty is appropriate
+  5. Check prize money is balanced
+</Warning>
+
+## Common Issues
+
+### Trainer won't appear
+- Check trainer type exists in trainertypes.txt
+- Verify internal names match exactly (case-sensitive)
+- Ensure party count matches number of Pokémon
+
+### Pokémon has wrong moves
+- Verify move internal names are correct
+- Check Pokémon can learn those moves
+- Leave move slots blank to use level-up moves
+
+### Items don't work
+- Confirm item internal names are correct
+- Check item is usable in battle
+- Verify item is in items.txt
+
+## Next Steps
+
+- [Creating Pokémon](/development/creating-pokemon) - Build teams with custom Pokémon
+- [Creating Moves](/development/creating-moves) - Give trainers unique movesets
+- [Creating Maps](/development/creating-maps) - Place trainers in your game world

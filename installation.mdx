@@ -1,0 +1,306 @@
+---
+title: Installation Guide
+description: Step-by-step instructions for installing Pokémon Essentials BES and setting up your development environment
+---
+
+## System Requirements
+
+Before installing Pokémon Essentials BES, ensure your system meets these requirements:
+
+### Required Software
+
+<CardGroup cols={2}>
+  <Card title="RPG Maker XP" icon="gamepad">
+    The game engine that powers Pokémon Essentials. Required for editing maps and events.
+  </Card>
+  
+  <Card title="Windows OS" icon="windows">
+    Windows 7 or later recommended. Works on Windows 10/11. (Can run on Linux/Mac via Wine)
+  </Card>
+</CardGroup>
+
+### Minimum Hardware
+
+- **RAM**: 2GB minimum, 4GB+ recommended
+- **Storage**: 500MB free space for base installation
+- **Display**: 1024x768 resolution or higher
+- **Processor**: Any modern processor (2GHz+)
+
+<Note>
+  While Pokémon Essentials BES can run on older hardware, RPG Maker XP's editor performs better on modern systems.
+</Note>
+
+## Download Required Software
+
+<Steps>
+  <Step title="Download RPG Maker XP">
+    RPG Maker XP is required to edit the game. You can:
+    
+    - Purchase it from [Steam](https://store.steampowered.com/app/235900/RPG_Maker_XP/)
+    - Use the free trial version for testing
+    
+    <Warning>
+      You **must** have RPG Maker XP installed to edit maps and events. The game can run without it, but development requires it.
+    </Warning>
+  </Step>
+  
+  <Step title="Download Pokémon Essentials BES">
+    Download the latest version of Pokémon Essentials BES:
+    
+    - **Official Download**: [Google Drive Link](https://drive.google.com/file/d/1LZ2Y64mg3EamoP2gHdlx1DgtqZQ3FasE/view?usp=sharing)
+    
+    This download includes:
+    - Complete game project files
+    - All Pokémon through Generation 9
+    - Graphics and audio resources
+    - Development tools
+    - Sample maps and events
+  </Step>
+</Steps>
+
+## Installation Steps
+
+<Steps>
+  <Step title="Install RPG Maker XP">
+    Run the RPG Maker XP installer and follow the installation wizard:
+    
+    1. Accept the license agreement
+    2. Choose installation directory (default is fine)
+    3. Complete the installation
+    4. Run RPG Maker XP once to ensure it works
+    
+    <Note>
+      On modern Windows versions, you may need to run RPG Maker XP as administrator.
+    </Note>
+  </Step>
+  
+  <Step title="Extract Pokémon Essentials BES">
+    Extract the downloaded Pokémon Essentials BES archive:
+    
+    1. Right-click the downloaded ZIP file
+    2. Select "Extract All..."
+    3. Choose a destination folder (e.g., `C:\PokemonGames\EssentialsBES`)
+    4. Ensure the path has **no special characters or spaces** for best compatibility
+    
+    ```bash
+    # Good paths:
+    C:\PokemonGames\EssentialsBES
+    D:\GameDev\MyPokemonGame
+    
+    # Avoid paths with spaces or special characters:
+    C:\My Games\Pokémon Project  # Has spaces and special character
+    ```
+  </Step>
+  
+  <Step title="Verify File Structure">
+    After extraction, your folder should contain:
+    
+    ```
+    EssentialsBES/
+    ├── Game.exe              # Main game executable
+    ├── Game.rxproj           # RPG Maker XP project file
+    ├── Editor.exe            # Alternative editor
+    ├── Data/                 # Compiled game data
+    ├── PBS/                  # Editable data files
+    ├── Graphics/             # Sprites and images
+    ├── Audio/                # Music and sounds
+    ├── Tools/                # Development utilities
+    ├── Fonts/                # Game fonts
+    ├── mkxp.json            # MKXP configuration
+    ├── RGSS102E.dll         # Ruby Game Scripting System
+    └── README.md            # Project information
+    ```
+    
+    <Warning>
+      If you don't see these files, the archive may not have extracted correctly. Try extracting again.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure MKXP (Optional)">
+    Pokémon Essentials BES uses MKXP, a modern implementation of RPG Maker XP's engine. You can configure it by editing `mkxp.json`:
+    
+    ```json mkxp.json
+    {
+      // Enable F12 game reset (currently disabled)
+      "enableReset": false,
+      
+      // MIDI SoundFont for music playback
+      "midiSoundFont": "soundfont.sf2",
+      
+      // Start in fullscreen mode
+      // "fullscreen": false,
+      
+      // Window resolution
+      // "defScreenW": 384,
+      // "defScreenH": 512
+    }
+    ```
+    
+    <Note>
+      Most users can leave the default MKXP configuration as-is. Advanced users can uncomment and modify settings as needed.
+    </Note>
+  </Step>
+</Steps>
+
+## Verify Installation
+
+<Steps>
+  <Step title="Test the Game">
+    Double-click `Game.exe` to launch the game:
+    
+    - The game window should open
+    - You should see the title screen
+    - Press Enter/Space to start a new game
+    - You should be able to walk around and interact
+    
+    <Note>
+      If the game runs successfully, your installation is working correctly!
+    </Note>
+  </Step>
+  
+  <Step title="Open in RPG Maker XP">
+    Test the editor by opening the project:
+    
+    1. Launch RPG Maker XP
+    2. Click "File" → "Open Project"
+    3. Navigate to your Essentials BES folder
+    4. Select `Game.rxproj`
+    5. The editor should load with the sample maps
+    
+    You should see:
+    - Database editor access (F9)
+    - Map tree on the left
+    - Main map editing area
+    - Tileset selection at bottom
+  </Step>
+  
+  <Step title="Verify PBS Files">
+    Check that PBS files are accessible:
+    
+    1. Navigate to the `PBS/` folder
+    2. Open `pokemon.txt` in a text editor
+    3. You should see Pokémon data entries
+    4. Open `moves.txt` to verify move data
+    
+    These files contain all the data you'll edit most frequently.
+  </Step>
+</Steps>
+
+## Common Installation Issues
+
+<AccordionGroup>
+  <Accordion title="Game.exe won't launch">
+    **Symptoms**: Double-clicking `Game.exe` does nothing or shows an error
+    
+    **Solutions**:
+    1. Install [Microsoft Visual C++ Redistributable](https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads)
+    2. Run as Administrator (right-click → Run as administrator)
+    3. Disable antivirus temporarily (it may be blocking the executable)
+    4. Ensure all DLL files are present (RGSS102E.dll, etc.)
+  </Accordion>
+  
+  <Accordion title="RPG Maker XP won't open the project">
+    **Symptoms**: Error when opening `Game.rxproj`
+    
+    **Solutions**:
+    1. Verify RPG Maker XP is properly installed
+    2. Run RPG Maker XP as Administrator
+    3. Check that the project path has no special characters
+    4. Ensure `Game.rxproj` wasn't corrupted during extraction
+  </Accordion>
+  
+  <Accordion title="Missing graphics or blank sprites">
+    **Symptoms**: Black squares instead of Pokémon, missing tiles
+    
+    **Solutions**:
+    1. Re-extract the archive completely
+    2. Check that the `Graphics/` folder isn't empty
+    3. Verify no files were blocked by antivirus during extraction
+    4. Ensure folder permissions allow reading files
+  </Accordion>
+  
+  <Accordion title="Audio doesn't play">
+    **Symptoms**: No music or sound effects
+    
+    **Solutions**:
+    1. Check Windows audio settings
+    2. Verify the `soundfont.sf2` file exists
+    3. Install audio codecs if needed
+    4. Check the `Audio/` folder contains BGM and SE files
+  </Accordion>
+  
+  <Accordion title="Scripts won't compile">
+    **Symptoms**: Error messages about scripts when starting the game
+    
+    **Solutions**:
+    1. Use the Tools folder's script extraction/import tools
+    2. Check `Data/Scripts.rxdata` exists and isn't corrupted
+    3. Re-extract from the original archive
+    4. Ensure you haven't modified scripts without proper syntax
+  </Accordion>
+  
+  <Accordion title="Running on Linux/Mac">
+    **Symptoms**: Need to run on non-Windows systems
+    
+    **Solutions**:
+    1. Install Wine (Windows compatibility layer)
+    2. Use PlayOnLinux or Lutris for easier management
+    3. Run `Game.exe` through Wine
+    4. Note: RPG Maker XP editor may have limited compatibility
+    
+    <Warning>
+      While the game can run on Linux/Mac via Wine, the RPG Maker XP editor has better compatibility on Windows. Consider dual-booting or using a Windows VM for development.
+    </Warning>
+  </Accordion>
+</AccordionGroup>
+
+## Post-Installation Setup
+
+### Backup Your Project
+
+Before making any changes, create a backup:
+
+```bash
+# Create a backup folder
+mkdir Backups
+
+# Copy the entire project
+xcopy /E /I EssentialsBES Backups\EssentialsBES_Original
+```
+
+<Note>
+  Always maintain backups before making significant changes. Consider using version control (Git) for larger projects.
+</Note>
+
+### Explore the Tools
+
+Check out the utilities in the `Tools/` folder:
+
+- **Animation Maker** (`animmaker.exe`): Create custom battle animations
+- **Script Extractors**: Extract Ruby scripts for editing
+- **Text Extender** (`extendtext.exe`): Utility for text processing
+- **OptiPNG** (`optipng.exe`): Optimize PNG files for smaller file sizes
+
+### Read the Credits
+
+Open `Créditos.txt` to see all contributors. Remember to credit them in your final project!
+
+## Next Steps
+
+Now that you have Pokémon Essentials BES installed:
+
+<CardGroup cols={2}>
+  <Card title="Quickstart Tutorial" icon="rocket" href="/quickstart">
+    Follow our quickstart guide to make your first changes
+  </Card>
+  
+  <Card title="PBS File Reference" icon="book" href="/essentials/pbs-files">
+    Learn how to edit Pokémon, moves, and abilities
+  </Card>
+</CardGroup>
+
+---
+
+<Note>
+  **Congratulations!** You've successfully installed Pokémon Essentials BES. Ready to start creating? Head to the [quickstart guide](/quickstart) to make your first changes.
+</Note>

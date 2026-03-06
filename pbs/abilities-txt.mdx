@@ -1,0 +1,260 @@
+---
+title: abilities.txt
+description: Complete reference for defining abilities in PBS/abilities.txt
+---
+
+The `abilities.txt` file defines all Pokémon abilities and their descriptions. Each ability is defined on a single line in CSV format.
+
+## File Format
+
+Each line defines one ability with comma-separated values:
+
+```
+ID,INTERNALNAME,Name,Description
+```
+
+## Example Entries
+
+```
+1,STENCH,Hedor,"Debido al mal olor que emana, al atacar al rival puede hacerlo retroceder."
+9,STATIC,Elec. Estática,"La electricidad estática que lo envuelve puede paralizar al mínimo contacto."
+65,OVERGROW,Espesura,"Potencia los movimientos de tipo Planta del Pokémon cuando le quedan pocos PS."
+```
+
+## Field Definitions
+
+<ParamField path="ID" type="Integer">
+  Unique ability ID number. Must be sequential starting from 1.
+  
+  ```
+  1,STENCH,...
+  2,DRIZZLE,...
+  3,SPEEDBOOST,...
+  ```
+</ParamField>
+
+<ParamField path="InternalName" type="String">
+  Internal identifier in UPPERCASE. Used in code, pokemon.txt, and scripts.
+  
+  ```
+  OVERGROW
+  TORRENT
+  BLAZE
+  SWARM
+  ```
+</ParamField>
+
+<ParamField path="Name" type="String">
+  Display name shown to players.
+  
+  ```
+  Espesura
+  Torrente
+  Mar Llamas
+  Enjambre
+  ```
+</ParamField>
+
+<ParamField path="Description" type="String">
+  Ability description shown in summary screens and Pokédex. Must be in quotes.
+  
+  ```
+  "Potencia los movimientos de tipo Planta del Pokémon cuando le quedan pocos PS."
+  "Su capacidad de flotar sobre el suelo le proporciona inmunidad frente a los movimientos de tipo Tierra."
+  ```
+</ParamField>
+
+## Ability Categories
+
+### Type-Boosting Abilities
+
+Boost moves of a specific type when HP is low (typically below 1/3).
+
+```
+65,OVERGROW,Espesura,"Potencia los movimientos de tipo Planta del Pokémon cuando le quedan pocos PS."
+66,BLAZE,Mar Llamas,"Potencia los movimientos de tipo Fuego del Pokémon cuando le quedan pocos PS."
+67,TORRENT,Torrente,"Potencia los movimientos de tipo Agua del Pokémon cuando le quedan pocos PS."
+68,SWARM,Enjambre,"Potencia los movimientos de tipo Bicho del Pokémon cuando le quedan pocos PS."
+```
+
+### Weather Abilities
+
+Activate weather conditions when entering battle.
+
+```
+2,DRIZZLE,Llovizna,"Hace que llueva cuando entra en combate."
+45,SANDSTREAM,Chorro Arena,"Crea una tormenta de arena al entrar en combate."
+70,DROUGHT,Sequía,"Cuando el Pokémon entra en combate, el tiempo pasa a ser soleado."
+117,SNOWWARNING,Nevada,"El Pokémon invoca una tormenta de granizo al entrar en combate."
+```
+
+### Immunity Abilities
+
+Provide immunity to specific conditions or types.
+
+```
+7,LIMBER,Flexibilidad,"Evita ser paralizado gracias a la flexibilidad de su cuerpo."
+15,INSOMNIA,Insomnio,"Su resistencia al sueño le impide quedarse dormido."
+17,IMMUNITY,Inmunidad,"Su sistema inmunitario evita el envenenamiento."
+26,LEVITATE,Levitación,"Su capacidad de flotar sobre el suelo le proporciona inmunidad frente a los movimientos de tipo Tierra."
+```
+
+### Stat-Boosting Abilities
+
+Modify stats under certain conditions.
+
+```
+3,SPEEDBOOST,Impulso,"Aumenta la Velocidad en cada turno."
+22,INTIMIDATE,Intimidación,"Al entrar en combate amilana al rival de tal manera que su Ataque disminuye."
+37,HUGEPOWER,Potencia,"Duplica la potencia de los ataques físicos."
+74,PUREPOWER,Energía Pura,"Duplica la potencia de los ataques físicos."
+```
+
+### Contact Abilities
+
+Trigger effects when hit by contact moves.
+
+```
+9,STATIC,Elec. Estática,"La electricidad estática que lo envuelve puede paralizar al mínimo contacto."
+27,EFFECTSPORE,Efecto Espora,"Puede dormir, envenenar o paralizar al Pokémon con el que entre en contacto al recibir un ataque."
+38,POISONPOINT,Punto Tóxico,"Puede envenenar al mínimo contacto."
+49,FLAMEBODY,Cuerpo Llama,"Puede quemar al mínimo contacto."
+```
+
+### Absorbing Abilities
+
+Recover HP when hit by certain move types.
+
+```
+10,VOLTABSORB,Absorbe Elec.,"Si le alcanza un movimiento de tipo Eléctrico, recupera PS en vez de sufrir daño."
+11,WATERABSORB,Absorbe Agua,"Si le alcanza un movimiento de tipo Agua, recupera PS en vez de sufrir daño."
+18,FLASHFIRE,Absorbe Fuego,"Si le alcanza algún movimiento de tipo Fuego, potencia sus propios movimientos de dicho tipo."
+```
+
+## Common Abilities
+
+<Accordion title="Starter Abilities">
+  ```
+  65,OVERGROW,Espesura,"Potencia los movimientos de tipo Planta del Pokémon cuando le quedan pocos PS."
+  66,BLAZE,Mar Llamas,"Potencia los movimientos de tipo Fuego del Pokémon cuando le quedan pocos PS."
+  67,TORRENT,Torrente,"Potencia los movimientos de tipo Agua del Pokémon cuando le quedan pocos PS."
+  ```
+  
+  These abilities boost STAB moves by 1.5x when HP drops below 1/3.
+</Accordion>
+
+<Accordion title="Hidden Abilities">
+  Many Pokémon have hidden abilities (Dream World abilities) that are rarer and often stronger:
+  
+  ```
+  34,CHLOROPHYLL,Clorofila,"Sube la Velocidad cuando hace sol."
+  94,SOLARPOWER,Poder Solar,"Si hace sol, aumenta su Ataque Especial, pero pierde PS en cada turno."
+  ```
+  
+  Hidden abilities are defined in pokemon.txt using the `HiddenAbility` field.
+</Accordion>
+
+<Accordion title="Mega Evolution Abilities">
+  Some abilities are exclusive to Mega Evolutions:
+  
+  ```
+  180,PARENTALBOND,Amor Filial,"Ataque doble en familia."
+  184,STANCECHANGE,Cambio Táctico,"Adopta la Forma Filo al lanzar un ataque, o bien la Forma Escudo si usa el movimiento Escudo Real."
+  ```
+</Accordion>
+
+## Ability Implementation
+
+Abilities are implemented in the game's scripts. The ability ID and internal name must match between `abilities.txt` and the script implementation.
+
+### In pokemon.txt
+
+Abilities are assigned to Pokémon using internal names:
+
+```ini
+[1]
+Name=Bulbasaur
+Abilities=OVERGROW
+HiddenAbility=CHLOROPHYLL
+```
+
+### In Scripts
+
+Abilities are coded in the game's battle system. The internal name must exactly match.
+
+<Note>
+  **Adding New Abilities**: To add a new ability:
+  1. Add the ability definition to abilities.txt
+  2. Implement the ability's effect in the game scripts
+  3. Assign the ability to Pokémon in pokemon.txt
+  4. Test thoroughly in battle scenarios
+</Note>
+
+## Generation-Specific Abilities
+
+<Accordion title="Generation 8+ Abilities">
+  ```
+  234,STEAMENGINE,Combustible,"Si le alcanza un movimiento de tipo Fuego o Agua, le sube muchísimo la Velodidad."
+  235,LIBERO,Líbero,"Cambia el tipo del poseedor al del movimiento a usar."
+  251,GORILLATACTICS,Monotema,"Potencia su Ataque, pero solo puede usar el primer movimiento escogido."
+  ```
+</Accordion>
+
+<Accordion title="Legendary Abilities">
+  ```
+  121,MULTITYPE,Multitipo,"Cambia el tipo del Pokémon al de la tabla que lleve."
+  189,DELTASTREAM,Ráfaga Delta,"Altera el clima para anular las vulnerabilidades del tipo Volador."
+  190,PRIMORDIALSEA,Mar del Albor,"Altera el clima para anular los ataques de tipo Fuego."
+  191,DESOLATELAND,Tierra del Ocaso,"Altera el clima para anular los ataques de tipo Agua."
+  ```
+</Accordion>
+
+## Complete Examples
+
+### Basic Ability
+
+```
+51,KEENEYE,Vista Lince,"La aguda vista de este Pokémon evita que disminuya su Precisión."
+```
+
+- Prevents accuracy reduction
+- Simple passive effect
+- Common on bird Pokémon
+
+### Complex Ability
+
+```
+126,CONTRARY,Respondón,"Invierte los cambios en las características: bajan cuando les toca subir y suben cuando les toca bajar."
+```
+
+- Reverses all stat changes
+- Affects both self and opponent stat modifications
+- Requires complex scripting
+
+### Weather-Dependent Ability
+
+```
+93,HYDRATION,Hidratación,"Cura los problemas de estado si está lloviendo."
+```
+
+- Only activates during rain
+- Checks weather condition each turn
+- Interacts with other weather abilities
+
+### Form-Changing Ability
+
+```
+161,ZENMODE,Modo Daruma,"Cambia de forma si sus PS se ven reducidos a la mitad."
+```
+
+- Changes Pokémon form during battle
+- HP threshold trigger
+- Permanent until switched out
+
+<Note>
+  **Ability Descriptions**: Keep descriptions concise but clear. They should explain what the ability does without going into exact percentages or mechanics (those are defined in the scripts).
+</Note>
+
+<Note>
+  **Special Characters**: Use proper quotation marks for Spanish characters (á, é, í, ó, ú, ñ, ü) in descriptions.
+</Note>

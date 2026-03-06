@@ -1,0 +1,421 @@
+---
+title: Move Effects
+description: Move function codes and effect implementations in Pokémon Essentials BES
+---
+
+# Move Effects
+
+Move effects in Pokémon Essentials BES are controlled by function codes that determine what happens when a move is used. Each move in `PBS/moves.txt` has a function code that defines its unique behavior.
+
+## Move Data Structure
+
+Each move is defined with the following format in `PBS/moves.txt`:
+
+```
+ID,InternalName,DisplayName,FunctionCode,Power,Type,Category,Accuracy,TotalPP,EffectChance,Target,Priority,Flags,Description
+```
+
+<ParamField path="FunctionCode" type="hex">
+  Hexadecimal code defining the move's unique effect (e.g., 000, 0DD, 116)
+</ParamField>
+
+<ParamField path="EffectChance" type="integer">
+  Percentage chance of secondary effect occurring (0-100)
+</ParamField>
+
+## Common Function Codes
+
+### Damage Function Codes
+
+<Accordion title="000 - Standard Damage">
+**Function Code:** `000`
+
+Basic damaging move with no special effects.
+
+**Examples:**
+```
+1,MEGAHORN,Megacuerno,000,120,BUG,Physical,85,10,0,00,0,abef
+4,XSCISSOR,Tijera X,000,80,BUG,Physical,100,15,0,00,0,abef
+```
+</Accordion>
+
+<Accordion title="0DD - HP Drain">
+**Function Code:** `0DD`
+
+Restores user's HP equal to damage dealt (typically 50%).
+
+**Examples:**
+```
+13,LEECHLIFE,Chupavidas,0DD,80,BUG,Physical,100,10,0,00,0,abef
+99,DRAINPUNCH,Puño Drenaje,0DD,75,FIGHTING,Physical,100,10,0,00,0,abefj
+```
+
+Implementation:
+```ruby
+# Restores half of damage dealt
+heal_amount = damage_dealt / 2
+user.hp += heal_amount
+```
+</Accordion>
+
+### Status Effect Function Codes
+
+<Accordion title="003 - Sleep">
+**Function Code:** `003`
+
+Puts the target to sleep.
+
+**Examples:**
+```
+39,DARKVOID,Brecha Negra,003,0,DARK,Status,50,10,0,04,0,bce
+```
+</Accordion>
+
+<Accordion title="007 - Paralysis">
+**Function Code:** `007`
+
+Attempts to paralyze the target.
+
+**Examples:**
+```
+59,DRAGONBREATH,Dragoaliento,007,60,DRAGON,Special,100,20,30,00,0,bef
+64,BOLTSTRIKE,Ataque Fulgor,007,130,ELECTRIC,Physical,85,5,20,00,0,abef
+65,THUNDER,Trueno,008,110,ELECTRIC,Special,70,10,30,00,0,bef
+83,THUNDERWAVE,Onda Trueno,007,0,ELECTRIC,Status,90,20,0,00,0,bce
+```
+</Accordion>
+
+<Accordion title="00F - Flinch">
+**Function Code:** `00F`
+
+Causes damage and may make the target flinch.
+
+**Examples:**
+```
+25,DARKPULSE,Pulso Umbrío,00F,80,DARK,Special,100,15,20,00,0,bem
+28,BITE,Mordisco,00F,60,DARK,Physical,100,25,30,00,0,abei
+```
+</Accordion>
+
+### Stat Modification Function Codes
+
+<Accordion title="020 - Raise User's Special Attack">
+**Function Code:** `020`
+
+Damage move that has a chance to raise the user's Special Attack.
+
+**Examples:**
+```
+78,CHARGEBEAM,Rayo Carga,020,50,ELECTRIC,Special,90,10,70,00,0,bef
+```
+</Accordion>
+
+<Accordion title="043 - Lower Target's Defense">
+**Function Code:** `043`
+
+Damage move that may lower the target's Defense stat.
+
+**Examples:**
+```
+24,CRUNCH,Triturar,043,80,DARK,Physical,100,15,20,00,0,abefi
+```
+</Accordion>
+
+<Accordion title="044 - Lower Target's Speed">
+**Function Code:** `044`
+
+Damage move that lowers the target's Speed stat.
+
+**Examples:**
+```
+77,ELECTROWEB,Electrotela,044,55,ELECTRIC,Special,95,15,100,04,0,bef
+```
+</Accordion>
+
+<Accordion title="045 - Lower Target's Special Attack">
+**Function Code:** `045`
+
+Damage move that lowers the target's Special Attack stat.
+
+**Examples:**
+```
+10,STRUGGLEBUG,Estoicismo,045,50,BUG,Special,100,20,100,04,0,bef
+30,SNARL,Alarido,045,55,DARK,Special,95,15,100,04,0,befk
+```
+</Accordion>
+
+## Multi-Turn and Special Mechanics
+
+### Recoil Moves
+
+<Accordion title="0FA - Recoil Damage">
+**Function Code:** `0FA`
+
+User takes recoil damage after attacking.
+
+**Examples:**
+```
+66,VOLTTACKLE,Placaje Eléc.,0FD,120,ELECTRIC,Physical,100,15,10,00,0,abef
+70,WILDCHARGE,Voltio Cruel,0FA,90,ELECTRIC,Physical,100,15,0,00,0,abef
+97,SUBMISSION,Sumisión,0FA,80,FIGHTING,Physical,80,20,0,00,0,abef
+```
+</Accordion>
+
+### Switch-Out Moves
+
+<Accordion title="0EE - Switch After Attack">
+**Function Code:** `0EE`
+
+User switches out after dealing damage.
+
+**Examples:**
+```
+6,UTURN,Ida y Vuelta,0EE,70,BUG,Physical,100,20,0,00,0,abef
+73,VOLTSWITCH,Voltiocambio,0EE,70,ELECTRIC,Special,100,20,0,00,0,bef
+```
+
+Implementation concept:
+```ruby
+# After damage is dealt
+if user_side_has_remaining_pokemon?
+  force_switch_menu(user)
+end
+```
+</Accordion>
+
+<Accordion title="0EC - Force Target Switch">
+**Function Code:** `0EC`
+
+Forces the target to switch out.
+
+**Examples:**
+```
+58,DRAGONTAIL,Cola Dragón,0EC,60,DRAGON,Physical,90,10,0,00,-6,abef
+```
+</Accordion>
+
+### Multi-Hit Moves
+
+<Accordion title="0BD - Double Hit">
+**Function Code:** `0BD`
+
+Hits exactly twice.
+
+**Examples:**
+```
+60,DUALCHOP,Golpe Bis,0BD,40,DRAGON,Physical,90,15,0,00,0,abef
+```
+</Accordion>
+
+<Accordion title="0C0 - Multi-Hit (2-5 times)">
+**Function Code:** `0C0`
+
+Hits 2-5 times in one turn.
+
+**Examples:**
+```
+14,PINMISSILE,Pin Misil,0C0,25,BUG,Physical,95,20,0,00,0,bef
+```
+</Accordion>
+
+## Self-Targeting Moves
+
+### Stat Boost Moves
+
+<Accordion title="026 - Dragon Dance">
+**Function Code:** `026`
+
+Raises user's Attack and Speed.
+
+**Examples:**
+```
+63,DRAGONDANCE,Danza Dragón,026,0,DRAGON,Status,0,20,0,10,0,d
+```
+</Accordion>
+
+<Accordion title="029 - Hone Claws">
+**Function Code:** `029`
+
+Raises user's Attack and Accuracy.
+
+**Examples:**
+```
+43,HONECLAWS,Afilagarras,029,0,DARK,Status,0,15,0,10,0,d
+```
+</Accordion>
+
+<Accordion title="032 - Nasty Plot">
+**Function Code:** `032`
+
+Sharply raises user's Special Attack (2 stages).
+
+**Examples:**
+```
+45,NASTYPLOT,Maquinación,032,0,DARK,Status,0,20,0,10,0,d
+```
+</Accordion>
+
+## Special Mechanics
+
+### Priority-Based Moves
+
+<Accordion title="116 - Sucker Punch">
+**Function Code:** `116`
+
+Hits first, but fails if target isn't using an attack.
+
+**Examples:**
+```
+26,SUCKERPUNCH,Golpe Bajo,116,70,DARK,Physical,100,5,0,00,1,abef
+```
+
+Implementation:
+```ruby
+# Only works if target is preparing an attacking move
+if !target_using_attacking_move?
+  move_fails()
+else
+  deal_damage()
+end
+```
+</Accordion>
+
+<Accordion title="115 - Focus Punch">
+**Function Code:** `115`
+
+Charges first, fails if hit during charge.
+
+**Examples:**
+```
+84,FOCUSPUNCH,Puño Certero,115,150,FIGHTING,Physical,100,20,0,00,-3,abfj
+```
+</Accordion>
+
+### Item-Based Moves
+
+<Accordion title="0F1 - Thief">
+**Function Code:** `0F1`
+
+Steals target's held item.
+
+**Examples:**
+```
+34,THIEF,Ladrón,0F1,60,DARK,Physical,100,25,0,00,0,abef
+```
+</Accordion>
+
+<Accordion title="0F7 - Fling">
+**Function Code:** `0F7`
+
+Throws held item at target.
+
+**Examples:**
+```
+37,FLING,Lanzamiento,0F7,1,DARK,Physical,100,10,0,00,0,bef
+```
+
+Power varies by item thrown.
+</Accordion>
+
+## Move Compilation
+
+Moves are compiled from `PBS/moves.txt` to `Data/moves.dat`:
+
+```ruby
+def pbCompileMoves
+  records=[]
+  movenames=[]
+  movedescs=[]
+  movedata=[]
+  maxValue=0
+  
+  pbCompilerEachPreppedLine("PBS/moves.txt"){|line,lineno|
+    record=pbGetCsvRecord(line,lineno,[0,"vnsxueeuuuxiss",
+       nil,nil,nil,nil,nil,PBTypes,["Physical","Special","Status"],
+       nil,nil,nil,nil,nil,nil,nil
+    ])
+    
+    # Validate function code
+    pbCheckWord(record[3],_INTL("Function code"))
+    
+    # Pack move data
+    movedata[record[0]]=[
+       record[3],  # Function code
+       record[4],  # Damage
+       record[5],  # Type
+       record[6],  # Category
+       record[7],  # Accuracy
+       record[8],  # Total PP
+       record[9],  # Effect chance
+       record[10], # Target
+       record[11], # Priority
+       flags,      # Flags
+       0           # Contest type (unused)
+    ].pack("vCCCCCCvCvC")
+  }
+end
+```
+
+## Move Data Access
+
+In battle, move data is read from `Data/moves.dat`:
+
+```ruby
+class PBMoveData
+  attr_reader :function,:basedamage,:type,:accuracy
+  attr_reader :totalpp,:addlEffect,:target,:priority
+  attr_reader :flags,:category
+
+  def initialize(moveid)
+    movedata=pbRgssOpen("Data/moves.dat")
+    movedata.pos=moveid*9  # Each move is 9 bytes
+    @function=movedata.fgetb    # Function code
+    @basedamage=movedata.fgetb  # Base power
+    @type=movedata.fgetb        # Type
+    @accuracy=movedata.fgetb    # Accuracy
+    @totalpp=movedata.fgetb     # PP
+    @addlEffect=movedata.fgetb  # Effect chance
+    @target=movedata.fgetb      # Target
+    @priority=movedata.fgetsb   # Priority (signed)
+    @flags=movedata.fgetb       # Flags
+    movedata.close
+  end
+end
+```
+
+## Target Types
+
+The `Target` field determines who can be targeted:
+
+- `00`: Single adjacent opponent
+- `01`: No target (user only)
+- `02`: Random opponent
+- `04`: All opponents
+- `08`: All Pokémon except user
+- `10`: User's side
+
+## Creating Custom Move Effects
+
+<Note>
+Custom function codes should be implemented in the battle scripts, typically in `PokeBattle_Move` classes.
+</Note>
+
+**Example structure:**
+
+```ruby
+class PokeBattle_Move_XXX < PokeBattle_Move
+  def pbEffect(attacker,opponent,hitnum=0,alltargets=nil,showanimation=true)
+    # Custom effect logic
+    damage = pbCalcDamage(attacker,opponent)
+    # Apply secondary effects
+    return damage
+  end
+end
+```
+
+## Related Systems
+
+See also:
+- [Battle Mechanics](/api/battle-mechanics) - Overall battle system
+- [Ability Effects](/api/ability-effects) - How abilities interact with moves
+- [PBS Compiler](/api/pbs-compiler) - How moves are compiled from text files

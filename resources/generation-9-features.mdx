@@ -1,0 +1,232 @@
+---
+title: 'Generation 9 Features'
+description: 'Complete list of Generation 9 Pokémon, moves, abilities, and features included in Pokémon Essentials BES'
+---
+
+## Overview
+
+Pokémon Essentials BES includes full support for Generation 9 content, bringing all Pokémon, moves, and abilities from the Paldea region into your game. This page documents what's included and how to use these features.
+
+<Note>
+All Generation 9 content is fully functional and integrated with the existing Pokémon Essentials v16.2 codebase.
+</Note>
+
+## Generation 9 Pokémon
+
+Pokémon Essentials BES includes all Generation 9 Pokémon from National Dex #906 through #1025:
+
+### Starter Pokémon Lines
+
+<CardGroup cols={3}>
+  <Card title="Sprigatito Line" icon="leaf">
+    Grass-type starter evolution line
+    - Sprigatito
+    - Floragato
+    - Meowscarada
+  </Card>
+  <Card title="Fuecoco Line" icon="fire">
+    Fire-type starter evolution line
+    - Fuecoco
+    - Crocalor
+    - Skeledirge
+  </Card>
+  <Card title="Quaxly Line" icon="droplet">
+    Water-type starter evolution line
+    - Quaxly
+    - Quaxwell
+    - Quaquaval
+  </Card>
+</CardGroup>
+
+### Legendary & Mythical Pokémon
+
+All Generation 9 Legendary and Mythical Pokémon are included:
+
+- **Koraidon** (#1007) - Paradox Legendary
+- **Miraidon** (#1008) - Paradox Legendary
+- **Walking Wake** - Paradox Suicune
+- **Iron Leaves** - Paradox Virizion
+- **Wo-Chien** - Ruinous Pokémon (Dark/Grass)
+- **Chien-Pao** - Ruinous Pokémon (Dark/Ice)
+- **Ting-Lu** - Ruinous Pokémon (Dark/Ground)
+- **Chi-Yu** - Ruinous Pokémon (Dark/Fire)
+- **Okidogi** - Loyal Three (Poison/Fighting)
+- **Munkidori** - Loyal Three (Poison/Psychic)
+- **Fezandipiti** - Loyal Three (Poison/Fairy)
+- **Ogerpon** - Teal Mask Legendary (Grass)
+- **Terapagos** - Indigo Disk Legendary (Normal)
+- **Pecharunt** (#1025) - Mythical Pokémon (Poison/Ghost)
+
+### Paradox Pokémon
+
+Both Ancient and Future Paradox Pokémon are fully implemented with their unique abilities and stats.
+
+<Info>
+Paradox Pokémon have special abilities like Proto Synthesis and Quark Drive that are partially implemented. Check the abilities section below for details.
+</Info>
+
+## Generation 9 Moves
+
+All Generation 9 moves are included in the PBS files with proper functionality:
+
+### Notable New Moves
+
+<Accordion title="Tera Blast (Teraexplosión)">
+**Type:** Normal | **Category:** Special | **Power:** 80 | **Accuracy:** 100
+
+A signature move that changes type based on the user's Tera Type when Terastallized. Compares Attack and Special Attack stats to determine if it should be physical or special.
+
+**Location in PBS:** Move #796
+</Accordion>
+
+<Accordion title="Tera Starstorm (Teraclúster)">
+**Type:** Normal | **Category:** Special | **Power:** 120 | **Accuracy:** 100
+
+Terapagos's signature move. Attacks by radiating crystal power. When Terapagos uses this move in its Stellar Form, it damages all opposing Pokémon.
+
+**Location in PBS:** Move #823
+</Accordion>
+
+<Accordion title="Other Notable Moves">
+- **Gigaton Hammer** - Iron Thorns signature move
+- **Torch Song** - Skeledirge's Fire-type move that boosts Sp. Atk
+- **Aqua Step** - Quaquaval's Water-type move that boosts Speed
+- **Armor Cannon** - High power Fire move with defensive drawback
+- **Bitter Blade** - Physical Grass move that restores HP
+- **Collision Course** - Fighting move with type effectiveness boost
+- **Electro Drift** - Electric move with type effectiveness boost
+</Accordion>
+
+## Generation 9 Abilities
+
+Pokémon Essentials BES includes all Generation 9 abilities (#268-310):
+
+### Fully Implemented Abilities
+
+- **Seed Sower** (#269) - Creates Grassy Terrain when hit
+- **Well-Baked Body** (#277) - Immune to Fire, boosts Defense
+- **Wind Rider** (#281) - Immune to wind moves, boosts Attack
+- **Earth Eater** (#284) - Immune to Ground, restores HP
+- **Guard Dog** (#288) - Boosts Attack when intimidated, prevents forced switches
+- **Good as Gold** (#292) - Immune to status moves
+- **Toxic Chain** (#302) - Can badly poison targets
+- **Minds Eye** (#301) - Hits Ghost-types with Normal/Fighting moves
+
+### Partially Implemented Abilities
+
+<Info>
+Some abilities have partial functionality and may need additional scripting:
+</Info>
+
+- **Proto Synthesis** (#290) - Boosts highest stat in harsh sunlight
+- **Quark Drive** (#291) - Boosts highest stat in Electric Terrain
+- **Orichalcum Pulse** (#297) - Creates harsh sunlight on entry
+- **Hadron Engine** (#298) - Creates Electric Terrain on entry
+
+### Signature Abilities
+
+<CardGroup cols={2}>
+  <Card title="Zero to Hero" icon="mask">
+    Palafin's form-changing ability. Changes to Hero Form when withdrawn from battle.
+  </Card>
+  <Card title="Commander" icon="fish">
+    Tatsugiri enters Dondozo's mouth in Double Battles for stat boosts.
+  </Card>
+  <Card title="Tera Shift" icon="crystal">
+    Terapagos changes to Terastal Form upon entering battle.
+  </Card>
+  <Card title="Embody Aspect" icon="masks">
+    The four Ogerpon masks each boost different stats when entering battle.
+  </Card>
+</CardGroup>
+
+## Regional Forms
+
+### Paldean Forms
+
+While the base includes standard Wooper and Tauros, regional form variants may need to be configured separately in your PBS files if you want to use them.
+
+<Note>
+To add Paldean form variants, you'll need to create separate entries in `pokemon.txt` with appropriate form numbers and regional identifiers.
+</Note>
+
+## Terastallization
+
+Terastallization mechanics are partially implemented:
+
+### What's Included
+
+- **Tera Blast** move functionality
+- **Tera Starstorm** for Terapagos
+- Tera Type data structure support
+- Terapagos forms (Normal, Terastal, Stellar)
+
+### What Needs Custom Implementation
+
+<Info>
+Full Terastallization requires additional scripting beyond what's included in the base PBS files:
+</Info>
+
+- Visual Tera transformation effects
+- Type change mechanics during battle
+- Tera Orb item and charging system
+- STAB boost calculations for Tera Types
+- UI elements for Tera Type display
+
+## Complete Pokémon List
+
+All Pokémon from #906 (Sprigatito) through #1025 (Pecharunt) are included with:
+
+- Complete base stats
+- Type data
+- Evolution methods
+- Egg groups and breeding data
+- Level-up movesets
+- TM/HM compatibility
+- Ability assignments
+- Pokédex entries
+
+## Using Gen 9 Content
+
+### Adding Gen 9 Pokémon to Your Game
+
+```ruby
+# Give a Sprigatito to the player
+pbAddPokemon(:SPRIGATITO, 5)
+
+# Create a wild encounter with Koraidon
+pbWildBattle(:KORAIDON, 70)
+
+# Add Fuecoco to party with specific moves
+pokemon = Pokemon.new(:FUECOCO, 5)
+pokemon.pbLearnMove(:EMBER)
+pbAddPokemonSilent(pokemon)
+```
+
+### Verifying Gen 9 Content
+
+To verify that Generation 9 content is properly loaded:
+
+1. Check `PBS/pokemon.txt` for entries #906-1025
+2. Check `PBS/moves.txt` for moves like Tera Blast (#796)
+3. Check `PBS/abilities.txt` for abilities #268-310
+4. Compile your PBS files and test in-game
+
+<Note>
+Remember to recompile PBS data after making any changes to Generation 9 content.
+</Note>
+
+## Known Limitations
+
+- Some abilities marked with `#TODO` or `#A MEDIAS` may have incomplete functionality
+- Full Terastallization system requires custom battle scripts
+- Some form-change mechanics may need additional event scripting
+- Paradox Pokémon abilities work but may not have visual effects
+
+## Getting Help
+
+If you encounter issues with Generation 9 features:
+
+- Check the [Troubleshooting](/resources/troubleshooting) page
+- Visit the [Community](/resources/community) resources
+- Review the [FAQ](/resources/faq) for common questions

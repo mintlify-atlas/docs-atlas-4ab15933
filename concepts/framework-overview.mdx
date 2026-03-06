@@ -1,0 +1,211 @@
+---
+title: "Framework Overview"
+description: "Understanding the architecture of Pokémon Essentials BES and how it integrates with RPG Maker XP"
+---
+
+## Architecture Overview
+
+Pokémon Essentials BES is built on top of RPG Maker XP, which uses the Ruby Game Scripting System (RGSS). The framework extends RPG Maker XP's capabilities to create fully-featured Pokémon games.
+
+### Core Components
+
+<CardGroup cols={2}>
+  <Card title="RPG Maker XP" icon="gamepad">
+    Provides the map editor, event system, and basic game engine
+  </Card>
+  <Card title="RGSS/Ruby" icon="code">
+    Powers the game logic with Ruby scripts
+  </Card>
+  <Card title="PBS System" icon="file-lines">
+    Plain text database files for game data
+  </Card>
+  <Card title="Graphics Engine" icon="image">
+    Sprite rendering and animation system
+  </Card>
+</CardGroup>
+
+## System Architecture
+
+The framework follows a layered architecture:
+
+```txt System Layers
+Game Content Layer
+  ├── PBS Files (pokemon.txt, moves.txt, etc.)
+  ├── Graphics (sprites, backgrounds)
+  ├── Audio (music, sound effects)
+  └── Maps (RPG Maker maps)
+
+Game Logic Layer
+  ├── Data Classes (PBMove, PokeBattle_Pokemon)
+  ├── Battle System
+  ├── Event Handlers
+  └── UI Components
+
+Engine Layer
+  ├── RGSS Runtime
+  ├── Data Loading
+  └── Save System
+```
+
+## Data Flow
+
+<Steps>
+  <Step title="Editing Phase">
+    Developers edit PBS files, maps, and scripts in text editors and RPG Maker XP
+  </Step>
+  <Step title="Compilation Phase">
+    PBS files are compiled into binary .dat files when the game starts
+  </Step>
+  <Step title="Runtime Phase">
+    The game loads .dat files into memory for fast access during gameplay
+  </Step>
+  <Step title="Save Phase">
+    Game state is serialized to .rxdata files
+  </Step>
+</Steps>
+
+### PBS to Runtime Flow
+
+```ruby Data Compilation Example
+# PBS/pokemon.txt
+[1]
+Name=Bulbasaur
+Type1=GRASS
+Type2=POISON
+BaseStats=45,49,49,45,65,65
+
+# Compiles to Data/dexdata.dat
+# Loaded at runtime by:
+movedata = PBMoveData.new(@id)
+```
+
+## Extension Points
+
+Pokémon Essentials BES provides several ways to customize your game:
+
+### 1. PBS Data Editing
+
+The simplest way to customize your game:
+- Add new Pokémon
+- Create custom moves
+- Define new abilities
+- Configure items
+
+<Note>
+PBS editing requires no programming knowledge - just edit text files!
+</Note>
+
+### 2. Event Scripting
+
+Use RPG Maker's event system to:
+- Create NPCs and dialog
+- Trigger battles
+- Give items and Pokémon
+- Create custom cutscenes
+
+### 3. Ruby Scripting
+
+For advanced customization:
+- Modify battle mechanics
+- Create new features
+- Add custom UI
+- Implement new systems
+
+```ruby Custom Script Example
+# Adding a custom ability effect
+class PokeBattle_Pokemon
+  def pbCheckAbility(ability)
+    return self.ability == ability && !@effects[PBEffects::GastroAcid]
+  end
+end
+```
+
+## Integration with RPG Maker XP
+
+Essentials BES deeply integrates with RPG Maker XP:
+
+<Accordion title="Map System">
+  RPG Maker's map editor is used for:
+  - Creating the game world
+  - Placing NPCs and events
+  - Defining encounters
+  - Setting map properties
+</Accordion>
+
+<Accordion title="Event System">
+  Events trigger game logic:
+  - Script calls execute Ruby code
+  - Conditional branches check game state
+  - Variables store game data
+  - Common events are reusable
+</Accordion>
+
+<Accordion title="Database">
+  The RPG Maker database is extended:
+  - Common Events store reusable logic
+  - Variables track game state
+  - Switches control flags
+  - Custom move animations
+</Accordion>
+
+## Key Classes
+
+The framework's core classes handle different aspects:
+
+### Data Classes
+- **PBMove** - Move instances with PP tracking
+- **PBMoveData** - Move definitions and attributes
+- **PokeBattle_Pokemon** - Pokémon instances
+- **PokeBattle_Trainer** - Trainer data
+
+### System Classes
+- **PokemonTemp** - Temporary data storage
+- **PokemonGlobal** - Global game state
+- **PokemonStorage** - PC box system
+
+### Manager Classes
+- **Battle** - Battle system controller
+- **Scene** - UI scene management
+- **Compiler** - PBS to binary conversion
+
+## Performance Considerations
+
+<Tip>
+The framework uses several optimization techniques:
+</Tip>
+
+1. **Data Caching**: Compiled .dat files are cached in memory
+2. **Lazy Loading**: Assets loaded only when needed
+3. **Binary Format**: .dat files are faster than parsing text
+4. **Object Pooling**: Reuse objects to reduce garbage collection
+
+## Compatibility
+
+Pokémon Essentials BES is based on Essentials v16.2 and includes:
+
+- ✅ All Pokémon through Generation 9
+- ✅ Updated moves and abilities
+- ✅ Regional form support
+- ✅ Backwards compatibility with v16.2 projects
+- ✅ Quality of life improvements
+
+<Warning>
+While BES maintains compatibility with base Essentials v16.2, some features from newer Essentials versions (v17+) may require adaptation.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="PBS System" icon="file-lines" href="/concepts/pbs-system">
+    Learn about the Plain Text Database system
+  </Card>
+  <Card title="Game Structure" icon="folder-tree" href="/concepts/game-structure">
+    Understand the project folder organization
+  </Card>
+  <Card title="RPG Maker Integration" icon="puzzle-piece" href="/concepts/rpgmaker-integration">
+    Deep dive into RPG Maker XP integration
+  </Card>
+  <Card title="Scripting Basics" icon="code" href="/scripting/ruby-basics">
+    Start writing custom Ruby scripts
+  </Card>
+</CardGroup>

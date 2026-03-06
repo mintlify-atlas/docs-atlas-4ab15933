@@ -1,0 +1,470 @@
+---
+title: Ability Effects
+description: Ability system and implementation patterns in Pokémon Essentials BES
+---
+
+# Ability Effects
+
+Abilities in Pokémon Essentials BES are passive effects that activate automatically during battle or in the overworld. Each Pokémon can have up to two regular abilities and up to four hidden abilities.
+
+## Ability Data Structure
+
+Abilities are defined in `PBS/abilities.txt` with the following format:
+
+```
+ID,InternalName,DisplayName,Description
+```
+
+**Examples from abilities.txt:**
+
+```
+1,STENCH,Hedor,"Debido al mal olor que emana, al atacar al rival puede hacerlo retroceder."
+2,DRIZZLE,Llovizna,"Hace que llueva cuando entra en combate."
+3,SPEEDBOOST,Impulso,"Aumenta la Velocidad en cada turno."
+```
+
+<ParamField path="ID" type="integer">
+  Unique identifier for the ability (1-500+)
+</ParamField>
+
+<ParamField path="InternalName" type="string">
+  Constant name used in code (e.g., INTIMIDATE, LEVITATE)
+</ParamField>
+
+## Ability Assignment
+
+Pokémon receive abilities through their species data in `PBS/pokemon.txt`:
+
+```ruby
+# From pokemon.txt species definition
+Abilities=OVERGROW,CHLOROPHYLL     # First ability, second ability
+HiddenAbility=LEAFGUARD,SAPSIPPER  # Hidden abilities 1-4
+```
+
+<Accordion title="Ability Slot System">
+- **Slot 0**: Primary ability (most common)
+- **Slot 1**: Secondary ability (some Pokémon have two regular abilities)
+- **Hidden**: Special abilities obtainable through events, Dream World, etc.
+</Accordion>
+
+## Common Ability Triggers
+
+### On Switch-In Abilities
+
+<Accordion title="Weather-Setting Abilities">
+**DRIZZLE** (ID: 2)
+```
+2,DRIZZLE,Llovizna,"Hace que llueva cuando entra en combate."
+```
+
+**DROUGHT** (ID: 70)
+```
+70,DROUGHT,Sequía,"Cuando el Pokémon entra en combate, el tiempo pasa a ser soleado."
+```
+
+**SANDSTREAM** (ID: 45)
+```
+45,SANDSTREAM,Chorro Arena,"Crea una tormenta de arena al entrar en combate."
+```
+
+These abilities automatically change the weather when the Pokémon enters battle.
+
+Implementation pattern:
+```ruby
+def pbOnActiveAll
+  if ability == PBAbilities::DRIZZLE
+    @battle.pbStartWeather(PBWeather::RAIN, true)
+  end
+end
+```
+</Accordion>
+
+<Accordion title="Stat-Changing Abilities">
+**INTIMIDATE** (ID: 22)
+```
+22,INTIMIDATE,Intimidación,"Al entrar en combate amilana al rival de tal manera que su Ataque disminuye."
+```
+
+Lowers opposing Pokémon's Attack by one stage upon entering battle.
+
+Implementation:
+```ruby
+def pbOnActiveAll
+  if ability == PBAbilities::INTIMIDATE
+    for target in @battle.opponents
+      if !target.hasAbility(:CLEARBODY) && !target.hasAbility(:WHITESMOKE)
+        target.pbReduceStat(PBStats::ATTACK, 1, true)
+      end
+    end
+  end
+end
+```
+</Accordion>
+
+### On Contact Abilities
+
+<Accordion title="Status-Inflicting Abilities">
+**STATIC** (ID: 9)
+```
+9,STATIC,Elec. Estática,"La electricidad estática que lo envuelve puede paralizar al mínimo contacto."
+```
+
+**POISONPOINT** (ID: 38)
+```
+38,POISONPOINT,Punto Tóxico,"Puede envenenar al mínimo contacto."
+```
+
+**FLAMEBODY** (ID: 49)
+```
+49,FLAMEBODY,Cuerpo Llama,"Puede quemar al mínimo contacto."
+```
+
+These abilities can inflict status conditions when hit by contact moves.
+
+Implementation pattern:
+```ruby
+def pbOnAfterMoveUse(move, user, target)
+  if move.contactMove? && ability == PBAbilities::STATIC
+    if rand(100) < 30 && user.canParalyze?
+      user.pbParalyze(target)
+    end
+  end
+end
+```
+</Accordion>
+
+<Accordion title="Damage-Dealing Abilities">
+**ROUGHSKIN** (ID: 24)
+```
+24,ROUGHSKIN,Piel Tosca,"Hiere con su piel áspera al rival que lo ataque con un movimiento de contacto."
+```
+
+Deals damage to attackers that make contact.
+
+Implementation:
+```ruby
+def pbOnAfterMoveUse(move, user, target)
+  if move.contactMove? && ability == PBAbilities::ROUGHSKIN
+    if !user.isFainted?
+      damage = (user.totalhp / 8).floor
+      user.pbReduceHP(damage)
+    end
+  end
+end
+```
+</Accordion>
+
+### Type-Based Immunities
+
+<Accordion title="Absorption Abilities">
+**VOLTABSORB** (ID: 10)
+```
+10,VOLTABSORB,Absorbe Elec.,"Si le alcanza un movimiento de tipo Eléctrico, recupera PS en vez de sufrir daño."
+```
+
+**WATERABSORB** (ID: 11)
+```
+11,WATERABSORB,Absorbe Agua,"Si le alcanza un movimiento de tipo Agua, recupera PS en vez de sufrir daño."
+```
+
+**FLASHFIRE** (ID: 18)
+```
+18,FLASHFIRE,Absorbe Fuego,"Si le alcanza algún movimiento de tipo Fuego, potencia sus propios movimientos de dicho tipo."
+```
+
+Implementation:
+```ruby
+def pbOnBeingHit(move, user)
+  if ability == PBAbilities::VOLTABSORB && move.type == PBTypes::ELECTRIC
+    hp_restored = (@totalhp / 4).floor
+    pbRecoverHP(hp_restored)
+    return 0  # No damage taken
+  end
+end
+```
+</Accordion>
+
+<Accordion title="Levitate">
+**LEVITATE** (ID: 26)
+```
+26,LEVITATE,Levitación,"Su capacidad de flotar sobre el suelo le proporciona inmunidad frente a los movimientos de tipo Tierra."
+```
+
+Grants immunity to Ground-type moves.
+
+Implementation:
+```ruby
+def pbTypeImmunityByAbility(type, user, move)
+  if ability == PBAbilities::LEVITATE && type == PBTypes::GROUND
+    return true  # Immune to Ground moves
+  end
+  return false
+end
+```
+</Accordion>
+
+### Special Defense Abilities
+
+<Accordion title="Wonder Guard">
+**WONDERGUARD** (ID: 25)
+```
+25,WONDERGUARD,Superguarda,"Gracias a un poder misterioso, solo le hacen daño los movimientos supereficaces."
+```
+
+Only super-effective moves can damage this Pokémon.
+
+Implementation:
+```ruby
+def pbOnBeingHit(move, user)
+  if ability == PBAbilities::WONDERGUARD
+    effectiveness = pbTypeModifier(move.type, user, self)
+    if effectiveness < 2  # Not super effective
+      return 0  # No damage
+    end
+  end
+end
+```
+</Accordion>
+
+## Stat Modification Abilities
+
+### Attack Modifiers
+
+<Accordion title="Power-Boosting Abilities">
+**HUGEPOWER** / **PUREPOWER** (ID: 37, 74)
+```
+37,HUGEPOWER,Potencia,"Duplica la potencia de los ataques físicos."
+74,PUREPOWER,Energía Pura,"Duplica la potencia de los ataques físicos."
+```
+
+Double the Pokémon's Attack stat.
+
+**IRONFIST** (ID: 89)
+```
+89,IRONFIST,Puño Férreo,"Aumenta la potencia de los puñetazos."
+```
+
+Boosts punch moves by 20%.
+
+Implementation:
+```ruby
+def pbModifyAtk(attacker, opponent, move)
+  if ability == PBAbilities::HUGEPOWER
+    return 2.0  # Double Attack
+  elsif ability == PBAbilities::IRONFIST && move.isPunchingMove?
+    return 1.2  # 20% boost
+  end
+  return 1.0
+end
+```
+</Accordion>
+
+### Conditional Stat Boosts
+
+<Accordion title="HP-Based Abilities">
+**OVERGROW** (ID: 65)
+```
+65,OVERGROW,Espesura,"Potencia los movimientos de tipo Planta del Pokémon cuando le quedan pocos PS."
+```
+
+**BLAZE** (ID: 66)
+```
+66,BLAZE,Mar Llamas,"Potencia los movimientos de tipo Fuego del Pokémon cuando le quedan pocos PS."
+```
+
+**TORRENT** (ID: 67)
+```
+67,TORRENT,Torrente,"Potencia los movimientos de tipo Agua del Pokémon cuando le quedan pocos PS."
+```
+
+**SWARM** (ID: 68)
+```
+68,SWARM,Enjambre,"Potencia los movimientos de tipo Bicho del Pokémon cuando le quedan pocos PS."
+```
+
+Boost same-type moves by 1.5x when HP is below 1/3.
+
+Implementation:
+```ruby
+def pbModifyDamage(damageMult, user, target, move)
+  if user.hp <= (user.totalhp / 3).floor
+    if ability == PBAbilities::OVERGROW && move.type == PBTypes::GRASS
+      return (damageMult * 1.5).floor
+    end
+  end
+  return damageMult
+end
+```
+</Accordion>
+
+## Status Immunity Abilities
+
+<Accordion title="Status Protection">
+**IMMUNITY** (ID: 17)
+```
+17,IMMUNITY,Inmunidad,"Su sistema inmunitario evita el envenenamiento."
+```
+
+**LIMBER** (ID: 7)
+```
+7,LIMBER,Flexibilidad,"Evita ser paralizado gracias a la flexibilidad de su cuerpo."
+```
+
+**INSOMNIA** (ID: 15)
+```
+15,INSOMNIA,Insomnio,"Su resistencia al sueño le impide quedarse dormido."
+```
+
+**MAGMAARMOR** (ID: 40)
+```
+40,MAGMAARMOR,Escudo Magma,"Gracias al magma candente que lo envuelve, evita la congelación."
+```
+
+**WATERVEIL** (ID: 41)
+```
+41,WATERVEIL,Velo Agua,"Evita las quemaduras gracias a la capa de agua que lo envuelve."
+```
+
+Implementation:
+```ruby
+def pbCanInflictStatus?(status, user, showMessages)
+  case status
+  when PBStatuses::POISON
+    if ability == PBAbilities::IMMUNITY
+      return false
+    end
+  when PBStatuses::PARALYSIS
+    if ability == PBAbilities::LIMBER
+      return false
+    end
+  when PBStatuses::SLEEP
+    if ability == PBAbilities::INSOMNIA
+      return false
+    end
+  end
+  return true
+end
+```
+</Accordion>
+
+## Weather-Related Abilities
+
+<Accordion title="Weather Boosts and Immunity">
+**SWIFTSWIM** (ID: 33)
+```
+33,SWIFTSWIM,Nado Rápido,"Sube la Velocidad cuando llueve."
+```
+
+**CHLOROPHYLL** (ID: 34)
+```
+34,CHLOROPHYLL,Clorofila,"Sube la Velocidad cuando hace sol."
+```
+
+**SANDVEIL** (ID: 8)
+```
+8,SANDVEIL,Velo arena,"Aumenta la Evasión durante las tormentas de arena."
+```
+
+**CLOUDNINE** / **AIRLOCK** (ID: 13, 76)
+```
+13,CLOUDNINE,Aclimatación,"Anula todos los efectos del tiempo atmosférico."
+76,AIRLOCK,Esclusa de aire,"Neutraliza todos los efectos del tiempo atmosférico."
+```
+
+Implementation:
+```ruby
+def pbModifySpe(stat, attacker, opponent)
+  if @battle.pbWeather == PBWeather::RAIN && ability == PBAbilities::SWIFTSWIM
+    return (stat * 2).floor
+  elsif @battle.pbWeather == PBWeather::SUNNYDAY && ability == PBAbilities::CHLOROPHYLL
+    return (stat * 2).floor
+  end
+  return stat
+end
+```
+</Accordion>
+
+## Ability Compilation
+
+Abilities are compiled from `PBS/abilities.txt` to constants and message data:
+
+```ruby
+def pbCompileAbilities
+  records=[]
+  movenames=[]
+  movedescs=[]
+  maxValue=0
+  
+  pbCompilerEachPreppedLine("PBS/abilities.txt"){|line,lineno|
+    record=pbGetCsvRecord(line,lineno,[0,"vnss"])
+    movenames[record[0]]=record[2]
+    movedescs[record[0]]=record[3]
+    maxValue=[maxValue,record[0]].max
+    records.push(record)
+  }
+  
+  MessageTypes.setMessages(MessageTypes::Abilities,movenames)
+  MessageTypes.setMessages(MessageTypes::AbilityDescs,movedescs)
+  
+  code="class PBAbilities\r\n"
+  for rec in records
+    code+="#{rec[1]}=#{rec[0]}\r\n"
+  end
+  code+="\r\ndef PBAbilities.getName(id)\r\nreturn pbGetMessage(MessageTypes::Abilities,id)\r\nend"
+  code+="\r\ndef PBAbilities.getCount\r\nreturn #{records.length}\r\nend\r\n"
+  code+="\r\ndef PBAbilities.maxValue\r\nreturn #{maxValue}\r\nend\r\nend"
+  
+  eval(code)
+  pbAddScript(code,"PBAbilities")
+end
+```
+
+## Checking Abilities in Code
+
+Access abilities using these methods:
+
+```ruby
+# Check if Pokémon has a specific ability
+if pokemon.hasAbility?(:INTIMIDATE)
+  # Do something
+end
+
+# Get ability ID
+ability_id = pokemon.ability
+
+# Get ability name
+ability_name = PBAbilities.getName(pokemon.ability)
+```
+
+## Creating Custom Abilities
+
+<Note>
+Custom abilities are implemented in the battle engine scripts, not in PBS files.
+</Note>
+
+**Steps to create a custom ability:**
+
+1. Add entry to `PBS/abilities.txt`
+2. Implement trigger logic in battle scripts
+3. Recompile PBS data
+
+**Example implementation pattern:**
+
+```ruby
+# In PokeBattle_Battler or PokeBattle_Battle
+
+def pbAbilitiesOnSwitchIn(battler)
+  case battler.ability
+  when PBAbilities::CUSTOMABILITY
+    # Your custom logic here
+    battler.pbIncreaseStat(PBStats::ATTACK, 1)
+  end
+end
+```
+
+## Related Systems
+
+See also:
+- [Battle Mechanics](/api/battle-mechanics) - How abilities interact with battle flow
+- [Data Loading](/api/data-loading) - How ability data is loaded
+- [PBS Compiler](/api/pbs-compiler) - How abilities are compiled

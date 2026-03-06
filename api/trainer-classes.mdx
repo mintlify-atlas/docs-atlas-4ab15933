@@ -1,0 +1,681 @@
+---
+title: "Trainer Classes"
+description: "Reference for PokeBattle_Trainer and related classes that handle trainers, NPC battles, and party management"
+---
+
+## Overview
+
+The Trainer class system handles player and NPC trainer data, including party management, Pokédex tracking, badges, and money. The main class is `PokeBattle_Trainer`, accessible globally via `$Trainer` for the player.
+
+**Source**: `Data/EditorScripts/029_PokeBattle_Trainer.rb`
+
+---
+
+## PokeBattle_Trainer
+
+The main trainer class used for both the player and NPC trainers.
+
+### Core Attributes
+
+<ResponseField name="name" type="String">
+  The trainer's name
+</ResponseField>
+
+<ResponseField name="id" type="Integer">
+  32-bit trainer ID (includes secret ID in upper 16 bits)
+</ResponseField>
+
+<ResponseField name="trainertype" type="Integer">
+  Trainer type ID (references `PBTrainers` constants)
+</ResponseField>
+
+<ResponseField name="party" type="Array<PokeBattle_Pokemon>">
+  Array of Pokémon in the trainer's party
+</ResponseField>
+
+<ResponseField name="badges" type="Array<Boolean>">
+  Array of badge flags (default: 8 badges)
+</ResponseField>
+
+<ResponseField name="money" type="Integer">
+  Amount of money the trainer has
+  
+  **Limit**: `0` to `MAXMONEY`
+</ResponseField>
+
+<ResponseField name="pokedex" type="Boolean">
+  Whether the trainer has obtained the Pokédex
+</ResponseField>
+
+<ResponseField name="pokegear" type="Boolean">
+  Whether the trainer has obtained the Pokégear
+</ResponseField>
+
+<ResponseField name="seen" type="Array<Boolean>">
+  Array tracking which Pokémon species have been seen
+</ResponseField>
+
+<ResponseField name="owned" type="Array<Boolean>">
+  Array tracking which Pokémon species have been owned
+</ResponseField>
+
+<ResponseField name="language" type="Integer">
+  Language ID for the trainer
+</ResponseField>
+
+---
+
+## Constructor
+
+### initialize
+
+```ruby
+def initialize(name, trainertype)
+```
+
+Creates a new trainer.
+
+<ParamField path="name" type="String" required>
+  Trainer's name
+</ParamField>
+
+<ParamField path="trainertype" type="Integer|String|Symbol" required>
+  Trainer type (ID or constant from `PBTrainers`)
+</ParamField>
+
+**Example**:
+```ruby
+# Create a player trainer
+trainer = PokeBattle_Trainer.new("Red", :POKEMONTRAINER_Red)
+
+# Create an NPC trainer
+rival = PokeBattle_Trainer.new("Blue", :RIVAL1)
+```
+
+**Source**: `029_PokeBattle_Trainer.rb:274-297`
+
+---
+
+## Trainer Information
+
+### trainerTypeName
+
+```ruby
+def trainerTypeName
+```
+
+Returns the localized name of the trainer type.
+
+**Returns**: String (e.g., "Pokémon Trainer", "Bug Catcher", etc.)
+
+**Source**: `029_PokeBattle_Trainer.rb:19-21`
+
+### fullname
+
+```ruby
+def fullname
+```
+
+Returns the trainer's full name (type + name).
+
+**Example**: `"Pokémon Trainer Red"`, `"Bug Catcher Joey"`
+
+**Source**: `029_PokeBattle_Trainer.rb:23-25`
+
+### publicID
+
+```ruby
+def publicID(id=nil)
+```
+
+Returns the visible portion of the trainer ID (lower 16 bits).
+
+<ParamField path="id" type="Integer" default="nil">
+  Optional ID to extract from (defaults to trainer's ID)
+</ParamField>
+
+**Returns**: Integer (0-65535)
+
+**Source**: `029_PokeBattle_Trainer.rb:27-29`
+
+### secretID
+
+```ruby
+def secretID(id=nil)
+```
+
+Returns the secret ID (upper 16 bits).
+
+**Returns**: Integer (0-65535)
+
+**Source**: `029_PokeBattle_Trainer.rb:31-33`
+
+### gender
+
+```ruby
+def gender
+```
+
+Returns the trainer's gender based on trainer type.
+
+**Returns**: `0` (male), `1` (female), or `2` (unknown)
+
+**Source**: `029_PokeBattle_Trainer.rb:115-127`
+
+### isMale? / isFemale?
+
+```ruby
+def isMale?
+def isFemale?
+```
+
+Convenience methods for checking gender.
+
+**Source**: `029_PokeBattle_Trainer.rb:129-130`
+
+---
+
+## Party Management
+
+### partyCount
+
+```ruby
+def partyCount
+```
+
+Returns the total number of Pokémon in the party (including eggs).
+
+**Returns**: Integer (0-6)
+
+**Source**: `029_PokeBattle_Trainer.rb:140-142`
+
+### pokemonCount
+
+```ruby
+def pokemonCount
+```
+
+Returns the number of non-egg Pokémon in the party.
+
+**Source**: `029_PokeBattle_Trainer.rb:144-150`
+
+### ablePokemonCount
+
+```ruby
+def ablePokemonCount
+```
+
+Returns the number of non-fainted, non-egg Pokémon in the party.
+
+**Source**: `029_PokeBattle_Trainer.rb:152-158`
+
+### pokemonParty
+
+```ruby
+def pokemonParty
+```
+
+Returns an array of non-egg Pokémon in the party.
+
+**Returns**: Array of `PokeBattle_Pokemon`
+
+**Source**: `029_PokeBattle_Trainer.rb:132-134`
+
+### ablePokemonParty
+
+```ruby
+def ablePokemonParty
+```
+
+Returns an array of non-fainted, non-egg Pokémon.
+
+**Source**: `029_PokeBattle_Trainer.rb:136-138`
+
+### firstPokemon / firstAblePokemon
+
+```ruby
+def firstPokemon
+def firstAblePokemon
+```
+
+Returns the first non-egg Pokémon or first able Pokémon.
+
+**Returns**: `PokeBattle_Pokemon` or `nil`
+
+**Source**: `029_PokeBattle_Trainer.rb:165-175`
+
+### lastPokemon / lastAblePokemon
+
+```ruby
+def lastPokemon
+def lastAblePokemon
+```
+
+Returns the last non-egg Pokémon or last able Pokémon.
+
+**Source**: `029_PokeBattle_Trainer.rb:182-192`
+
+---
+
+## Pokédex
+
+### pokedexSeen
+
+```ruby
+def pokedexSeen(region=-1)
+```
+
+Returns the number of Pokémon species seen.
+
+<ParamField path="region" type="Integer" default="-1">
+  Regional Pokédex number (-1 for National Dex)
+</ParamField>
+
+**Returns**: Integer
+
+**Source**: `029_PokeBattle_Trainer.rb:194-207`
+
+### pokedexOwned
+
+```ruby
+def pokedexOwned(region=-1)
+```
+
+Returns the number of Pokémon species owned.
+
+**Source**: `029_PokeBattle_Trainer.rb:209-222`
+
+### hasSeen?
+
+```ruby
+def hasSeen?(species)
+```
+
+Checks if a species has been seen.
+
+<ParamField path="species" type="Integer|String|Symbol" required>
+  Species to check
+</ParamField>
+
+**Example**:
+```ruby
+if $Trainer.hasSeen?(:PIKACHU)
+  puts "You've seen Pikachu!"
+end
+```
+
+**Source**: `029_PokeBattle_Trainer.rb:233-238`
+
+### hasOwned?
+
+```ruby
+def hasOwned?(species)
+```
+
+Checks if a species has been owned.
+
+**Source**: `029_PokeBattle_Trainer.rb:240-245`
+
+### setSeen / setOwned
+
+```ruby
+def setSeen(species)
+def setOwned(species)
+```
+
+Marks a species as seen or owned in the Pokédex.
+
+**Example**:
+```ruby
+$Trainer.setSeen(:PIKACHU)
+$Trainer.setOwned(:PIKACHU)
+```
+
+**Source**: `029_PokeBattle_Trainer.rb:247-259`
+
+### clearPokedex
+
+```ruby
+def clearPokedex
+```
+
+Resets all Pokédex data (seen and owned).
+
+**Source**: `029_PokeBattle_Trainer.rb:261-272`
+
+---
+
+## Badges & Money
+
+### numbadges
+
+```ruby
+def numbadges
+```
+
+Returns the number of badges earned.
+
+**Returns**: Integer (0-8)
+
+**Source**: `029_PokeBattle_Trainer.rb:107-113`
+
+### money=
+
+```ruby
+def money=(value)
+```
+
+Sets the trainer's money (automatically clamped to valid range).
+
+**Range**: `0` to `MAXMONEY`
+
+**Source**: `029_PokeBattle_Trainer.rb:67-69`
+
+---
+
+## AI & Battle Properties
+
+### skill
+
+```ruby
+def skill
+```
+
+Returns the trainer's AI skill level.
+
+**Returns**: Integer (typically 0-100)
+
+**Source**: `029_PokeBattle_Trainer.rb:81-89`
+
+### skillCode
+
+```ruby
+def skillCode
+```
+
+Returns the trainer's AI skill code string.
+
+**Returns**: String containing AI behavior codes
+
+**Source**: `029_PokeBattle_Trainer.rb:91-99`
+
+### hasSkillCode
+
+```ruby
+def hasSkillCode(code)
+```
+
+Checks if the trainer has a specific AI skill code.
+
+<ParamField path="code" type="String" required>
+  Skill code to check for
+</ParamField>
+
+**Example**:
+```ruby
+if trainer.hasSkillCode("SMART")
+  puts "This trainer uses smart AI!"
+end
+```
+
+**Source**: `029_PokeBattle_Trainer.rb:101-105`
+
+### moneyEarned
+
+```ruby
+def moneyEarned
+```
+
+Returns the amount of money earned when this trainer is defeated.
+
+**Returns**: Integer
+
+**Source**: `029_PokeBattle_Trainer.rb:71-79`
+
+---
+
+## NPC Trainer Loading
+
+### pbLoadTrainer
+
+```ruby
+def pbLoadTrainer(trainerid, trainername, partyid=0)
+```
+
+Loads an NPC trainer from the trainers database.
+
+<ParamField path="trainerid" type="Integer|String|Symbol" required>
+  Trainer type ID or constant
+</ParamField>
+
+<ParamField path="trainername" type="String" required>
+  Trainer's name
+</ParamField>
+
+<ParamField path="partyid" type="Integer" default="0">
+  Party variation ID
+</ParamField>
+
+**Returns**: Array `[trainer, items, party]` or `nil` if not found
+
+**Example**:
+```ruby
+# Load a trainer
+trainer_data = pbLoadTrainer(:LEADER_Brock, "Brock", 0)
+if trainer_data
+  trainer = trainer_data[0]
+  items = trainer_data[1]
+  party = trainer_data[2]
+end
+```
+
+**Source**: `030_PTrainer_NPCTrainers.rb:20-89`
+
+---
+
+## Trainer Battles
+
+### pbTrainerBattle
+
+```ruby
+def pbTrainerBattle(trainerid, trainername, endspeech,
+                    doublebattle=false, trainerparty=0, canlose=false, variable=nil)
+```
+
+Initiates a trainer battle.
+
+<ParamField path="trainerid" type="Integer|String|Symbol" required>
+  Trainer type
+</ParamField>
+
+<ParamField path="trainername" type="String" required>
+  Trainer's name
+</ParamField>
+
+<ParamField path="endspeech" type="String" required>
+  Text to display after battle
+</ParamField>
+
+<ParamField path="doublebattle" type="Boolean" default="false">
+  Whether this is a double battle
+</ParamField>
+
+<ParamField path="trainerparty" type="Integer" default="0">
+  Party variation
+</ParamField>
+
+<ParamField path="canlose" type="Boolean" default="false">
+  Whether the player can lose without game over
+</ParamField>
+
+<ParamField path="variable" type="Integer" default="nil">
+  Game variable to store battle result
+</ParamField>
+
+**Returns**: `true` if player won, `false` otherwise
+
+**Example**:
+```ruby
+pbTrainerBattle(:LEADER_Brock, "Brock", "You defeated me!", false, 0)
+```
+
+**Source**: `030_PTrainer_NPCTrainers.rb:224-379`
+
+### pbDoubleTrainerBattle
+
+```ruby
+def pbDoubleTrainerBattle(trainerid1, trainername1, trainerparty1, endspeech1,
+                          trainerid2, trainername2, trainerparty2, endspeech2,
+                          canlose=false, variable=nil)
+```
+
+Initiates a battle against two trainers.
+
+**Example**:
+```ruby
+pbDoubleTrainerBattle(
+  :COOLTRAINER_Red, "Red", 0, "Red: Good battle!",
+  :COOLTRAINER_Blue, "Blue", 0, "Blue: You're strong!"
+)
+```
+
+**Source**: `030_PTrainer_NPCTrainers.rb:381-475`
+
+---
+
+## Usage Examples
+
+### Accessing Player Data
+
+```ruby
+# Get player's name
+puts $Trainer.name
+
+# Check money
+if $Trainer.money >= 1000
+  puts "You have enough money!"
+end
+
+# Count party Pokémon
+puts "You have #{$Trainer.pokemonCount} Pokémon"
+
+# Check badges
+if $Trainer.numbadges >= 8
+  puts "You've collected all badges!"
+end
+```
+
+### Party Management
+
+```ruby
+# Iterate through party
+for pokemon in $Trainer.party
+  puts "#{pokemon.name} - Level #{pokemon.level}"
+end
+
+# Get first able Pokémon
+first = $Trainer.firstAblePokemon
+if first
+  puts "Your lead is #{first.name}!"
+end
+
+# Count able Pokémon
+if $Trainer.ablePokemonCount == 0
+  puts "All your Pokémon have fainted!"
+end
+```
+
+### Pokédex Operations
+
+```ruby
+# Check Pokédex completion
+seen = $Trainer.pokedexSeen
+owned = $Trainer.pokedexOwned
+puts "Seen: #{seen}, Owned: #{owned}"
+
+# Mark species as seen/owned
+$Trainer.setSeen(:PIKACHU)
+$Trainer.setOwned(:PIKACHU)
+
+# Check if player has seen a species
+if $Trainer.hasSeen?(:MEW)
+  puts "You've encountered the legendary Mew!"
+end
+```
+
+### Creating NPC Trainers
+
+```ruby
+# Load trainer from database
+trainer_data = pbLoadTrainer(:RIVAL1, "Blue", 0)
+if trainer_data
+  trainer = trainer_data[0]
+  puts "Loaded trainer: #{trainer.fullname}"
+  puts "Party size: #{trainer_data[2].length}"
+end
+
+# Create custom trainer
+trainer = PokeBattle_Trainer.new("Giovanni", :BOSS)
+trainer.party = []
+trainer.party.push(PokeBattle_Pokemon.new(:PERSIAN, 50, trainer))
+trainer.party.push(PokeBattle_Pokemon.new(:RHYDON, 55, trainer))
+```
+
+### Starting Trainer Battles
+
+```ruby
+# Simple trainer battle
+if pbTrainerBattle(:YOUNGSTER, "Joey", "My Rattata was in the top percentage!")
+  puts "You won!"
+end
+
+# Double battle
+pbTrainerBattle(:TWINS, "Amy & May", "We lost...", true)
+
+# Battle that can be lost
+pbTrainerBattle(:RIVAL1, "Blue", "Haha, I win!", false, 0, true)
+
+# Tag battle against two trainers
+pbDoubleTrainerBattle(
+  :ROCKET, "Grunt 1", 0, "Grunt 1: Nooo!",
+  :ROCKET, "Grunt 2", 0, "Grunt 2: We failed!"
+)
+```
+
+---
+
+## Trainer Data Format
+
+Trainer Pokémon are loaded from `Data/trainers.dat` with the following constants:
+
+```ruby
+TPSPECIES   = 0   # Species ID
+TPLEVEL     = 1   # Level
+TPITEM      = 2   # Held item
+TPMOVE1-4   = 3-6 # Moves
+TPABILITY   = 7   # Ability index
+TPGENDER    = 8   # Gender
+TPFORM      = 9   # Form
+TPSHINY     = 10  # Shiny flag
+TPNATURE    = 11  # Nature
+TPIV        = 12  # IV value
+TPHAPPINESS = 13  # Happiness
+TPNAME      = 14  # Nickname
+TPSHADOW    = 15  # Shadow Pokémon flag
+TPBALL      = 16  # Ball type
+```
+
+**Source**: `030_PTrainer_NPCTrainers.rb:1-18`
+
+---
+
+## Related Classes
+
+- **PokeBattle_Pokemon**: Individual Pokémon class
+- **PBTrainers**: Trainer type constants
+- **PokeBattle_Battle**: Battle system class
+
+## See Also
+
+- [Pokémon Classes](/api/pokemon-classes) - PokeBattle_Pokemon reference
+- [PBMove](/api/pbmove) - Move instances

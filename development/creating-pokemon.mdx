@@ -1,0 +1,338 @@
+---
+title: Creating Pokémon
+description: Learn how to define new Pokémon species using the PBS/pokemon.txt file in Pokémon Essentials BES
+---
+
+# Creating Pokémon
+
+Pokémon species are defined in the `PBS/pokemon.txt` file. Each Pokémon entry contains all the data needed for that species, including stats, types, abilities, moves, and evolution conditions.
+
+## Pokémon Entry Structure
+
+Each Pokémon entry begins with a unique number in brackets and contains various field definitions:
+
+```txt
+[1]
+Name=Bulbasaur
+InternalName=BULBASAUR
+Type1=GRASS
+Type2=POISON
+BaseStats=45,49,49,45,65,65
+GenderRate=FemaleOneEighth
+GrowthRate=Parabolic
+BaseEXP=64
+EffortPoints=0,0,0,0,1,0
+Rareness=45
+Happiness=70
+Abilities=OVERGROW
+HiddenAbility=CHLOROPHYLL
+Moves=1,TACKLE,3,GROWL,7,LEECHSEED,9,VINEWHIP
+EggMoves=AMNESIA,CHARM,CURSE,ENDURE,GIGADRAIN
+Compatibility=Monster,Grass
+StepsToHatch=5355
+Height=0.7
+Weight=6.9
+Color=Green
+Habitat=Grassland
+Kind=Semilla
+Pokedex=A Bulbasaur es fácil verle echándose una siesta al sol.
+Evolutions=IVYSAUR,Level,16
+```
+
+## Essential Fields
+
+<Steps>
+
+### Step 1: Basic Information
+
+<ParamField path="Name" type="string" required>
+  The display name of the Pokémon shown to players.
+</ParamField>
+
+<ParamField path="InternalName" type="string" required>
+  The internal identifier used in code. Must be uppercase and unique.
+</ParamField>
+
+<ParamField path="Type1" type="string" required>
+  The primary type of the Pokémon (e.g., GRASS, FIRE, WATER).
+</ParamField>
+
+<ParamField path="Type2" type="string">
+  The secondary type. Omit this field for single-type Pokémon.
+</ParamField>
+
+### Step 2: Stats and Growth
+
+<ParamField path="BaseStats" type="string" required>
+  Six comma-separated values: HP, Attack, Defense, Speed, Special Attack, Special Defense.
+  
+  Example: `BaseStats=45,49,49,45,65,65`
+</ParamField>
+
+<ParamField path="GrowthRate" type="string" required>
+  How quickly the Pokémon levels up. Options:
+  - `Medium` - Standard growth
+  - `Fast` - Reaches level 100 quickly
+  - `Slow` - Takes longer to level
+  - `Parabolic` - Medium-slow growth
+</ParamField>
+
+<ParamField path="BaseEXP" type="number" required>
+  Experience points awarded when defeated.
+</ParamField>
+
+<ParamField path="EffortPoints" type="string" required>
+  EVs awarded when defeated (HP, Atk, Def, Speed, SpAtk, SpDef).
+  
+  Example: `EffortPoints=0,0,0,0,1,0` gives 1 Special Attack EV
+</ParamField>
+
+### Step 3: Abilities and Moves
+
+<ParamField path="Abilities" type="string" required>
+  Comma-separated list of possible abilities. The Pokémon will have one randomly.
+  
+  Example: `Abilities=OVERGROW` or `Abilities=KEENEYE,TANGLEDFEET`
+</ParamField>
+
+<ParamField path="HiddenAbility" type="string">
+  The hidden ability that can be obtained through special means.
+</ParamField>
+
+<ParamField path="Moves" type="string" required>
+  Level-up moves in format: `level,MOVE,level,MOVE,...`
+  
+  Use level 0 for moves learned upon evolution, level 1 for starting moves.
+</ParamField>
+
+<ParamField path="EggMoves" type="string">
+  Comma-separated list of moves that can be inherited through breeding.
+</ParamField>
+
+</Steps>
+
+## Real Example: Pikachu
+
+```txt
+[25]
+Name=Pikachu
+InternalName=PIKACHU
+Type1=ELECTRIC
+BaseStats=35,55,40,90,50,50
+GenderRate=Female50Percent
+GrowthRate=Medium
+BaseEXP=105
+EffortPoints=0,0,0,2,0,0
+Rareness=190
+Happiness=70
+Abilities=STATIC
+HiddenAbility=LIGHTNINGROD
+Moves=1,TAILWHIP,1,THUNDERSHOCK,5,GROWL,7,PLAYNICE,10,QUICKATTACK,13,ELECTROBALL
+Compatibility=Field,Fairy
+StepsToHatch=2805
+Height=0.4
+Weight=6.0
+Color=Yellow
+Habitat=Forest
+Kind=Ratón
+Pokedex=Tiene unas bolsas en las mejillas en las que almacena electricidad.
+WildItemCommon=ORANBERRY
+WildItemRare=LIGHTBALL
+Evolutions=RAICHU,Item,THUNDERSTONE
+```
+
+## Evolution Definitions
+
+<ParamField path="Evolutions" type="string">
+  Evolution conditions in format: `SPECIES,Method,Parameter`
+  
+  Common methods:
+  - `Level,16` - Evolves at level 16
+  - `Item,FIRESTONE` - Evolves with Fire Stone
+  - `Happiness,` - Evolves with high friendship
+  - `HappinessDay,` - Evolves with high friendship during day
+  - `Trade,` - Evolves when traded
+</ParamField>
+
+### Evolution Examples
+
+```txt
+# Level evolution
+Evolutions=IVYSAUR,Level,16
+
+# Stone evolution
+Evolutions=RAICHU,Item,THUNDERSTONE
+
+# Friendship evolution
+Evolutions=CROBAT,Happiness,
+
+# Multiple evolutions (Eevee)
+Evolutions=VAPOREON,Item,WATERSTONE,JOLTEON,Item,THUNDERSTONE,FLAREON,Item,FIRESTONE
+```
+
+## Regional Forms
+
+For Pokémon with regional variants, use the `FormNames` field:
+
+```txt
+[27]
+Name=Sandshrew
+InternalName=SANDSHREW
+Type1=GROUND
+BaseStats=50,75,85,40,20,30
+FormNames=Forma Normal,Forma Alola
+Evolutions=SANDSLASH,LevelForm0,22,SANDSLASH,ItemForm1,ICESTONE
+```
+
+<Note>
+  Form 0 is the default form. Use `LevelForm0`, `LevelForm1`, etc., or `ItemForm0`, `ItemForm1` to specify which form evolves.
+</Note>
+
+## Gender and Breeding
+
+<ParamField path="GenderRate" type="string" required>
+  Gender ratio for wild encounters:
+  - `AlwaysMale` - 100% male
+  - `AlwaysFemale` - 100% female
+  - `Female50Percent` - 50/50 split
+  - `FemaleOneEighth` - 12.5% female (starters)
+  - `Female75Percent` - 75% female
+  - `Genderless` - No gender
+</ParamField>
+
+<ParamField path="Compatibility" type="string" required>
+  Egg groups for breeding, comma-separated.
+  
+  Examples: `Monster,Grass`, `Field,Fairy`, `Water1`
+</ParamField>
+
+<ParamField path="StepsToHatch" type="number" required>
+  Number of steps required to hatch an egg of this species.
+</ParamField>
+
+## Physical Attributes
+
+```txt
+Height=0.7        # Height in meters
+Weight=6.9        # Weight in kilograms
+Color=Green       # Pokédex color category
+Habitat=Grassland # Natural habitat
+Kind=Semilla      # Species category (shown in Pokédex)
+```
+
+## Wild-Held Items
+
+<ParamField path="WildItemCommon" type="string">
+  Item with 50% chance of being held by wild encounters.
+</ParamField>
+
+<ParamField path="WildItemUncommon" type="string">
+  Item with 5% chance of being held.
+</ParamField>
+
+<ParamField path="WildItemRare" type="string">
+  Item with 1% chance of being held.
+</ParamField>
+
+### Example: Butterfree
+
+```txt
+[12]
+Name=Butterfree
+InternalName=BUTTERFREE
+WildItemUncommon=SILVERPOWDER
+```
+
+## Creating a New Pokémon
+
+<Steps>
+
+### Find the next available number
+
+Look at the last entry in `pokemon.txt` to find the next ID number.
+
+### Define basic properties
+
+```txt
+[500]
+Name=MyPokemon
+InternalName=MYPOKEMON
+Type1=FIRE
+Type2=FLYING
+BaseStats=78,84,78,100,109,85
+GenderRate=Female50Percent
+GrowthRate=Medium
+BaseEXP=180
+EffortPoints=0,0,0,0,3,0
+Rareness=45
+Happiness=70
+```
+
+### Add abilities and moves
+
+```txt
+Abilities=BLAZE
+HiddenAbility=SOLARPOWER
+Moves=1,SCRATCH,1,GROWL,7,EMBER,13,FIREFANG
+EggMoves=FLAREBLITZ,WINGATTACK
+```
+
+### Complete with breeding and appearance
+
+```txt
+Compatibility=Flying,Dragon
+StepsToHatch=5355
+Height=1.7
+Weight=90.5
+Color=Red
+Habitat=Mountain
+Kind=Flame
+Pokedex=A powerful Fire-type Pokémon with blazing wings.
+```
+
+### Add evolution if applicable
+
+```txt
+Evolutions=MYPOKEMONEVOLVED,Level,36
+```
+
+</Steps>
+
+<Tip>
+  After adding a new Pokémon, run the game in Debug mode and use the "Compile all" option to ensure your changes are loaded correctly.
+</Tip>
+
+## Battle Sprites
+
+Pokémon sprites are defined with positioning fields:
+
+```txt
+BattlerPlayerY=7    # Vertical offset for player's side
+BattlerEnemyY=22    # Vertical offset for enemy side
+BattlerAltitude=0   # Height above ground (for flying Pokémon)
+```
+
+<Warning>
+  Always ensure your Pokémon has proper sprite files in `Graphics/Pokemon/` before testing in-game. You'll need front, back, and icon sprites at minimum.
+</Warning>
+
+## Mega Evolution and Forms
+
+For Pokémon with Mega Evolutions:
+
+```txt
+[3]
+Name=Venusaur
+InternalName=VENUSAUR
+FormNames=,Mega Venusaur
+```
+
+<Note>
+  The first comma represents the base form (no name needed). Subsequent forms are named after the comma.
+</Note>
+
+## Next Steps
+
+- [Creating Moves](/development/creating-moves) - Define custom moves for your Pokémon
+- [Creating Abilities](/development/creating-abilities) - Create unique abilities
+- [Wild Encounters](/development/creating-maps) - Set up where your Pokémon appears

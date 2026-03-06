@@ -1,0 +1,508 @@
+---
+title: Data Loading
+description: How PBS files are loaded, compiled, and cached in Pokémon Essentials BES
+---
+
+# Data Loading
+
+Pokémon Essentials BES uses a text-to-binary compilation system to load game data efficiently. PBS (Pokémon Script) files are human-readable text files that get compiled into binary `.dat` files for fast runtime access.
+
+## PBS File System
+
+All PBS files are located in the `PBS/` directory:
+
+```
+PBS/
+├── abilities.txt      # Ability definitions
+├── moves.txt          # Move data
+├── pokemon.txt        # Species data
+├── items.txt          # Item definitions
+├── types.txt          # Type chart
+├── trainers.txt       # Trainer battles
+├── trainertypes.txt   # Trainer classes
+├── encounters.txt     # Wild encounters
+├── metadata.txt       # Map metadata
+└── ...               # Other data files
+```
+
+## Compilation Process
+
+### PBS to DAT Conversion
+
+PBS files are compiled to binary `.dat` files using the compiler system:
+
+```ruby
+# From 039_PSystem_Utilities.rb
+def pbCompilerEachPreppedLine(filename)
+  File.open(filename,"rb"){|f|
+    FileLineData.file=filename
+    lineno=1
+    f.each_line {|line|
+      # Skip UTF-8 BOM if present
+      if lineno==1 && line[0]==0xEF && line[1]==0xBB && line[2]==0xBF
+        line=line[3,line.length-3]
+      end
+      
+      # Remove comments and whitespace
+      line=prepline(line)
+      
+      if !line[/^\#/] && !line[/^\s*$/]
+        FileLineData.setLine(line,lineno)
+        yield line, lineno
+      end
+      lineno+=1
+    }
+  }
+end
+```
+
+<Note>
+PBS files must be saved with UTF-8 encoding. A UTF-8 BOM (Byte Order Mark) is automatically detected and stripped.
+</Note>
+
+### Compiling Moves
+
+**From `PBS/moves.txt` to `Data/moves.dat`:**
+
+```ruby
+def pbCompileMoves
+  records=[]
+  movenames=[]
+  movedescs=[]
+  movedata=[]
+  maxValue=0
+  
+  pbCompilerEachPreppedLine("PBS/moves.txt"){|line,lineno|
+    # Parse CSV record
+    record=pbGetCsvRecord(line,lineno,[0,"vnsxueeuuuxiss",
+       nil,nil,nil,nil,nil,PBTypes,["Physical","Special","Status"],
+       nil,nil,nil,nil,nil,nil,nil
+    ])
+    
+    # Validate data
+    pbCheckWord(record[3],_INTL("Function code"))
+    pbCheckByte(record[4],_INTL("Base damage"))
+    pbCheckByte(record[7],_INTL("Accuracy"))
+    pbCheckByte(record[8],_INTL("Total PP"))
+    
+    # Pack move data into binary format
+    movedata[record[0]]=[
+       record[3],  # Function code
+       record[4],  # Damage
+       record[5],  # Type
+       record[6],  # Category
+       record[7],  # Accuracy
+       record[8],  # Total PP
+       record[9],  # Effect chance
+       record[10], # Target
+       record[11], # Priority
+       flags,      # Flags
+       0           # Contest type
+    ].pack("vCCCCCCvCvC")  # Binary packing format
+    
+    movenames[record[0]]=record[2]
+    movedescs[record[0]]=record[13]
+  }
+  
+  # Write binary data file
+  File.open("Data/moves.dat","wb"){|file|
+    for i in 0...movedata.length
+      file.write(movedata[i] ? movedata[i] : defaultdata)
+    end
+  }
+  
+  # Store text data
+  MessageTypes.setMessages(MessageTypes::Moves,movenames)
+  MessageTypes.setMessages(MessageTypes::MoveDescriptions,movedescs)
+end
+```
+
+<Accordion title="Binary Packing Format">
+The `.pack("vCCCCCCvCvC")` format string defines how data is stored:
+
+- `v`: 16-bit unsigned integer (little-endian)
+- `C`: 8-bit unsigned integer (byte)
+
+**Move data structure (11 bytes):**
+1. Function code (2 bytes)
+2. Base damage (1 byte)
+3. Type (1 byte)
+4. Category (1 byte)
+5. Accuracy (1 byte)
+6. Total PP (1 byte)
+7. Effect chance (1 byte)
+8. Target (2 bytes)
+9. Priority (1 byte, signed)
+10. Flags (2 bytes)
+11. Contest type (1 byte)
+</Accordion>
+
+## File Reading System
+
+### pbRgssOpen
+
+The `pbRgssOpen` function handles reading from both regular files and encrypted RGSSAD archives:
+
+```ruby
+def pbRgssOpen(filename, mode="rb")
+  # Try to open from encrypted archive first
+  if safeExists?("Game.rgssad") || safeExists?("Game.rgss2a")
+    # Read from archive
+  else
+    # Read from regular file
+    File.open(filename, mode) {|f|
+      yield f
+    }
+  end
+end
+```
+
+<Note>
+In debug mode, files are read directly from disk. In release builds, they're read from encrypted archives.
+</Note>
+
+### Reading Compiled Data
+
+**Example: Reading move data at runtime**
+
+```ruby
+class PBMoveData
+  def initialize(moveid)
+    File.open("Data/moves.dat","rb"){|movedata|
+      movedata.pos=moveid*11  # Each move is 11 bytes
+      @function=movedata.fgetb
+      @basedamage=movedata.fgetb
+      @type=movedata.fgetb
+      @accuracy=movedata.fgetb
+      @totalpp=movedata.fgetb
+      @addlEffect=movedata.fgetb
+      @target=movedata.fgetb
+      @priority=movedata.fgetsb  # Signed byte
+      @flags=movedata.fgetb
+    }
+  end
+end
+```
+
+## Data Caching System
+
+### PokemonTemp Class
+
+Temporary data is cached in the `$PokemonTemp` global:
+
+```ruby
+class PokemonTemp
+  attr_accessor :begunNewGame
+  attr_accessor :lastbattle      # Last battle data
+  attr_accessor :pokecenter      # Last Pokémon Center location
+  attr_accessor :flydata         # Fly destination data
+  attr_accessor :batterywarning  # Battery low warning shown
+  
+  def initialize
+    @begunNewGame = false
+    @lastbattle = nil
+  end
+end
+```
+
+### Message Type System
+
+Text messages are stored separately and accessed via `MessageTypes`:
+
+```ruby
+module MessageTypes
+  Types          = 0
+  Abilities      = 1
+  Moves          = 2
+  Items          = 3
+  Species        = 4
+  # ... more message types
+end
+
+# Setting messages during compilation
+MessageTypes.setMessages(MessageTypes::Moves, movenames)
+MessageTypes.setMessages(MessageTypes::MoveDescriptions, movedescs)
+
+# Retrieving messages at runtime
+move_name = pbGetMessage(MessageTypes::Moves, move_id)
+```
+
+## Section-Based File Reading
+
+Many PBS files use section-based formats:
+
+```ruby
+def pbEachFileSection(f)
+  pbEachFileSectionEx(f) {|section,name|
+    if block_given? && name[/^\d+$/]
+      yield section,name.to_i
+    end
+  }
+end
+
+def pbEachFileSectionEx(f)
+  lineno=1
+  havesection=false
+  sectionname=nil
+  lastsection={}
+  
+  f.each_line {|line|
+    # Skip UTF-8 BOM
+    if lineno==1 && line[0]==0xEF && line[1]==0xBB && line[2]==0xBF
+      line=line[3,line.length-3]
+    end
+    
+    if !line[/^\#/] && !line[/^\s*$/]
+      if line[/^\s*\[\s*(.*)\s*\]\s*$/]  # Section header
+        if havesection
+          yield lastsection,sectionname 
+        end
+        sectionname=$~[1]
+        havesection=true
+        lastsection={}
+      else
+        # Parse key=value pairs
+        if line[/^\s*(\w+)\s*=\s*(.*)$/]
+          r1=$~[1]
+          r2=$~[2]
+          lastsection[r1]=r2.gsub(/\s+$/,"")
+        end
+      end
+    end
+    lineno+=1
+  }
+  
+  if havesection
+    yield lastsection,sectionname 
+  end
+end
+```
+
+**Example PBS file with sections:**
+
+```ini
+[1]
+Name=Bulbasaur
+InternalName=BULBASAUR
+Type1=GRASS
+Type2=POISON
+BaseStats=45,49,49,45,65,65
+Abilities=OVERGROW,CHLOROPHYLL
+
+[2]
+Name=Ivysaur
+InternalName=IVYSAUR
+Type1=GRASS
+Type2=POISON
+BaseStats=60,62,63,60,80,80
+Abilities=OVERGROW,CHLOROPHYLL
+```
+
+## CSV Parsing
+
+Many PBS files use CSV format for simpler data:
+
+```ruby
+def csvfield!(str)
+  ret=""
+  str.sub!(/^\s*/,"")  # Strip leading whitespace
+  
+  if str[0,1]=="\""
+    # Quoted field
+    str[0,1]=""
+    escaped=false
+    fieldbytes=0
+    str.scan(/./) do |s|
+      fieldbytes+=s.length
+      break if s=="\"" && !escaped
+      if s=="\\" && !escaped
+        escaped=true
+      else
+        ret+=s
+        escaped=false
+      end
+    end
+    str[0,fieldbytes]=""
+  else
+    # Unquoted field
+    if str[/,/]
+      str[0,str.length]=$~.post_match
+      ret=$~.pre_match
+    else
+      ret=str.clone
+      str[0,str.length]=""
+    end
+    ret.gsub!(/\s+$/,"")  # Strip trailing whitespace
+  end
+  return ret
+end
+```
+
+## Data Validation
+
+### Type Checking Functions
+
+```ruby
+def pbCheckByte(x,valuename)
+  if x<0 || x>255
+    raise _INTL("The value \"{1}\" must be from 0 through 255, got {2}",
+       valuename,x)
+  end
+end
+
+def pbCheckWord(x,valuename)
+  if x<0 || x>65535
+    raise _INTL("The value \"{1}\" must be from 0 through 65535, got {2}",
+       valuename,x)
+  end
+end
+
+def pbCheckSignedByte(x,valuename)
+  if x<-128 || x>127
+    raise _INTL("The value \"{1}\" must be from -128 through 127, got {2}",
+       valuename,x)
+  end
+end
+```
+
+## Enum Field Parsing
+
+Enumerated values (like types, abilities) are converted to constants:
+
+```ruby
+def checkEnumField(ret,enumer)
+  if enumer.is_a?(Module)
+    # Check if constant exists in module
+    if ret=="" || !enumer.const_defined?(ret.to_sym)
+      raise _INTL("Undefined value {1} in {2}",ret,enumer.name)
+    end
+    return enumer.const_get(ret.to_sym)
+  elsif enumer.is_a?(Array)
+    # Find index in array
+    idx=findIndex(enumer){|item| ret==item}
+    if idx<0
+      raise _INTL("Undefined value {1} (expected one of: {2})",
+         ret,enumer.inspect)
+    end
+    return idx
+  end
+end
+```
+
+**Example:**
+
+```ruby
+# Parse "FIRE" to PBTypes::FIRE constant
+type = csvEnumField!("FIRE", PBTypes, "Type1", section)
+# Returns: 10 (the numeric ID for FIRE type)
+```
+
+## Loading at Runtime
+
+### Load Priority
+
+1. **Compiled Data** (`.dat` files) - Fast binary access
+2. **Constants** (generated Ruby code) - Constant definitions
+3. **Message Data** - Localized text strings
+
+```ruby
+# Load compiled Pokémon data
+dexdata = load_data("Data/dexdata.dat")
+
+# Load moves data
+moves = load_data("Data/moves.dat")
+
+# Load trainer types
+trainertypes = load_data("Data/trainertypes.dat")
+```
+
+### Serial Records
+
+Some data uses serial record format for variable-length entries:
+
+```ruby
+def readSerialRecords(filename)
+  ret=[]
+  return ret if !pbRgssExists?(filename)
+  
+  pbRgssOpen(filename,"rb"){|file|
+    numrec=file.fgetdw>>3
+    curpos=0
+    
+    for i in 0...numrec
+      file.pos=curpos
+      offset=file.fgetdw
+      length=file.fgetdw
+      record=SerialRecord.decode(file,offset,length)
+      ret.push(record)
+      curpos+=8
+    end
+  }
+  return ret
+end
+```
+
+<Accordion title="Serial Record Format">
+Serial records store variable-length data efficiently:
+
+1. **Header**: Number of records
+2. **Index**: Offset and length for each record
+3. **Data**: Actual record data
+
+Each field is prefixed with a type indicator:
+- `0`: nil
+- `T`: true
+- `F`: false
+- `"`: String (followed by length and data)
+- `i`: Integer (variable-length encoded)
+</Accordion>
+
+## Performance Considerations
+
+<Note>
+**Why Use Binary Data?**
+
+- **Speed**: Binary files load 10-100x faster than parsing text
+- **Size**: Compiled data is more compact
+- **Security**: Binary format obscures data from casual editing
+- **Validation**: Errors caught at compile-time, not runtime
+</Note>
+
+## Debugging Data Loading
+
+### FileLineData System
+
+Tracks current file position for error reporting:
+
+```ruby
+module FileLineData
+  @file=""
+  @linedata=""
+  @lineno=0
+  
+  def self.linereport
+    if @section
+      return _INTL("File {1}, section {2}, key {3}\r\n{4}\r\n",
+         @file,@section,@key,@value)
+    else
+      return _INTL("File {1}, line {2}\r\n{3}\r\n",
+         @file,@lineno,@linedata)
+    end
+  end
+end
+```
+
+Provides detailed error messages:
+
+```
+Error: Field 'BasePower' is not an integer
+File PBS/moves.txt, line 42
+42,FLAMETHROWER,Lanzallamas,000,NINETY,FIRE,Special,100,15,10,00,0,bef
+```
+
+## Related Systems
+
+See also:
+- [PBS Compiler](/api/pbs-compiler) - Detailed compilation process
+- [Save System](/api/save-system) - How game state is persisted
+- [Battle Mechanics](/api/battle-mechanics) - How loaded data is used in battles

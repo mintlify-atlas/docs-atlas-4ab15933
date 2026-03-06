@@ -1,0 +1,385 @@
+---
+title: moves.txt
+description: Complete reference for defining moves in PBS/moves.txt
+---
+
+The `moves.txt` file defines all moves (attacks and status moves) that Pokémon can learn. Each move is defined on a single line in a CSV-like format.
+
+## File Format
+
+Each line defines one move with comma-separated values:
+
+```
+ID,INTERNALNAME,Name,FunctionCode,BasePower,Type,Category,Accuracy,TotalPP,EffectChance,Target,Priority,Flags,Description
+```
+
+## Example Entries
+
+```
+1,MEGAHORN,Megacuerno,000,120,BUG,Physical,85,10,0,00,0,abef,"Violenta embestida con cuernos imponentes."
+69,THUNDERBOLT,Rayo,007,90,ELECTRIC,Special,100,15,10,00,0,bef,"Potente ataque eléctrico que puede paralizar al objetivo."
+213,COTTONGUARD,Rizo Algodón,038,0,GRASS,Status,0,10,0,10,0,d,"Cubre al Pokémon con una madeja protectora. Aumenta muchísimo la Defensa."
+```
+
+## Field Definitions
+
+<ParamField path="ID" type="Integer">
+  Unique move ID number. Must be sequential starting from 1.
+  
+  ```
+  1,MEGAHORN,...
+  2,ATTACKORDER,...
+  3,BUGBUZZ,...
+  ```
+</ParamField>
+
+<ParamField path="InternalName" type="String">
+  Internal identifier in UPPERCASE. Used in code and scripts.
+  
+  ```
+  THUNDERBOLT
+  EARTHQUAKE
+  SWORDSDANCE
+  ```
+</ParamField>
+
+<ParamField path="Name" type="String">
+  Display name shown to players.
+  
+  ```
+  Rayo
+  Terremoto
+  Danza Espada
+  ```
+</ParamField>
+
+<ParamField path="FunctionCode" type="String (3 chars)">
+  Three-character hexadecimal code defining the move's special effect.
+  
+  Common codes:
+  - `000` - Standard damage, no effect
+  - `003` - Puts target to sleep
+  - `007` - May paralyze target
+  - `00A` - May burn target
+  - `00C` - May freeze target
+  - `013` - May confuse target
+  - `0DD` - Drains HP (absorbs 50%)
+  - `0C2` - Two-turn attack, recharge next turn
+  - `0A5` - Never misses
+  - `0EF` - Prevents escape
+  
+  See the full function code list in the game's source code for all effects.
+  
+  ```
+  000  # Normal damage
+  007  # 10% chance to paralyze
+  0DD  # Drains 50% damage as HP
+  ```
+</ParamField>
+
+<ParamField path="BasePower" type="Integer">
+  Base power of the move. Use `0` for status moves.
+  
+  - Status moves: `0`
+  - Weak moves: `20-40`
+  - Standard moves: `50-80`
+  - Strong moves: `90-120`
+  - Ultra powerful: `150+`
+  - Variable power: `1`
+  
+  ```
+  0    # Status move
+  40   # Weak attack
+  90   # Standard attack
+  120  # Strong attack
+  1    # Variable power (depends on function code)
+  ```
+</ParamField>
+
+<ParamField path="Type" type="Type">
+  Move's elemental type.
+  
+  Valid types: `NORMAL`, `FIRE`, `WATER`, `ELECTRIC`, `GRASS`, `ICE`, `FIGHTING`, `POISON`, `GROUND`, `FLYING`, `PSYCHIC`, `BUG`, `ROCK`, `GHOST`, `DRAGON`, `DARK`, `STEEL`, `FAIRY`
+  
+  ```
+  FIRE
+  WATER
+  ELECTRIC
+  ```
+</ParamField>
+
+<ParamField path="Category" type="Category">
+  Move damage category.
+  
+  Valid values:
+  - `Physical` - Uses Attack/Defense stats
+  - `Special` - Uses Sp.Atk/Sp.Def stats
+  - `Status` - Non-damaging move
+  
+  ```
+  Physical
+  Special
+  Status
+  ```
+</ParamField>
+
+<ParamField path="Accuracy" type="Integer">
+  Move accuracy percentage (0-100). Use `0` for moves that never miss.
+  
+  ```
+  100  # Perfect accuracy
+  90   # 90% chance to hit
+  85   # 85% chance to hit
+  0    # Never misses (ignores evasion)
+  ```
+</ParamField>
+
+<ParamField path="TotalPP" type="Integer">
+  Base PP (Power Points) - number of times move can be used.
+  
+  Common values:
+  - `5` - Very limited (powerful moves)
+  - `10` - Limited
+  - `15` - Standard
+  - `20` - Common
+  - `25-40` - Weak moves
+  
+  ```
+  5   # Strong moves like Hyper Beam
+  10  # Limited like Earthquake
+  15  # Standard like Thunderbolt
+  20  # Common like Tackle
+  ```
+</ParamField>
+
+<ParamField path="EffectChance" type="Integer">
+  Percentage chance (0-100) of secondary effect occurring.
+  
+  - `0` - No secondary effect or guaranteed effect
+  - `10` - 10% chance
+  - `20` - 20% chance
+  - `30` - 30% chance
+  - `100` - 100% chance (guaranteed)
+  
+  ```
+  0    # No/guaranteed effect
+  10   # 10% paralysis chance
+  30   # 30% burn chance
+  100  # Always causes effect
+  ```
+</ParamField>
+
+<ParamField path="Target" type="Target Code (2 chars)">
+  Two-character code defining valid targets.
+  
+  Common codes:
+  - `00` - Single adjacent target
+  - `01` - No target (self only)
+  - `02` - Random opposing Pokémon
+  - `04` - All opposing Pokémon
+  - `08` - All adjacent Pokémon (including ally)
+  - `10` - User
+  - `20` - Both sides
+  - `40` - User's side
+  - `80` - Opponent's side
+  
+  ```
+  00  # Single target
+  04  # All opponents
+  10  # Self
+  ```
+</ParamField>
+
+<ParamField path="Priority" type="Integer">
+  Move priority (-6 to +5). Higher priority moves go first.
+  
+  - `+5` - Helping Hand
+  - `+4` - Detect, Protect
+  - `+3` - Fake Out
+  - `+2` - Extreme Speed
+  - `+1` - Quick Attack, Aqua Jet
+  - `0` - Normal priority
+  - `-1` - Vital Throw
+  - `-3` - Focus Punch
+  - `-4` - Avalanche
+  - `-5` - Counter
+  - `-6` - Dragon Tail
+  
+  ```
+  0   # Normal
+  1   # Quick Attack priority
+  -4  # Moves last
+  ```
+</ParamField>
+
+<ParamField path="Flags" type="Flag String">
+  Single string containing flag letters defining move properties. No commas.
+  
+  Flag letters:
+  - `a` - Makes contact with target
+  - `b` - Affected by Protect/Detect
+  - `c` - Affected by Magic Coat
+  - `d` - Affected by Snatch
+  - `e` - Copyable by Mirror Move
+  - `f` - Usable by a Pokémon with Fist Iron
+  - `g` - Thaws user if frozen
+  - `h` - High critical hit ratio
+  - `i` - Biting move (boosted by Strong Jaw)
+  - `j` - Punching move (boosted by Iron Fist)
+  - `k` - Sound-based move
+  - `l` - Powder move (doesn't affect Grass types)
+  - `m` - Pulse move (boosted by Mega Launcher)
+  - `n` - Ballistic move (blocked by Bulletproof)
+  
+  ```
+  abef    # Contact + Protect + Mirror + Iron Fist
+  bef     # Protect + Mirror + Iron Fist
+  d       # Snatch only
+  befh    # Protect + Mirror + Iron Fist + High crit
+  ```
+</ParamField>
+
+<ParamField path="Description" type="String">
+  Move description shown to players. Must be in quotes.
+  
+  ```
+  "Potente ataque eléctrico que puede paralizar al objetivo."
+  "Aumenta muchísimo la Defensa."
+  ```
+</ParamField>
+
+## Move Categories
+
+### Physical Moves
+
+Use Attack and Defense stats. Most contact moves are physical.
+
+```
+56,DRAGONPULSE,Pulso Dragón,000,85,DRAGON,Special,100,10,0,00,0,befm,"Abre mucho la boca y libera una onda de choque que ataca al objetivo."
+```
+
+### Special Moves
+
+Use Sp.Atk and Sp.Def stats. Most projectile and energy moves.
+
+```
+69,THUNDERBOLT,Rayo,007,90,ELECTRIC,Special,100,15,10,00,0,bef,"Potente ataque eléctrico que puede paralizar al objetivo."
+```
+
+### Status Moves
+
+No damage, used for stat changes, status conditions, field effects.
+
+```
+213,COTTONGUARD,Rizo Algodón,038,0,GRASS,Status,0,10,0,10,0,d,"Cubre al Pokémon con una madeja protectora. Aumenta muchísimo la Defensa."
+```
+
+## Common Function Codes
+
+<Accordion title="Status Condition Codes">
+  - `003` - Sleep
+  - `007` - Paralysis
+  - `00A` - Burn
+  - `00C` - Freeze
+  - `00D` - Freeze + Burn (Ice Burn)
+  - `00E` - Freeze + Flinch (Ice Fang)
+  - `00F` - Flinch
+  - `010` - Flinch (high chance)
+  - `013` - Confusion
+</Accordion>
+
+<Accordion title="Stat Modification Codes">
+  - `01D` - Raise user's Defense by 1
+  - `01E` - Raise user's Defense by 1 (Defense Curl)
+  - `01F` - Raise user's Speed by 1
+  - `020` - Raise user's Sp.Atk by 1
+  - `021` - Raise user's Sp.Def by 1 (Charge)
+  - `022` - Raise user's Evasion by 1
+  - `023` - Raise user's Critical ratio
+  - `024` - Raise user's Attack and Defense by 1
+  - `026` - Raise user's Attack and Speed by 1
+  - `028` - Raise user's Attack and Sp.Atk by 1
+  - `029` - Raise user's Attack and Accuracy by 1
+  - `02B` - Raise user's Sp.Atk, Sp.Def and Speed by 1
+  - `032` - Raise user's Sp.Atk by 2
+  - `038` - Raise user's Defense by 3
+  - `039` - Raise user's Sp.Atk by 3
+</Accordion>
+
+<Accordion title="HP Manipulation Codes">
+  - `0DD` - Drain HP (restore 50% of damage)
+  - `0D5` - Heal user by 50% max HP
+  - `0D6` - Heal user by 50% max HP (Roost)
+  - `0D8` - Heal user (varies by weather)
+  - `0E0` - Explosion (user faints)
+  - `0E1` - Final Gambit (user faints, damage = user's HP)
+  - `0E2` - Memento (user faints, lower stats)
+</Accordion>
+
+<Accordion title="Multi-Turn & Charging Codes">
+  - `0C2` - Two-turn attack (Hyper Beam pattern)
+  - `0C3` - Charge turn then attack (Razor Wind)
+  - `0C4` - Charge turn then attack (Solar Beam)
+  - `0C5` - Charge turn then attack (Freeze Shock)
+  - `0C6` - Charge turn then attack (Ice Burn)
+  - `0C7` - Charge turn then attack (Sky Attack)
+  - `0C8` - Charge turn then attack (Skull Bash)
+  - `0C9` - Two-turn attack (Fly)
+  - `0CA` - Two-turn attack (Dig)
+  - `0CC` - Two-turn attack (Bounce)
+  - `0CD` - Two-turn attack (Shadow Force)
+  - `0CE` - Two-turn attack (Sky Drop)
+</Accordion>
+
+## Complete Examples
+
+### Damaging Move
+
+```
+69,THUNDERBOLT,Rayo,007,90,ELECTRIC,Special,100,15,10,00,0,bef,"Potente ataque eléctrico que puede paralizar al objetivo."
+```
+
+- 90 base power Electric special move
+- 100% accuracy, 15 PP
+- 10% chance to paralyze
+- Single target, normal priority
+- Affected by Protect, Mirror Move, Iron Fist
+
+### Status Move
+
+```
+83,THUNDERWAVE,Onda Trueno,007,0,ELECTRIC,Status,90,20,0,00,0,bce,"Una ligera descarga que paraliza al objetivo si lo alcanza."
+```
+
+- No damage (0 power)
+- 90% accuracy, 20 PP
+- Paralyzes target
+- Affected by Protect, Magic Coat, Mirror Move
+
+### Multi-Target Move
+
+```
+223,EARTHQUAKE,Terremoto,076,100,GROUND,Physical,100,10,0,08,0,bef,"Un terremoto que afecta a los Pokémon de alrededor en combate."
+```
+
+- Hits all adjacent Pokémon (target code `08`)
+- 100 base power Ground physical move
+- Special function code `076` (hits underground Dig users)
+
+### Priority Move
+
+```
+310,QUICKATTACK,Ataque Rápido,000,40,NORMAL,Physical,100,30,0,00,1,abef,"Ataque rápido que permite golpear en primer lugar."
+```
+
+- Priority `1` (goes before normal moves)
+- 40 base power, 100% accuracy
+- Makes contact
+
+<Note>
+  **Function Codes**: The function code system is extensive. For a complete list of all function codes and their effects, refer to the `PokeBattle_MoveEffects.rb` file in the game's Scripts folder.
+</Note>
+
+<Note>
+  **Variable Power Moves**: Moves with `BasePower=1` have their power calculated by their function code. Examples include Grass Knot (based on weight), Gyro Ball (based on speed), and Hidden Power (based on IVs).
+</Note>

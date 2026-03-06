@@ -1,80 +1,539 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart Guide
+description: Create your first Pokémon game changes in minutes with this hands-on tutorial
 ---
 
-## Get started in three steps
+## Welcome to Your First Project
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide will walk you through opening Pokémon Essentials BES, understanding the project structure, running the game, and making your first meaningful change. By the end, you'll have modified a Pokémon's stats and seen your changes in action!
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  This tutorial assumes you've already [installed Pokémon Essentials BES](/installation). If not, complete the installation first.
 </Note>
+
+## Opening the Project
+
+<Steps>
+  <Step title="Launch RPG Maker XP">
+    Open RPG Maker XP from your Start Menu or desktop shortcut.
+    
+    <Note>
+      On Windows 10/11, you may need to right-click and select "Run as administrator" for full functionality.
+    </Note>
+  </Step>
+  
+  <Step title="Open the Project File">
+    In RPG Maker XP:
+    1. Click **File** → **Open Project**
+    2. Navigate to your Essentials BES folder
+    3. Select `Game.rxproj`
+    4. Click **Open**
+    
+    The project will load, showing the map editor interface.
+  </Step>
+  
+  <Step title="Explore the Editor Interface">
+    Familiarize yourself with the main areas:
+    
+    - **Left Panel**: Map tree showing all game maps
+    - **Center**: Map editing canvas with grid
+    - **Bottom**: Tileset palette for placing tiles
+    - **Top Toolbar**: Tools for drawing, events, and testing
+    
+    <Note>
+      Press **F12** while playing to reset the game, and **F1** to access RPG Maker XP help.
+    </Note>
+  </Step>
+</Steps>
+
+## Understanding the Folder Structure
+
+Let's explore the key directories you'll work with:
+
+```
+Pokémon Essentials BES/
+│
+├── Game.exe                 # Main executable (play the game)
+├── Game.rxproj             # Project file (open in RPG Maker XP)
+│
+├── Data/                   # ⚠️ COMPILED DATA - Don't edit directly
+│   ├── Scripts.rxdata      # Compiled Ruby scripts
+│   ├── Map001.rxdata       # Compiled map data
+│   └── Constants.rxdata    # Compiled constants
+│
+├── PBS/                    # ✅ EDIT THESE - Plain text data files
+│   ├── pokemon.txt         # Pokémon species data
+│   ├── moves.txt           # Move definitions
+│   ├── abilities.txt       # Ability definitions
+│   ├── items.txt           # Item data
+│   ├── trainers.txt        # Trainer battles
+│   ├── encounters.txt      # Wild Pokémon encounters
+│   └── metadata.txt        # Map properties
+│
+├── Graphics/               # Visual assets
+│   ├── Battlers/          # Pokémon battle sprites
+│   ├── Characters/        # Overworld sprites
+│   ├── Tilesets/         # Map tiles
+│   └── Pictures/          # UI and misc graphics
+│
+├── Audio/                  # Sound and music
+│   ├── BGM/               # Background music
+│   ├── BGS/               # Background sounds
+│   ├── ME/                # Music effects (victory, etc.)
+│   └── SE/                # Sound effects
+│
+└── Tools/                  # Development utilities
+    ├── animmaker.exe      # Battle animation creator
+    └── Extraer Importar Scripts/  # Script management
+```
+
+<Warning>
+  **Important**: Never manually edit files in the `Data/` folder! They are compiled binary files. Always edit PBS files instead, then compile them in-game.
+</Warning>
+
+## Running the Game
+
+<Steps>
+  <Step title="Launch from RPG Maker XP">
+    The easiest way to test your game:
+    
+    1. In RPG Maker XP, press **F12** or click the **Play** button (▶️)
+    2. The game window will open
+    3. Press **Enter** or **Space** to continue past the title screen
+    
+    <Note>
+      This method launches the game directly for quick testing.
+    </Note>
+  </Step>
+  
+  <Step title="Launch from Game.exe">
+    Alternatively, run the standalone executable:
+    
+    1. Navigate to your project folder
+    2. Double-click `Game.exe`
+    3. The game starts independently of RPG Maker XP
+    
+    Use this method to test how players will experience your game.
+  </Step>
+  
+  <Step title="Navigate the Starter Game">
+    Once in-game:
+    
+    - Use **Arrow Keys** to move
+    - Press **Z/Enter** to interact and confirm
+    - Press **X/Escape** to cancel or open menu
+    - Press **C** to open the Pokémon menu
+    - Press **F12** to soft reset (if enabled)
+    
+    Walk around the starter map (Perales town) and interact with objects to get a feel for the game.
+  </Step>
+</Steps>
+
+## Your First Change: Modifying a Pokémon
+
+Let's make Bulbasaur stronger by editing its base stats!
+
+<Steps>
+  <Step title="Open the Pokémon Data File">
+    1. Navigate to your project's `PBS/` folder
+    2. Right-click `pokemon.txt`
+    3. Open with a text editor (Notepad++, VS Code, or even Notepad)
+    
+    <Note>
+      We recommend using **Notepad++** or **Visual Studio Code** for better syntax highlighting and line numbers.
+    </Note>
+  </Step>
+  
+  <Step title="Find Bulbasaur's Entry">
+    Search for Bulbasaur (Ctrl+F):
+    
+    ```txt pokemon.txt
+    [1]
+    Name=Bulbasaur
+    InternalName=BULBASAUR
+    Type1=GRASS
+    Type2=POISON
+    BaseStats=45,49,49,45,65,65
+    GenderRate=FemaleOneEighth
+    GrowthRate=Parabolic
+    BaseEXP=64
+    EffortPoints=0,0,0,0,1,0
+    Rareness=45
+    Happiness=70
+    Abilities=OVERGROW
+    HiddenAbility=CHLOROPHYLL
+    Moves=1,TACKLE,3,GROWL,7,LEECHSEED,9,VINEWHIP,13,POISONPOWDER,13,SLEEPPOWDER,15,TAKEDOWN
+    ```
+    
+    The `BaseStats` line shows: **HP, Attack, Defense, Speed, Sp.Attack, Sp.Defense**
+  </Step>
+  
+  <Step title="Modify the Base Stats">
+    Let's make Bulbasaur more powerful:
+    
+    **Original**:
+    ```txt
+    BaseStats=45,49,49,45,65,65
+    ```
+    
+    **Modified** (higher stats):
+    ```txt
+    BaseStats=60,70,70,60,85,85
+    ```
+    
+    This increases:
+    - HP: 45 → 60
+    - Attack: 49 → 70
+    - Defense: 49 → 70
+    - Speed: 45 → 60
+    - Sp. Attack: 65 → 85
+    - Sp. Defense: 65 → 85
+    
+    <Note>
+      For reference, these new stats make Bulbasaur comparable to a mid-stage evolution!
+    </Note>
+  </Step>
+  
+  <Step title="Save Your Changes">
+    1. Press **Ctrl+S** or click **File** → **Save**
+    2. Close the text editor
+    3. Your changes are now saved to the PBS file
+  </Step>
+  
+  <Step title="Compile PBS Changes">
+    PBS files must be compiled into the game's data files:
+    
+    1. Launch `Game.exe`
+    2. Hold down **Ctrl** while the game is loading
+    3. You'll see a compilation screen with progress messages
+    4. Wait for compilation to complete
+    5. The game will start normally
+    
+    <Warning>
+      You **must** compile PBS changes every time you edit them. The game reads compiled data, not PBS files directly!
+    </Warning>
+    
+    Alternatively, in debug mode:
+    - Press **F8** in-game
+    - Select **Recompile All**
+  </Step>
+  
+  <Step title="Test Your Changes">
+    Verify your modifications worked:
+    
+    1. Start a new game or load a save
+    2. Get a Bulbasaur (or use Debug mode to add one)
+    3. Check its stats in the Pokémon menu
+    4. Your increased base stats should be visible!
+    
+    <Note>
+      **Debug Mode Tip**: Hold **Ctrl** while launching to enable debug mode, then press **F9** to access debug menu options like adding Pokémon instantly.
+    </Note>
+  </Step>
+</Steps>
+
+## Understanding PBS Files
+
+Now that you've edited one PBS file, let's understand the system better:
+
+### Common PBS Files
+
+<Tabs>
+  <Tab title="pokemon.txt">
+    Defines all Pokémon species:
+    
+    ```txt
+    [1]                              # Pokédex number
+    Name=Bulbasaur                   # Display name
+    InternalName=BULBASAUR           # Code reference (use in scripts)
+    Type1=GRASS                      # Primary type
+    Type2=POISON                     # Secondary type (optional)
+    BaseStats=45,49,49,45,65,65     # HP,Atk,Def,Spd,SpAtk,SpDef
+    Abilities=OVERGROW              # Regular ability
+    HiddenAbility=CHLOROPHYLL       # Hidden ability
+    Moves=1,TACKLE,3,GROWL          # Level,Move,Level,Move...
+    Evolutions=IVYSAUR,Level,16     # Evolution method
+    ```
+  </Tab>
+  
+  <Tab title="moves.txt">
+    Defines all moves:
+    
+    ```txt
+    # ID,InternalName,DisplayName,FunctionCode,Power,Type,Category,Accuracy,PP,EffectChance,Target,Priority,Flags,Description
+    1,MEGAHORN,Megacuerno,000,120,BUG,Physical,85,10,0,00,0,abef,"Violenta embestida con cuernos imponentes."
+    ```
+    
+    Key fields:
+    - **Power**: Base damage (0 for status moves)
+    - **Type**: BUG, GRASS, FIRE, etc.
+    - **Category**: Physical, Special, or Status
+    - **Accuracy**: Hit chance (85 = 85%)
+    - **PP**: Power Points (uses)
+  </Tab>
+  
+  <Tab title="abilities.txt">
+    Defines all abilities:
+    
+    ```txt
+    # ID,InternalName,DisplayName,Description
+    1,STENCH,Hedor,"Debido al mal olor que emana, al atacar al rival puede hacerlo retroceder."
+    2,DRIZZLE,Llovizna,"Hace que llueva cuando entra en combate."
+    3,SPEEDBOOST,Impulso,"Aumenta la Velocidad en cada turno."
+    ```
+  </Tab>
+  
+  <Tab title="metadata.txt">
+    Defines map properties:
+    
+    ```txt
+    [001]                                    # Map ID
+    # Perales                                # Comment
+    Outdoor=true                             # Is outdoor map
+    ShowArea=true                            # Show area name on entry
+    MapPosition=0,13,11                     # Region,X,Y for Town Map
+    WildBattleBGM=Battle! (Wild Pokemon)   # Battle music
+    ```
+  </Tab>
+</Tabs>
+
+## Making More Changes
+
+### Add a Custom Move to a Pokémon
+
+Let's give Bulbasaur access to Solar Beam earlier:
+
+```txt pokemon.txt
+# Original move list
+Moves=1,TACKLE,3,GROWL,7,LEECHSEED,9,VINEWHIP,13,POISONPOWDER
+
+# Add SOLARBEAM at level 20
+Moves=1,TACKLE,3,GROWL,7,LEECHSEED,9,VINEWHIP,13,POISONPOWDER,20,SOLARBEAM
+```
+
+<Note>
+  Moves must be listed in ascending level order. The format is: `Level,MOVENAME,Level,MOVENAME,...`
+</Note>
+
+### Change a Pokémon's Type
+
+Make Bulbasaur pure Grass type:
+
+```txt pokemon.txt
+# Original
+Type1=GRASS
+Type2=POISON
+
+# Modified (remove Type2 line entirely)
+Type1=GRASS
+```
+
+### Modify Evolution Level
+
+Make Bulbasaur evolve earlier:
+
+```txt pokemon.txt
+# Original: evolves at level 16
+Evolutions=IVYSAUR,Level,16
+
+# Modified: evolves at level 12
+Evolutions=IVYSAUR,Level,12
+```
+
+## Debug Mode Features
+
+Debug mode is invaluable for testing. Hold **Ctrl** while launching the game to enable it:
+
+<CardGroup cols={2}>
+  <Card title="F8 - Debug Menu" icon="bug">
+    Access compilation tools, switches, and variables
+  </Card>
+  
+  <Card title="F9 - Quick Commands" icon="bolt">
+    Add Pokémon, items, heal party, and more
+  </Card>
+  
+  <Card title="Ctrl + Click" icon="mouse-pointer">
+    Teleport to clicked location on map
+  </Card>
+  
+  <Card title="F5 - Refresh" icon="rotate">
+    Reload map without restarting game
+  </Card>
+</CardGroup>
+
+### Using F9 to Add Pokémon
+
+<Steps>
+  <Step title="Open Debug Menu">
+    While in-game with debug mode enabled, press **F9**
+  </Step>
+  
+  <Step title="Select 'Add Pokémon'">
+    Choose the option to add a Pokémon to your party
+  </Step>
+  
+  <Step title="Choose Species and Level">
+    - Select the Pokémon (e.g., Bulbasaur)
+    - Set the level
+    - Choose gender, moves, etc.
+  </Step>
+  
+  <Step title="Test Your Changes">
+    Open the Pokémon menu to see your modified Bulbasaur with the new stats!
+  </Step>
+</Steps>
+
+## Common Editing Patterns
+
+### Creating a Stronger Starter
+
+```txt pokemon.txt
+# Make starter Pokémon more viable early game
+[4]  # Charmander example
+Name=Charmander
+InternalName=CHARMANDER
+Type1=FIRE
+BaseStats=50,60,50,70,70,55  # Boosted from original
+Abilities=BLAZE
+HiddenAbility=SOLARPOWER
+Moves=1,SCRATCH,1,GROWL,1,EMBER,7,SMOKESCREEN  # Starts with Ember!
+```
+
+### Adding Egg Moves
+
+```txt pokemon.txt
+# Give Bulbasaur more egg move options
+EggMoves=AMNESIA,CHARM,CURSE,ENDURE,GIGADRAIN,GRASSWHISTLE,GRASSYTERRAIN,INGRAIN,LEAFSTORM,MAGICALLEAF
+```
+
+### Changing Pokémon Abilities
+
+```txt pokemon.txt
+# Give Bulbasaur a different ability
+Abilities=THICKFAT        # Instead of OVERGROW
+HiddenAbility=REGENERATOR # Instead of CHLOROPHYLL
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="PBS File Reference" icon="book" href="/essentials/pbs-files">
+    Deep dive into all PBS file formats and options
+  </Card>
+  
+  <Card title="Map Creation" icon="map" href="/essentials/map-creation">
+    Learn to create custom maps and routes
+  </Card>
+  
+  <Card title="Event Scripting" icon="code" href="/essentials/events">
+    Create NPCs, trainers, and interactive objects
+  </Card>
+  
+  <Card title="Custom Graphics" icon="palette" href="/essentials/graphics">
+    Add custom sprites and tilesets
+  </Card>
+</CardGroup>
+
+## Tips for Success
+
+<AccordionGroup>
+  <Accordion title="Always Backup Before Major Changes">
+    Before making significant modifications:
+    
+    ```bash
+    # Create timestamped backup
+    xcopy /E /I MyGame MyGame_Backup_2026-03-06
+    ```
+    
+    Or use Git for version control:
+    
+    ```bash
+    git init
+    git add .
+    git commit -m "Initial project state"
+    ```
+  </Accordion>
+  
+  <Accordion title="Use Comments in PBS Files">
+    Add comments with `#` to document your changes:
+    
+    ```txt
+    # Boosted starter stats for hard mode
+    BaseStats=60,70,70,60,85,85
+    
+    # Added Solar Beam for early Grass-type coverage
+    Moves=1,TACKLE,3,GROWL,20,SOLARBEAM
+    ```
+  </Accordion>
+  
+  <Accordion title="Test Incrementally">
+    Don't make 50 changes at once. Test after each modification:
+    
+    1. Make one change
+    2. Compile PBS files (Ctrl while loading)
+    3. Test in-game
+    4. Verify it works
+    5. Move to next change
+    
+    This makes debugging much easier!
+  </Accordion>
+  
+  <Accordion title="Keep a Change Log">
+    Document your modifications in a separate file:
+    
+    ```txt CHANGES.txt
+    2026-03-06:
+    - Boosted Bulbasaur base stats to 60/70/70/60/85/85
+    - Added Solar Beam to Bulbasaur at level 20
+    - Changed Bulbasaur evolution to level 12
+    ```
+  </Accordion>
+  
+  <Accordion title="Learn from Existing Data">
+    Study how official Pokémon are configured:
+    
+    - Compare early-game vs late-game Pokémon stat totals
+    - See how legendary Pokémon abilities work
+    - Examine move distributions across types
+    
+    This helps you create balanced custom content.
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<Warning>
+  **Common Issues**:
+  
+  - **Changes don't appear**: Did you compile PBS files? (Hold Ctrl while loading)
+  - **Game crashes on start**: Check PBS syntax for typos or invalid values
+  - **Move doesn't work**: Verify the move internal name matches `moves.txt`
+  - **Evolution broken**: Ensure evolution species exists and level is valid
+</Warning>
+
+---
+
+## Congratulations!
+
+You've successfully:
+
+✅ Opened Pokémon Essentials BES in RPG Maker XP  
+✅ Understood the project folder structure  
+✅ Run the game and navigated the interface  
+✅ Modified a Pokémon's base stats  
+✅ Compiled PBS changes and tested them  
+✅ Learned about debug mode features  
+
+<Note>
+  **You're now ready to start building your own Pokémon game!** Explore the documentation to learn about map creation, events, trainers, and advanced scripting.
+</Note>
+
+### Continue Learning
+
+- **PBS Reference**: Master all data file formats
+- **Mapping Guide**: Create towns, routes, and dungeons
+- **Event Tutorial**: Add NPCs, items, and trainers
+- **Scripting Basics**: Customize game mechanics with Ruby
+
+Happy game making! 🎮

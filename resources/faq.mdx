@@ -1,0 +1,562 @@
+---
+title: 'Frequently Asked Questions'
+description: 'Common questions about Pokémon Essentials BES and their answers'
+---
+
+## General Questions
+
+<Accordion title="What is Pokémon Essentials BES?">
+Pokémon Essentials BES is an unofficial fork of Pokémon Essentials v16.2 and the successor to "Base de Pira". It includes:
+
+- All Pokémon, moves, and abilities through Generation 9
+- Quality of life improvements
+- Bug fixes and compatibility updates
+- Integration with original code for maximum compatibility
+- Minimal additions beyond what's strictly necessary
+
+It's an ideal base for Spanish-speaking makers and for projects that want a stable v16.2 foundation with modern content.
+</Accordion>
+
+<Accordion title="What's the difference between BES and base Pokémon Essentials?">
+**Pokémon Essentials BES:**
+- Based on v16.2 (older but stable)
+- Includes Gen 6-9 Pokémon, moves, and abilities
+- Spanish language support and documentation
+- Curated additions focused on content, not features
+- Popular in Spanish-speaking community
+
+**Base Pokémon Essentials (v20+):**
+- Latest version with modern Ruby features
+- Gen 8 native support (Gen 9 via plugins)
+- Official English documentation
+- More plugin ecosystem
+- Active official development
+
+Choose BES if you want v16.2 stability with modern Pokémon content, or prefer Spanish resources.
+</Accordion>
+
+<Accordion title="Can I use this for commercial projects?">
+**No.** Pokémon Essentials BES is for fan games only.
+
+⚠️ **Important:**
+- Pokémon is copyrighted by Nintendo, Game Freak, and The Pokémon Company
+- Fan games must be free and non-commercial
+- You cannot sell games made with this engine
+- You cannot use Pokémon IP in commercial products
+- Donations for your game may also be problematic
+
+**Legal Options:**
+- Make a free fan game for the community
+- Create original monster-catching games with your own designs
+- Use Essentials as a learning tool for game development
+</Accordion>
+
+<Accordion title="Is this compatible with v20+ plugins?">
+**Usually not directly.** Pokémon Essentials v20+ uses a very different code structure than v16.2.
+
+**However:**
+- Many plugin concepts can be manually ported
+- The scripting logic is similar, just the implementation differs
+- v16.2 has its own plugin ecosystem
+- Some developers maintain versions for both v16.2 and v20+
+
+If you need a v20+ plugin, you'll likely need to:
+1. Understand what the plugin does
+2. Adapt the code for v16.2 structure
+3. Test thoroughly for compatibility
+</Accordion>
+
+<Accordion title="Which version should I use: BES or v20+?">
+**Use BES if:**
+- You want Gen 9 content on v16.2
+- You prefer Spanish resources and community
+- You have existing v16.2 scripts you want to keep
+- You want a stable, well-tested foundation
+- You're comfortable with the v16.2 codebase
+
+**Use v20+ if:**
+- You want the latest official version
+- You need modern plugin compatibility
+- You want official English documentation
+- You're starting fresh with no v16.2 dependencies
+- You want cutting-edge features
+
+Both are viable choices for complete games.
+</Accordion>
+
+## Setup & Installation
+
+<Accordion title="How do I install Pokémon Essentials BES?">
+1. **Download the base:**
+   - Check the GitHub repository README for the Google Drive link
+   - Download the complete base package
+
+2. **Install RPG Maker XP:**
+   - BES requires RPG Maker XP to run
+   - Install RGSS102E.dll if prompted
+
+3. **Extract and open:**
+   - Extract the BES folder
+   - Open `Game.rxproj` in RPG Maker XP
+
+4. **Test run:**
+   - Press F12 or click the "Play" button
+   - The game should start
+
+5. **Compile PBS data:**
+   - In-game, go to Options
+   - Select "Debug" and compile data if needed
+</Accordion>
+
+<Accordion title="What are the system requirements?">
+**Minimum:**
+- Windows XP or later (Windows 10/11 recommended)
+- RPG Maker XP installed
+- 512MB RAM
+- DirectX 9.0c or later
+- 500MB free disk space
+
+**Recommended:**
+- Windows 10/11
+- 2GB+ RAM
+- 1GB+ free disk space (for your project)
+- Graphics card with DirectX support
+
+**Note:** RPG Maker XP games can run on Linux/Mac via Wine or other compatibility layers.
+</Accordion>
+
+<Accordion title="Why won't RPG Maker XP open my project?">
+**Common causes:**
+
+1. **RGSS102E.dll missing:**
+   - Install RPG Maker XP properly
+   - Download RGSS runtime if needed
+
+2. **Project files corrupted:**
+   - Re-extract from the download
+   - Check for antivirus interference
+
+3. **Wrong RPG Maker version:**
+   - Must use XP, not VX or MV
+   - Verify you're opening `Game.rxproj`
+
+4. **File permissions:**
+   - Run as administrator
+   - Check folder isn't read-only
+
+See [Troubleshooting](/resources/troubleshooting) for more details.
+</Accordion>
+
+## Content Creation
+
+<Accordion title="How do I add a new Pokémon?">
+**Basic steps:**
+
+1. **Edit PBS/pokemon.txt:**
+   ```
+   [999]
+   Name=MyPokemon
+   InternalName=MYPOKEMON
+   Type1=NORMAL
+   BaseStats=80,80,80,80,80,80
+   GenderRate=Female50Percent
+   GrowthRate=Medium
+   BaseEXP=100
+   EffortPoints=1,0,0,0,0,0
+   Rareness=45
+   Happiness=70
+   Abilities=OVERGROW
+   Moves=1,TACKLE,5,GROWL
+   ```
+
+2. **Add sprites:**
+   - Front sprite: `Graphics/Battlers/999.png`
+   - Back sprite: `Graphics/Battlers/999b.png`
+   - Icon: `Graphics/Icons/icon999.png`
+
+3. **Recompile PBS:**
+   - Start game in Debug mode
+   - Select "Compile all" from Debug menu
+
+4. **Test:**
+   - Use Debug menu to spawn your Pokémon
+   - Verify stats and appearance
+
+For detailed guides, see the Pokémon creation documentation.
+</Accordion>
+
+<Accordion title="How do I create custom moves?">
+**Edit PBS/moves.txt:**
+
+```
+999,CUSTOMMOVE,Custom Move,100,100,NORMAL,Physical,100,20,0,00,0,abef,"Description of the move."
+```
+
+**Format:**
+- ID number (use next available)
+- Internal name (ALLCAPS)
+- Display name
+- Function code (determines behavior)
+- Base power
+- Type
+- Category (Physical/Special/Status)
+- Accuracy
+- PP
+- Priority
+- Flags
+- Target code
+- Description
+
+**Advanced functionality:**
+For custom move effects, you'll need to script the function code in the battle scripts.
+
+See the move creation guide for complete details.
+</Accordion>
+
+<Accordion title="How do I create custom abilities?">
+**Edit PBS/abilities.txt:**
+
+```
+999,CUSTOMABILITY,Custom Ability,"Description of what this ability does."
+```
+
+**Then script the functionality:**
+Abilities require Ruby scripting in the PokeBattle_Battler and related scripts.
+
+**Common ability triggers:**
+- `pbOnEnteringBattle` - When sent out
+- `pbEffectsOnDealingDamage` - When dealing damage
+- `pbEffectsAfterMove` - After using a move
+- `pbEndOfRoundEffect` - End of turn
+
+**Example structure:**
+```ruby
+if isConst?(battler.ability,PBAbilities,:CUSTOMABILITY)
+  # Your ability effect here
+end
+```
+
+Ability creation requires Ruby knowledge. Study existing abilities first.
+</Accordion>
+
+<Accordion title="How do I change the starter Pokémon?">
+**Method 1: Edit the intro event**
+1. Open RPG Maker XP
+2. Find the map with the starter selection event
+3. Edit the event commands
+4. Change the Pokémon species given
+
+**Method 2: Edit scripts directly**
+Look for the intro sequence script and modify:
+```ruby
+pbAddPokemon(:SPRIGATITO,5) # Change species here
+```
+
+**Don't forget:**
+- Update rival Pokémon accordingly
+- Update Professor dialogue if referencing types
+- Test all starter paths
+- Update type advantage tutorials if present
+</Accordion>
+
+<Accordion title="Can I add Fakemon (custom Pokémon)?">
+**Yes!** Follow the same process as adding new Pokémon:
+
+1. Create PBS entry in pokemon.txt
+2. Design and add sprites
+3. Create movepool and stats
+4. Add Pokédex entry
+5. Compile PBS data
+
+**Tips for Fakemon:**
+- Keep stats balanced (compare to similar official Pokémon)
+- Give them logical type combinations
+- Create sensible evolution lines
+- Design sprites in the official Pokémon style
+- Write lore for Pokédex entries
+- Add to encounters or events
+
+**Legal note:**
+Fakemon are your original creations, so they don't have the same legal issues as using Pokémon IP (though the engine and game style still do).
+</Accordion>
+
+## Generation 9 Features
+
+<Accordion title="Are all Gen 9 Pokémon included?">
+**Yes!** All Generation 9 Pokémon from #906 (Sprigatito) through #1025 (Pecharunt) are included with:
+
+✅ Complete base stats
+✅ All types and abilities
+✅ Level-up movesets
+✅ Evolution data
+✅ Pokédex entries (Spanish)
+✅ Sprites (front, back, and icons)
+
+This includes:
+- All three starter lines
+- All Paradox Pokémon
+- Legendary and Mythical Pokémon
+- The Loyal Three
+- Ogerpon forms
+- Terapagos
+
+See [Generation 9 Features](/resources/generation-9-features) for the complete list.
+</Accordion>
+
+<Accordion title="Does Terastallization work?">
+**Partially.** What's included:
+
+✅ Tera Blast move
+✅ Tera Starstorm move
+✅ Terapagos forms
+✅ Tera Type data structure
+
+❌ **Not included:**
+- Visual Tera transformation
+- Battle type changing
+- Tera Orb system
+- UI elements
+- Full STAB calculations
+
+**To fully implement:**
+You'll need to script the complete Terastallization system yourself, including:
+1. Battle UI changes
+2. Type override mechanics
+3. Tera Orb charging
+4. Visual effects
+5. AI considerations
+
+This is an advanced project requiring significant Ruby scripting.
+</Accordion>
+
+<Accordion title="Which Gen 9 abilities are fully working?">
+**Fully implemented:**
+- Seed Sower
+- Well-Baked Body
+- Wind Rider
+- Earth Eater
+- Guard Dog
+- Good as Gold
+- Toxic Chain
+- Minds Eye
+- And many others
+
+**Partially implemented:**
+- Proto Synthesis (marked #A MEDIAS)
+- Quark Drive (marked #A MEDIAS)
+- Orichalcum Pulse (marked #A MEDIAS)
+- Hadron Engine (marked #A MEDIAS)
+
+**May need work:**
+- Abilities marked with #TODO
+- Commander (requires specific Double Battle setup)
+- Some form-change abilities
+
+Check PBS/abilities.txt for specific implementation notes.
+</Accordion>
+
+## Updating & Compatibility
+
+<Accordion title="How do I update to a newer version of BES?">
+**⚠️ WARNING:** Always backup your project first!
+
+**Option 1: Manual update (recommended)**
+1. Download the new BES version
+2. Compare PBS files and copy new entries
+3. Compare scripts and copy new methods
+4. Test thoroughly
+5. Fix any conflicts
+
+**Option 2: Start fresh**
+1. Install new BES version
+2. Copy your maps folder
+3. Copy your custom graphics/audio
+4. Recreate your changes
+
+**Don't:**
+- Simply replace files without checking
+- Update mid-project unless necessary
+- Skip testing after updating
+
+Updating can break custom scripts and edits.
+</Accordion>
+
+<Accordion title="Can I use v16.2 scripts with BES?">
+**Usually yes!** BES is based on v16.2, so most v16.2 scripts should work.
+
+**However:**
+- Test thoroughly before releasing
+- Some scripts may conflict with BES additions
+- Gen 9 content might not integrate automatically
+- PBS changes might cause issues
+
+**Best practice:**
+1. Install script in a test copy
+2. Check for errors
+3. Test with Gen 9 Pokémon
+4. Verify PBS compilation works
+5. Test battle scenarios
+</Accordion>
+
+<Accordion title="My old v16.2 project - can I add Gen 9 content?">
+**Yes, but carefully:**
+
+1. **Backup everything first**
+2. **Copy PBS files:**
+   - Compare pokemon.txt and add entries #906-1025
+   - Compare moves.txt and add new moves
+   - Compare abilities.txt and add abilities #268-310
+
+3. **Copy scripts:**
+   - Identify BES-specific scripts
+   - Add them to your project
+   - Watch for conflicts
+
+4. **Add graphics:**
+   - Copy Gen 9 sprites and icons
+   - Ensure proper file naming
+
+5. **Test thoroughly:**
+   - Compile PBS
+   - Test battles with Gen 9 Pokémon
+   - Check for errors
+
+**Caution:** This is complex. Consider starting with full BES if possible.
+</Accordion>
+
+## Debugging & Development
+
+<Accordion title="How do I enable Debug mode?">
+**In-game:**
+1. Start your game
+2. Press F8 (may need to enable in scripts first)
+3. Access Debug menu functions
+
+**In scripts:**
+Find and set:
+```ruby
+$DEBUG = true
+```
+
+**Debug features:**
+- Spawn any Pokémon
+- Edit Pokémon stats
+- Add items
+- Teleport to maps
+- Compile PBS data
+- Test battles
+
+**For release:**
+Always disable Debug mode before distributing your game!
+</Accordion>
+
+<Accordion title="Where are the error logs?">
+Error logs are typically in:
+- `errorlog.txt` in your game folder
+- Console output if run from RPG Maker
+
+**Reading error logs:**
+1. Open errorlog.txt in a text editor
+2. Look for the last error (bottom of file)
+3. Note the script name and line number
+4. Read the error message
+
+See [Troubleshooting](/resources/troubleshooting) for common errors.
+</Accordion>
+
+<Accordion title="How do I compile PBS data?">
+**Method 1: Debug menu**
+1. Start game with Debug enabled
+2. Open Debug menu (F8)
+3. Select "Compile all data"
+
+**Method 2: Force recompile**
+Delete `Data/messages.dat` and restart the game. PBS will auto-compile.
+
+**When to compile:**
+- After editing PBS files
+- After adding new Pokémon/moves
+- When PBS changes aren't appearing in-game
+- After extracting a project
+
+**Compilation errors:**
+If compilation fails, check errorlog.txt for:
+- Syntax errors in PBS files
+- Missing required fields
+- Invalid references
+</Accordion>
+
+## Distribution & Sharing
+
+<Accordion title="Can I share my game made with BES?">
+**Yes!** You can share fan games made with BES.
+
+**Requirements:**
+- Must be free (no sales)
+- Must include proper credits
+- Can't include RPG Maker XP RTP unless properly licensed
+- Should include disclaimer about Pokémon ownership
+
+**Where to share:**
+- Relic Castle
+- Pokécommunity
+- itch.io
+- Your own website
+- Discord communities
+
+**Don't forget:**
+- Credit all resource creators
+- Include BES credits
+- Disable Debug mode
+- Test thoroughly
+- Provide clear installation instructions
+</Accordion>
+
+<Accordion title="Do I need to include credits?">
+**Yes, absolutely!**
+
+**Minimum credits required:**
+- Pokémon Essentials BES (Pira, Clara)
+- Pokémon Essentials team (Flameguru, Poccil, Maruno)
+- Sprite artists (Smogon Sprite Project, etc.)
+- Script contributors used
+- Nintendo, Game Freak, The Pokémon Company
+
+**Best practice:**
+Include the full Créditos.txt file from BES in your game.
+
+See [Credits](/resources/credits) for the complete list.
+</Accordion>
+
+## Getting More Help
+
+<Accordion title="Where can I get more help?">
+If your question isn't answered here:
+
+1. **Check other documentation:**
+   - [Troubleshooting](/resources/troubleshooting)
+   - [Generation 9 Features](/resources/generation-9-features)
+   - [Community Resources](/resources/community)
+
+2. **Search forums:**
+   - Relic Castle
+   - Pokécommunity
+   - Spanish Essentials communities
+
+3. **Ask in Discord:**
+   - Pokémon Essentials servers
+   - Spanish game dev communities
+
+4. **Study the code:**
+   - Read the scripts
+   - Look at PBS file examples
+   - Compare with working implementations
+
+Remember to provide detailed information when asking for help!
+</Accordion>
+
+---
+
+<Note>
+Have a question that isn't answered here? Consider contributing to this FAQ by suggesting additions through the community channels.
+</Note>

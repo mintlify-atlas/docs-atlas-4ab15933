@@ -1,0 +1,437 @@
+---
+title: "RPG Maker XP Integration"
+description: "How Pokémon Essentials BES integrates with RPG Maker XP for map editing and event scripting"
+---
+
+## Overview
+
+Pokémon Essentials BES is built on top of RPG Maker XP, leveraging its powerful map editor and event system while extending it with Pokémon-specific functionality.
+
+<Note>
+You'll need RPG Maker XP to edit maps and events. The Editor.exe file opens your project in RPG Maker XP.
+</Note>
+
+## RPG Maker XP Components
+
+<CardGroup cols={2}>
+  <Card title="Map Editor" icon="map">
+    Visual editor for creating game world layouts
+  </Card>
+  <Card title="Event System" icon="bolt">
+    Scripted events for NPCs, items, and cutscenes
+  </Card>
+  <Card title="Database" icon="database">
+    Stores animations, variables, and switches
+  </Card>
+  <Card title="Script Editor" icon="code">
+    Built-in Ruby script editor (F11)
+  </Card>
+</CardGroup>
+
+## Opening the Editor
+
+To open your project in RPG Maker XP:
+
+<Steps>
+  <Step title="Launch Editor">
+    Double-click `Editor.exe` or open the project file in RPG Maker XP
+  </Step>
+  <Step title="Wait for Loading">
+    The editor loads all game data and maps
+  </Step>
+  <Step title="Start Editing">
+    You can now edit maps, events, and database entries
+  </Step>
+</Steps>
+
+<Warning>
+Don't run multiple instances of the editor - this can corrupt your project!
+</Warning>
+
+## Map Editor
+
+The map editor is where you design your game world:
+
+### Map Layers
+
+RPG Maker XP uses three tile layers:
+
+```txt Layer System
+Layer 3 (Top)    - Roofs, overhead objects
+Layer 2 (Middle) - Walls, furniture
+Layer 1 (Base)   - Ground, floors
+Event Layer      - NPCs, signs, triggers
+```
+
+### Map Properties
+
+<Accordion title="Tileset">
+  Determines which tiles are available:
+  - Outdoor tilesets for routes and towns
+  - Indoor tilesets for buildings
+  - Cave tilesets for dungeons
+</Accordion>
+
+<Accordion title="Autoplay BGM">
+  Background music that plays on this map:
+  - Set from `Audio/BGM/` folder
+  - Can be overridden by events
+</Accordion>
+
+<Accordion title="Encounter List">
+  Random encounter configuration:
+  - Enemy troop selection
+  - Encounter rate (steps between encounters)
+  - Note: Essentials uses PBS/encounters.txt instead
+</Accordion>
+
+<Accordion title="Map Dimensions">
+  Width and height in tiles:
+  - Can be resized from map properties
+  - Larger maps use more memory
+</Accordion>
+
+### Map Tools
+
+| Tool | Hotkey | Purpose |
+|------|--------|----------|
+| Pen | P | Draw single tiles |
+| Rectangle | R | Fill rectangular areas |
+| Fill | F | Flood fill areas |
+| Event | E | Place/edit events |
+
+## Event System
+
+Events are the core of RPG Maker's interactivity:
+
+### Event Structure
+
+```txt Event Anatomy
+Event
+├── Name (optional)
+├── Position (X, Y)
+├── Graphic (sprite)
+├── Priority (Above/Normal/Below character)
+├── Trigger (Action button, Player touch, etc.)
+└── Pages
+    ├── Conditions (switches, variables)
+    └── Commands (event commands)
+```
+
+### Event Triggers
+
+<Tabs>
+  <Tab title="Action Button">
+    Triggers when player presses the action key (Enter/Z)
+    - Used for: NPCs, signs, items
+    - Most common trigger type
+  </Tab>
+  
+  <Tab title="Player Touch">
+    Triggers when player walks onto the event
+    - Used for: Trainers, warps
+    - Auto-activates on contact
+  </Tab>
+  
+  <Tab title="Event Touch">
+    Triggers when event moves onto player
+    - Used for: Roaming NPCs
+    - Event must have autonomous movement
+  </Tab>
+  
+  <Tab title="Autorun">
+    Runs continuously while conditions are met
+    - Used for: Cutscenes
+    - Can freeze gameplay if not controlled
+  </Tab>
+  
+  <Tab title="Parallel Process">
+    Runs continuously in background
+    - Used for: Time systems, background events
+    - Doesn't block other events
+  </Tab>
+</Tabs>
+
+### Common Event Commands
+
+#### Dialog and Messages
+
+```txt Event Commands
+@>Text: "Hello! Welcome to the Pokémon Center!"
+@>Show Choices: Yes/No
+@>Conditional Branch: If Yes
+  @>Text: "Let me heal your Pokémon!"
+```
+
+#### Movement
+
+```txt Event Commands
+@>Set Move Route: Player
+  @>Move Up
+  @>Move Right
+  @>Wait: 20 frames
+```
+
+#### Control Flow
+
+```txt Event Commands
+@>Control Switches: [0001: Defeated Gym Leader] = ON
+@>Control Variables: [0001: Badge Count] += 1
+@>Conditional Branch: Switch [0001: Defeated Gym Leader] == ON
+```
+
+## Essentials Integration
+
+### Script Calls in Events
+
+Essentials extends RPG Maker with custom script calls:
+
+#### Give Pokémon
+
+```ruby Event Script Call
+pbAddPokemon(:PIKACHU, 5)
+```
+
+#### Start Wild Battle
+
+```ruby Event Script Call
+pbWildBattle(:ZAPDOS, 50)
+```
+
+#### Give Item
+
+```ruby Event Script Call
+pbReceiveItem(:POTION, 5)
+```
+
+#### Trainer Battle
+
+```ruby Event Script Call
+pbTrainerBattle(:RIVAL, "Blue")
+```
+
+<Note>
+Script calls go in the "Script" event command, accessed by pressing the `@>` button and selecting Script.
+</Note>
+
+### Essentials-Specific Events
+
+Common event patterns in Pokémon games:
+
+<Accordion title="Pokémon Center Healing">
+  ```ruby
+  pbSet(1,$Trainer.name)
+  Kernel.pbMessage(_("Welcome to the Pokémon Center!"))
+  pbMessage(_("We'll heal your Pokémon to perfect health!"))
+  pbMessage(_("Please wait a moment."))
+  pbFadeOutIn(99999) {
+    for i in $Trainer.party
+      i.heal
+    end
+  }
+  pbMessage(_("Thank you for waiting! Your Pokémon are fully healed!"))
+  ```
+</Accordion>
+
+<Accordion title="Trainer Battle">
+  ```ruby
+  pbTrainerBattle(:YOUNGSTER,"Joey","You're strong!",false,1)
+  if pbTrainerDefeated?(:YOUNGSTER,"Joey",1)
+    pbMessage(_("That was a great battle!"))
+    pbSet(100,true)  # Set switch that battle was won
+  end
+  ```
+</Accordion>
+
+<Accordion title="Choose Starter">
+  ```ruby
+  pbChoosePokemon(1,3)
+  if pbGet(1)>=0
+    pbAddPokemon(pbGet(1),5)
+    pbMessage(_("You chose #{PBSpecies.getName(pbGet(1))}!"))
+  end
+  ```
+</Accordion>
+
+<Accordion title="Check Pokémon in Party">
+  ```ruby
+  if pbHasSpecies?(:PIKACHU)
+    pbMessage(_("Oh, you have a Pikachu!"))
+  else
+    pbMessage(_("I love Pikachu!"))
+  end
+  ```
+</Accordion>
+
+## Database Integration
+
+### Variables and Switches
+
+Essentials uses RPG Maker's variables and switches:
+
+```txt Common Variables
+Variable 1: Temporary storage
+Variable 2: Badge count
+Variable 3: Money
+Variable 4: Pokédex count
+
+Switch 1: Has Pokédex
+Switch 2: Can use Fly
+Switch 3: Defeated Elite Four
+```
+
+<Tip>
+Document your switches and variables! Create a list of what each ID is used for.
+</Tip>
+
+### Common Events
+
+Reusable event logic:
+
+- **Common Event 1**: Level up party
+- **Common Event 2**: Heal party
+- **Common Event 3**: Item obtain fanfare
+
+Call from other events:
+
+```txt Event Command
+@>Call Common Event: [001: Heal Party]
+```
+
+### Animations
+
+Move animations are stored in the database:
+
+```txt Animation System
+Database → Animations
+├── Animation 1: Cut
+├── Animation 2: Fly
+└── Animation 100: Custom move animation
+
+PBS/move2anim.txt maps moves to animations:
+CUT,1
+FLY,2
+```
+
+## Map Metadata
+
+Essentials extends map properties via PBS/metadata.txt:
+
+```txt metadata.txt Example
+[001]  # Map ID
+Outdoor=true
+Bicycle=true
+BattleBack=field
+WildBattleBGM=Battle wild.ogg
+Environment=Grass
+```
+
+This controls:
+- Day/night tinting
+- Battle backgrounds
+- Available HM moves
+- Weather effects
+- Encounter types
+
+## Testing from Editor
+
+RPG Maker XP includes testing features:
+
+### Test Play (F12)
+
+Starts the game from the current map:
+- Player appears at cursor position
+- All switches/variables at default
+- Fast testing of specific maps
+
+### Battle Test
+
+Test individual battles:
+- Configure test party
+- Set enemy troops
+- Test battle mechanics
+
+<Warning>
+F12 reset is disabled in Essentials BES. Use Alt+F4 to close test play.
+</Warning>
+
+## Workflow Tips
+
+<Steps>
+  <Step title="Plan Your Maps">
+    Sketch out map layouts before opening the editor
+  </Step>
+  
+  <Step title="Build in Layers">
+    Complete base layer, then add details and events
+  </Step>
+  
+  <Step title="Test Frequently">
+    Use Test Play to verify events work correctly
+  </Step>
+  
+  <Step title="Organize Events">
+    Name events clearly for easy identification
+  </Step>
+  
+  <Step title="Backup Regularly">
+    Save and backup your maps frequently
+  </Step>
+</Steps>
+
+## Common Pitfalls
+
+<Warning>
+Avoid these common mistakes:
+</Warning>
+
+❌ **Autorun without exit condition** - Freezes the game  
+❌ **Forgetting priorities** - Events appear below/above player incorrectly  
+❌ **Missing event pages** - Events don't respond to game state  
+❌ **Overlapping events** - Multiple events on same tile conflict  
+❌ **Not testing** - Bugs discovered too late  
+
+## Advanced Integration
+
+### Custom Tilesets
+
+Create custom tilesets:
+1. Design tileset graphic (256px width)
+2. Import to Graphics/Tilesets/
+3. Configure passability in database
+4. Assign to map
+
+### Parallax Mapping
+
+Create detailed maps with parallax:
+1. Draw full map as single image
+2. Place in Graphics/Panoramas/
+3. Set as map panorama
+4. Use empty tileset for events
+
+### Dynamic Events
+
+Create events that change based on game state:
+
+```txt Event Pages
+Page 1: Before gym battle (show trainer)
+Page 2: After gym battle (show empty space)
+  Condition: Switch [Defeated Gym Leader] = ON
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Creating Maps" icon="map" href="/development/creating-maps">
+    Step-by-step map creation guide
+  </Card>
+  <Card title="Custom Events" icon="bolt" href="/scripting/custom-events">
+    Writing event scripts for Essentials
+  </Card>
+  <Card title="PBS Metadata" icon="file-lines" href="/pbs/metadata-txt">
+    Configure map properties
+  </Card>
+  <Card title="Game Structure" icon="folder-tree" href="/concepts/game-structure">
+    Understanding file organization
+  </Card>
+</CardGroup>

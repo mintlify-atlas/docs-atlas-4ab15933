@@ -1,0 +1,344 @@
+---
+title: "PBS System"
+description: "Understanding the Plain Text Database system for managing game data in Pokémon Essentials BES"
+---
+
+## What is PBS?
+
+PBS (Plain text database System) is Pokémon Essentials BES's approach to storing game data in human-readable text files. Instead of using binary databases or requiring programming, PBS allows you to define Pokémon, moves, abilities, items, and more using simple text files.
+
+<Note>
+PBS files are the easiest way to customize your game. You can edit them with any text editor - no programming required!
+</Note>
+
+## Why Use PBS?
+
+<CardGroup cols={2}>
+  <Card title="Easy to Edit" icon="pen-to-square">
+    Plain text files editable in any text editor
+  </Card>
+  <Card title="Version Control Friendly" icon="code-branch">
+    Text files work great with Git and other VCS
+  </Card>
+  <Card title="No Coding Required" icon="sparkles">
+    Define game data without writing Ruby code
+  </Card>
+  <Card title="Portable" icon="share-nodes">
+    Share PBS files between projects easily
+  </Card>
+</CardGroup>
+
+## PBS File Location
+
+All PBS files are stored in the `PBS/` directory:
+
+```txt Project Structure
+YourGame/
+  ├── PBS/
+  │   ├── pokemon.txt      # Pokémon definitions
+  │   ├── moves.txt        # Move definitions
+  │   ├── abilities.txt    # Ability definitions
+  │   ├── items.txt        # Item definitions
+  │   ├── trainers.txt     # Trainer battles
+  │   ├── trainertypes.txt # Trainer classes
+  │   ├── encounters.txt   # Wild encounters
+  │   ├── metadata.txt     # Map metadata
+  │   ├── tm.txt          # TM/HM assignments
+  │   └── ...
+```
+
+## Available PBS Files
+
+Here's a complete list of PBS files and their purposes:
+
+### Core Game Data
+
+<Accordion title="pokemon.txt">
+  Defines all Pokémon species with their:
+  - Stats (HP, Attack, Defense, etc.)
+  - Types and abilities
+  - Level-up moves and egg moves
+  - Evolution methods
+  - Pokédex data
+</Accordion>
+
+<Accordion title="moves.txt">
+  Defines all moves including:
+  - Type, power, and accuracy
+  - PP and priority
+  - Effect functions
+  - Target and flags
+</Accordion>
+
+<Accordion title="abilities.txt">
+  Lists all abilities with their:
+  - Internal names
+  - Display names
+  - Descriptions
+</Accordion>
+
+<Accordion title="items.txt">
+  Defines items with:
+  - Names and prices
+  - Pocket categories
+  - Usage effects
+  - Descriptions
+</Accordion>
+
+### Battle Configuration
+
+<Accordion title="trainers.txt">
+  Defines individual trainer battles:
+  - Trainer's Pokémon teams
+  - Items they use
+  - AI difficulty
+</Accordion>
+
+<Accordion title="trainertypes.txt">
+  Defines trainer classes:
+  - Trainer type names
+  - Money rewards
+  - Battle music
+  - Gender
+</Accordion>
+
+<Accordion title="tm.txt">
+  Assigns TM/HM moves to Pokémon
+</Accordion>
+
+### World Data
+
+<Accordion title="encounters.txt">
+  Defines wild Pokémon encounters:
+  - Encounter rates per map
+  - Encounter types (grass, water, etc.)
+  - Pokémon species and levels
+</Accordion>
+
+<Accordion title="metadata.txt">
+  Map properties and settings:
+  - Outdoor/indoor status
+  - Weather conditions
+  - Battle backgrounds
+  - Map positions
+</Accordion>
+
+<Accordion title="townmap.txt">
+  Region map configuration:
+  - Map point names
+  - Map point positions
+</Accordion>
+
+<Accordion title="connections.txt">
+  Direct map connections for seamless transitions
+</Accordion>
+
+## PBS File Format
+
+PBS files use different formats depending on the data type:
+
+### INI-Style Format (pokemon.txt)
+
+```txt pokemon.txt Example
+[1]
+Name=Bulbasaur
+InternalName=BULBASAUR
+Type1=GRASS
+Type2=POISON
+BaseStats=45,49,49,45,65,65
+GenderRate=FemaleOneEighth
+GrowthRate=Parabolic
+BaseEXP=64
+Abilities=OVERGROW
+HiddenAbility=CHLOROPHYLL
+Moves=1,TACKLE,3,GROWL,7,LEECHSEED
+Evolutions=IVYSAUR,Level,16
+```
+
+<Note>
+INI format uses `[ID]` section headers followed by `Key=Value` pairs.
+</Note>
+
+### CSV Format (moves.txt)
+
+```txt moves.txt Example
+1,MEGAHORN,Megacuerno,000,120,BUG,Physical,85,10,0,00,0,abef,"Violent lunge with mighty horns."
+2,THUNDERBOLT,Rayo,046,90,ELECTRIC,Special,100,15,10,00,0,bef,"May paralyze the target."
+```
+
+<Note>
+CSV format uses comma-separated values. Strings with commas must be quoted.
+</Note>
+
+### Simple List Format (abilities.txt)
+
+```txt abilities.txt Example
+1,STENCH,Hedor,"May cause the foe to flinch."
+2,DRIZZLE,Llovizna,"Makes it rain when entering battle."
+```
+
+## Compilation Process
+
+PBS files are compiled into binary `.dat` files for performance:
+
+<Steps>
+  <Step title="Edit PBS Files">
+    Make changes to PBS text files in the PBS/ directory
+  </Step>
+  <Step title="Launch Game">
+    Start the game normally (Game.exe)
+  </Step>
+  <Step title="Automatic Compilation">
+    The game detects PBS changes and recompiles automatically
+  </Step>
+  <Step title="Binary Output">
+    Compiled data is saved to Data/*.dat files
+  </Step>
+</Steps>
+
+```txt Compilation Flow
+PBS/pokemon.txt  →  Compiler  →  Data/dexdata.dat
+PBS/moves.txt    →  Compiler  →  Data/moves.dat
+PBS/abilities.txt →  Compiler  →  Data/tm.dat
+```
+
+<Warning>
+Always backup your PBS files before making major changes. If compilation fails, the game won't start!
+</Warning>
+
+## Editing PBS Files Safely
+
+Follow these best practices when editing PBS files:
+
+### 1. Use a Good Text Editor
+
+Recommended editors:
+- **Notepad++** (Windows)
+- **VS Code** (Cross-platform)
+- **Sublime Text** (Cross-platform)
+- **Atom** (Cross-platform)
+
+<Tip>
+Avoid using Windows Notepad - it doesn't handle line endings well.
+</Tip>
+
+### 2. Maintain Proper Format
+
+```txt Good Example
+[152]
+Name=Chikorita
+Type1=GRASS
+BaseStats=45,49,65,45,49,65
+
+# Bad Example (Missing brackets, wrong spacing)
+152
+Name =Chikorita
+Type1 = GRASS
+BaseStats= 45, 49, 65, 45, 49, 65
+```
+
+### 3. Check for Common Errors
+
+<Accordion title="Syntax Errors">
+  - Missing commas in CSV files
+  - Unmatched brackets in INI files
+  - Missing quotes around text with commas
+  - Wrong field names
+</Accordion>
+
+<Accordion title="Data Errors">
+  - Invalid type names
+  - Non-existent move/ability references
+  - Out-of-range values
+  - Duplicate IDs
+</Accordion>
+
+<Accordion title="Encoding Issues">
+  - Use UTF-8 encoding
+  - Avoid special characters
+  - Use proper line endings (LF or CRLF)
+</Accordion>
+
+## Testing Your Changes
+
+After editing PBS files:
+
+1. **Save the file** in your text editor
+2. **Launch the game** - compilation happens automatically
+3. **Check for errors** - look for compilation error messages
+4. **Test in-game** - verify your changes work correctly
+
+<Info>
+If compilation fails, check `Data/debuglog.txt` for detailed error messages.
+</Info>
+
+## Advanced PBS Features
+
+### Comments
+
+Add comments to document your PBS files:
+
+```txt Using Comments
+# This is a comment - it's ignored by the compiler
+[1]
+Name=Bulbasaur  # You can also add comments after data
+```
+
+### Regional Numbers
+
+```txt pokemon.txt
+RegionalNumbers=1,0  # Kanto Regional Dex #1
+RegionalNumbers=231,1 # Johto Regional Dex #231
+```
+
+### Form Names
+
+```txt pokemon.txt
+FormNames=,Mega Venusaur  # Empty first value = base form
+```
+
+### Conditional Moves
+
+```txt pokemon.txt
+Moves=0,FLAREBLITZ  # Learn at evolution
+Moves=1,EMBER       # Know from level 1
+```
+
+## Troubleshooting
+
+<Accordion title="Game won't start after PBS edit">
+  1. Check `Data/debuglog.txt` for errors
+  2. Verify PBS syntax is correct
+  3. Ensure all referenced moves/abilities exist
+  4. Restore from backup if needed
+</Accordion>
+
+<Accordion title="Changes not appearing in game">
+  1. Delete Data/*.dat files
+  2. Restart the game to force recompilation
+  3. Clear any cached data
+</Accordion>
+
+<Accordion title="Compilation errors">
+  1. Look for line numbers in error messages
+  2. Check for typos in field names
+  3. Verify data types are correct
+  4. Ensure IDs are unique
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="PBS File Reference" icon="book" href="/pbs/pokemon-txt">
+    Detailed documentation for each PBS file
+  </Card>
+  <Card title="Creating Pokémon" icon="sparkles" href="/development/creating-pokemon">
+    Step-by-step guide to adding new Pokémon
+  </Card>
+  <Card title="Creating Moves" icon="wand-magic-sparkles" href="/development/creating-moves">
+    Learn how to create custom moves
+  </Card>
+  <Card title="Game Structure" icon="folder-tree" href="/concepts/game-structure">
+    Understanding the full project structure
+  </Card>
+</CardGroup>

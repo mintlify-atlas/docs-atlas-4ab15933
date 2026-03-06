@@ -1,0 +1,515 @@
+---
+title: trainers.txt & trainertypes.txt
+description: Complete reference for defining trainers in PBS/trainers.txt and PBS/trainertypes.txt
+---
+
+The trainer system uses two files:
+- **trainertypes.txt** - Defines trainer classes and their properties
+- **trainers.txt** - Defines individual trainer battles
+
+## trainertypes.txt
+
+Defines trainer classes (types) like "Youngster", "Leader", "Elite Four", etc.
+
+### File Format
+
+Each line defines one trainer type:
+
+```
+ID,INTERNALNAME,Name,BaseMoney,BGM,VictoryME,IntroME,Gender,BattleUse,Skill
+```
+
+### Example Entries
+
+```
+0,POKEMONTRAINER_Red,Entrenador,60,,,,Male,,
+37,YOUNGSTER,Joven,16,,,,Male,,
+59,LEADER_Brock,Líder Gimnasio,100,Battle! (Gym Leader),,,Male,,
+71,CHAMPION,Campeón,100,Battle! (Champion),,,Male,,
+```
+
+### Field Definitions
+
+<ParamField path="ID" type="Integer">
+  Unique trainer type ID. Sequential numbering.
+  
+  ```
+  0,POKEMONTRAINER_Red,...
+  37,YOUNGSTER,...
+  59,LEADER_Brock,...
+  ```
+</ParamField>
+
+<ParamField path="InternalName" type="String">
+  Internal identifier in UPPERCASE. Used in trainers.txt and events.
+  
+  ```
+  YOUNGSTER
+  LEADER_Brock
+  CHAMPION
+  POKEMONTRAINER_Red
+  ```
+</ParamField>
+
+<ParamField path="Name" type="String">
+  Display name for this trainer class.
+  
+  ```
+  Joven
+  Líder Gimnasio
+  Campeón
+  ```
+</ParamField>
+
+<ParamField path="BaseMoney" type="Integer">
+  Base prize money multiplier. Final money = BaseMoney × highest level Pokémon.
+  
+  ```
+  16   # Youngster (low payout)
+  60   # Standard trainer
+  100  # Gym Leader/Champion
+  ```
+</ParamField>
+
+<ParamField path="BGM" type="String">
+  Battle music filename (without extension). Leave empty for default.
+  
+  ```
+  Battle! (Gym Leader)
+  Battle! (Champion)
+  Battle! (Trainer)
+  ```
+</ParamField>
+
+<ParamField path="VictoryME" type="String">
+  Victory music effect. Leave empty for default.
+  
+  ```
+  
+  Victory - Gym Leader.ogg
+  ```
+</ParamField>
+
+<ParamField path="IntroME" type="String">
+  Battle intro music effect. Leave empty for default.
+  
+  ```
+  
+  ```
+</ParamField>
+
+<ParamField path="Gender" type="Gender">
+  Trainer's gender. Valid: `Male`, `Female`, `Mixed` (for doubles)
+  
+  ```
+  Male
+  Female
+  Mixed  # For double battle partners
+  ```
+</ParamField>
+
+<ParamField path="BattleUse" type="Integer">
+  Items the trainer can use in battle. Leave empty for none.
+  
+  ```
+  
+  32  # Can use items
+  ```
+</ParamField>
+
+<ParamField path="Skill" type="Integer">
+  AI skill level. Leave empty for default. Higher = smarter AI.
+  
+  ```
+  
+  32   # Standard AI
+  100  # Maximum AI (Champion)
+  ```
+</ParamField>
+
+## trainers.txt
+
+Defines individual trainer battles with their Pokémon teams.
+
+### File Format
+
+Trainers are defined in blocks:
+
+```
+TRAINERTYPE
+Name
+PartySize,ITEM1,ITEM2,...
+POKEMON,Level,Item,Move1,Move2,Move3,Move4,Form,Gender,Ability,Shiny,Shadow,IVs,Happiness,Name,Ball,TeraType
+...
+```
+
+### Block Structure
+
+<ParamField path="Line 1: Trainer Type" type="String">
+  Internal name of trainer type from trainertypes.txt.
+  
+  ```
+  YOUNGSTER
+  LEADER_Brock
+  RIVAL1
+  ```
+</ParamField>
+
+<ParamField path="Line 2: Name" type="String">
+  Trainer's personal name (or name variation number).
+  
+  ```
+  Ben
+  Brock
+  Blue,1  # Version 1 of Blue
+  ```
+</ParamField>
+
+<ParamField path="Line 3: Items" type="String">
+  Party size, followed by items the trainer carries.
+  
+  ```
+  2                              # 2 Pokémon, no items
+  2,FULLRESTORE,FULLRESTORE     # 2 Pokémon, 2 Full Restores
+  1                              # 1 Pokémon
+  ```
+</ParamField>
+
+<ParamField path="Lines 4+: Pokémon" type="Pokémon Data">
+  One line per Pokémon. Format:
+  ```
+  SPECIES,Level,Item,Move1,Move2,Move3,Move4,Form,Gender,Ability,Shiny,Shadow,IVs,Happiness,Nickname,Ball,TeraType
+  ```
+  
+  Minimum format (species and level only):
+  ```
+  PIKACHU,25
+  ```
+  
+  Full format example:
+  ```
+  ONIX,14,SITRUSBERRY,HEADSMASH,ROCKTHROW,TERABLAST,ROCKTOMB,0,M,,shiny,,20,,Rocky,,19,WATER
+  ```
+</ParamField>
+
+### Pokémon Field Parameters
+
+<ParamField path="Species" type="String" required>
+  Internal name of the Pokémon species.
+  
+  ```
+  PIKACHU
+  CHARIZARD
+  BULBASAUR
+  ```
+</ParamField>
+
+<ParamField path="Level" type="Integer" required>
+  Pokémon's level (1-100).
+  
+  ```
+  25
+  50
+  100
+  ```
+</ParamField>
+
+<ParamField path="Item" type="String">
+  Held item internal name. Leave empty for none.
+  
+  ```
+  
+  SITRUSBERRY
+  LEFTOVERS
+  ```
+</ParamField>
+
+<ParamField path="Move1-4" type="String">
+  Up to 4 moves (internal names). Leave empty to use level-up moves.
+  
+  ```
+  THUNDERBOLT,QUICKATTACK,IRONTAIL,
+  ,,,  # Use default moves
+  ```
+</ParamField>
+
+<ParamField path="Form" type="Integer">
+  Form number for Pokémon with multiple forms (0 = first form).
+  
+  ```
+  0   # Normal form
+  1   # Alola form
+  2   # Galar form
+  ```
+</ParamField>
+
+<ParamField path="Gender" type="String">
+  `M` for male, `F` for female. Leave empty for random/genderless.
+  
+  ```
+  M
+  F
+  
+  ```
+</ParamField>
+
+<ParamField path="Ability" type="String">
+  Ability index or internal name. Leave empty for default.
+  
+  ```
+  
+  0   # First ability
+  1   # Second ability
+  ```
+</ParamField>
+
+<ParamField path="Shiny" type="String">
+  Write `shiny` for shiny Pokémon. Leave empty for normal.
+  
+  ```
+  
+  shiny
+  ```
+</ParamField>
+
+<ParamField path="Shadow" type="String">
+  Write `shadow` for Shadow Pokémon. Leave empty for normal.
+  
+  ```
+  
+  shadow
+  ```
+</ParamField>
+
+<ParamField path="IVs" type="Integer">
+  Individual Values (0-31). Leave empty for random.
+  
+  ```
+  
+  20  # All IVs set to 20
+  31  # Perfect IVs
+  ```
+</ParamField>
+
+<ParamField path="Happiness" type="Integer">
+  Friendship value (0-255). Leave empty for default.
+  
+  ```
+  
+  255  # Maximum happiness
+  ```
+</ParamField>
+
+<ParamField path="Nickname" type="String">
+  Custom nickname. Leave empty for species name.
+  
+  ```
+  
+  Rocky
+  Sparky
+  ```
+</ParamField>
+
+<ParamField path="Ball" type="Integer">
+  Poké Ball type (item ID). Leave empty for Poké Ball.
+  
+  ```
+  
+  19  # Great Ball
+  20  # Ultra Ball
+  ```
+</ParamField>
+
+<ParamField path="TeraType" type="Type">
+  Terastal type for Generation 9 mechanics.
+  
+  ```
+  
+  WATER
+  ELECTRIC
+  ```
+</ParamField>
+
+## Complete Examples
+
+### Simple Trainer
+
+```
+YOUNGSTER
+Ben
+2
+RATTATA,11
+EKANS,11
+```
+
+- Youngster Ben
+- 2 basic Pokémon
+- No items, default moves
+
+### Gym Leader
+
+```
+LEADER_Brock
+Brock
+2,FULLRESTORE,FULLRESTORE
+GEODUDE,12,,DEFENSECURL,HEADSMASH,ROCKPOLISH,ROCKTHROW,0,M,,,,20
+ONIX,14,SITRUSBERRY,HEADSMASH,ROCKTHROW,TERABLAST,ROCKTOMB,0,M,,shiny,,20,,Rocky,,19,WATER
+```
+
+- Gym Leader Brock
+- 2 Pokémon with items and custom moves
+- Both male, 20 IVs
+- Onix is shiny, nicknamed "Rocky", holding Sitrus Berry
+- Onix has Water Tera Type
+
+### Rival Battle (Multiple Versions)
+
+```
+RIVAL1
+Blue
+3
+PIDGEOTTO,17
+RATTATA,15
+BULBASAUR,18
+#-------------------
+RIVAL1
+Blue,1
+3
+PIDGEOTTO,17
+RATTATA,15
+CHARMANDER,18
+#-------------------
+RIVAL1
+Blue,2
+3
+PIDGEOTTO,17
+RATTATA,15
+SQUIRTLE,18
+```
+
+- Three versions of Blue (based on player's starter)
+- Use `Blue,1` and `Blue,2` for variations
+- Same structure, different starter
+
+### Team Rocket Battle
+
+```
+TEAMROCKET_M
+Rocket,1
+1
+WEEPINBELL,21,,,,,,,,,,,,,,true
+```
+
+- Male Team Rocket grunt
+- Version 1
+- One Pokémon with default moves
+- `true` flag at end (special property)
+
+### Champion Battle
+
+```
+CHAMPION
+Blue
+3
+VENUSAUR,63,SITRUSBERRY
+CHARIZARD,63,SITRUSBERRY
+BLASTOISE,63,SITRUSBERRY
+```
+
+- Champion Blue
+- High-level team (63)
+- All holding Sitrus Berries
+- Default moves based on level
+
+### Specialized Trainer
+
+```
+YOUNGSTER
+Test
+1
+ARBOLIVA,50,GRASSIUMZ,NATURALGIFT,GRASSKNOT,RAGE,ROCKTOMB,0,M,,shiny,,20,,,,19
+```
+
+- Test trainer
+- Level 50 shiny Arboliva
+- Holding Grassium Z
+- Custom moveset
+- Male, 20 IVs
+- Ball ID 19
+
+## Trainer Variations
+
+Use version numbers for trainers you battle multiple times:
+
+```
+CAMPER
+Jeff
+2
+SPEAROW,16
+SENTRET,16
+#-------------------
+CAMPER
+Jeff,1
+2
+FEAROW,29
+FURRET,29
+```
+
+- First battle: `Jeff` (no version number)
+- Rematch: `Jeff,1`
+- Further rematches: `Jeff,2`, `Jeff,3`, etc.
+
+## AI and Items
+
+Trainer behavior is defined in trainertypes.txt:
+
+<Accordion title="AI Skill Levels">
+  - **0** - No AI (random moves)
+  - **16** - Basic AI (type advantages)
+  - **32** - Standard AI (most trainers)
+  - **48** - Good AI (strategic)
+  - **60** - Strong AI (important trainers)
+  - **100** - Maximum AI (Champions, Leaders)
+  
+  Higher values make trainers smarter about move selection, switching, and item use.
+</Accordion>
+
+<Accordion title="Trainer Items">
+  Trainers can carry healing items defined on Line 3:
+  
+  ```
+  2,FULLRESTORE,FULLRESTORE     # Can use 2 Full Restores
+  2,POTION,SUPERPOTION,HYPERPOTION  # Multiple item types
+  2                              # No items
+  ```
+  
+  Items are used by AI during battle based on the trainer's skill level.
+</Accordion>
+
+## Double Battles
+
+For double battles, use trainers with `Mixed` gender:
+
+```
+COOLCOUPLE
+Alice & Bob
+2
+TURTWIG,19
+CHIMCHAR,19
+```
+
+- Two trainers in one battle
+- Names separated by ` & `
+- Both Pokémon sent out at once
+
+<Note>
+  **Separators**: Use `#-------------------` to separate trainer definitions for readability. This is optional but recommended.
+</Note>
+
+<Note>
+  **Empty Fields**: When leaving fields empty, still include the commas as placeholders. For example: `PIKACHU,25,,,,,0,M` leaves item and moves empty but specifies form and gender.
+</Note>
+
+<Note>
+  **Terastal**: The TeraType parameter is only used in Generation 9+ mechanics. It's the last parameter and defines which type the Pokémon Terastallizes into.
+</Note>
