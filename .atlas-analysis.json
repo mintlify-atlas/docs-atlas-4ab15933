@@ -1,0 +1,140 @@
+{
+  "projectType": "framework",
+  "projectName": "Pokémon Essentials BES",
+  "projectDescription": "A comprehensive RPG Maker XP framework for creating Pokémon fangames with complete Gen 1-9 Pokémon, moves, and abilities.",
+  "theme": "maple",
+  "primaryColor": "#ef7025",
+  "lightColor": "#eec9bc",
+  "darkColor": "#4fa1ab",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/framework-overview",
+              "concepts/pbs-system",
+              "concepts/game-structure",
+              "concepts/rpgmaker-integration"
+            ]
+          },
+          {
+            "group": "Game Development",
+            "pages": [
+              "development/creating-pokemon",
+              "development/creating-moves",
+              "development/creating-abilities",
+              "development/creating-items",
+              "development/creating-trainers",
+              "development/creating-maps"
+            ]
+          },
+          {
+            "group": "PBS Data Files",
+            "pages": [
+              "pbs/pokemon-txt",
+              "pbs/moves-txt",
+              "pbs/abilities-txt",
+              "pbs/items-txt",
+              "pbs/trainers-txt",
+              "pbs/metadata-txt"
+            ]
+          },
+          {
+            "group": "Scripting",
+            "pages": [
+              "scripting/ruby-basics",
+              "scripting/editor-scripts",
+              "scripting/battle-system",
+              "scripting/custom-events"
+            ]
+          },
+          {
+            "group": "Tools & Utilities",
+            "pages": [
+              "tools/editor",
+              "tools/animation-maker",
+              "tools/script-extractor",
+              "tools/debugging"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core Classes",
+            "pages": [
+              "api/pbmove",
+              "api/pbmovedata",
+              "api/pokemon-classes",
+              "api/trainer-classes"
+            ]
+          },
+          {
+            "group": "Battle System",
+            "pages": [
+              "api/battle-mechanics",
+              "api/move-effects",
+              "api/ability-effects"
+            ]
+          },
+          {
+            "group": "Data Management",
+            "pages": [
+              "api/data-loading",
+              "api/save-system",
+              "api/pbs-compiler"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Resources",
+        "groups": [
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/generation-9-features",
+              "resources/credits",
+              "resources/community",
+              "resources/faq",
+              "resources/troubleshooting"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Complete Pokémon data for Generations 1-9 with stats, moves, abilities, and evolutions",
+    "PBS (Plain Text Database) system for easy data editing without coding",
+    "Comprehensive battle system with move effects, abilities, and type interactions",
+    "Extensive item database including evolution stones, TMs, berries, and battle items",
+    "Trainer customization system with AI levels and party configurations",
+    "RPG Maker XP integration with map editing and event scripting",
+    "Ruby-based scripting system for custom game mechanics",
+    "Built-in tools for animations, debugging, and graphics optimization"
+  ],
+  "publicApiSurface": [
+    "PBMove - Move data and PP management",
+    "PBMoveData - Move attributes (type, power, accuracy, effects)",
+    "PokemonTemp - Temporary game data storage",
+    "PBS Files - pokemon.txt, moves.txt, abilities.txt, items.txt, trainers.txt, metadata.txt",
+    "Editor Tools - animmaker.exe, extendtext.exe, optipng.exe",
+    "Game Configuration - Game.ini, mkxp.json",
+    "Script System - Data/EditorScripts/*.rb",
+    "Data Compilers - PBS to binary data (.dat) conversion"
+  ]
+}
